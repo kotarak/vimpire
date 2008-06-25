@@ -13,7 +13,7 @@ let b:undo_indent = "setlocal ai< si< lisp< lw< et<"
 setlocal autoindent lisp expandtab nosmartindent
 
 " Defintions:
-setlocal lispwords=def,defn,defmacro,defmethod,let,fn,binding
+setlocal lispwords=def,defn,defn-,defmacro,defmethod,let,fn,binding
 
 " Conditionals and Loops:
 setlocal lispwords+=if,when,when-not,when-first,cond,loop,dotimes,for

@@ -30,7 +30,7 @@ syn match clojureFloat "\<-\?[0-9]\+\.[0-9]\+\([eE][-+]\=[0-9]\+\)\=\>"
 syn keyword clojureSyntax fn fn* if def let let* loop* new recur loop do quote the-var identical? throw set! monitor-enter monitor-exit try catch finally in-ns
 syn match clojureSyntax "(\s*\(\.\.\|\.\)"hs=s+1
 
-syn region clojureDef matchgroup=clojureSyntax start="(\s*\(defmethod\|defmulti\|defmacro\|defstruct\|defn\|def\)\(\s\|\n\)\+"hs=s+1 end="\ze[\[('":)]\|\ze\(#^\)\@<!{" contains=ALLBUT,clojureFunc
+syn region clojureDef matchgroup=clojureSyntax start="(\s*\(defmethod\|defmulti\|defmacro\|defstruct\|defn-\?\|def\)\(\s\|\n\)\+"hs=s+1 end="\ze[\[('":)]\|\ze\(#^\)\@<!{" contains=ALLBUT,clojureFunc
 syn match clojureDefName "\<[^0-9][a-zA-Z0-9\?!\-\+\*\./<>=]*\>" contained
 
 syn region clojureVector matchgroup=Delimiter start="\[" matchgroup=Delimiter end="\]" contains=ALLBUT,clojureDefName

@@ -12,6 +12,9 @@ let b:did_indent = 1
 let b:undo_indent = "setlocal ai< si< lisp< lw< et<"
 setlocal autoindent lisp expandtab nosmartindent
 
+" If a previously loaded indent plugin set this, we are in trouble.
+setlocal indentexpr=
+
 " Defintions:
 setlocal lispwords=def,defn,defn-,defmacro,defmethod,let,fn,binding
 

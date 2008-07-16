@@ -19,7 +19,7 @@ setlocal shiftwidth=2
 setlocal indentexpr=
 
 " Defintions:
-setlocal lispwords=def,defn,defn-,defmacro,defmethod,let,fn,binding
+setlocal lispwords=def,defn,defn-,defmacro,defmethod,let,fn,binding,proxy
 
 " Conditionals and Loops:
 setlocal lispwords+=if,when,when-not,when-first,cond,loop,dotimes,for

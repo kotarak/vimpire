@@ -9,8 +9,11 @@ if exists("b:did_indent")
 endif
 let b:did_indent = 1
 
-let b:undo_indent = "setlocal ai< si< lisp< lw< et<"
+let b:undo_indent = "setlocal ai< si< lisp< lw< et< sts< sw<"
 setlocal autoindent lisp expandtab nosmartindent
+
+setlocal softtabstop=2
+setlocal shiftwidth=2
 
 " If a previously loaded indent plugin set this, we are in trouble.
 setlocal indentexpr=

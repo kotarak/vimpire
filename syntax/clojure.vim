@@ -1,6 +1,6 @@
 " Vim syntax file
 " Language:	   Clojure
-" Last Change: 2008-05-14
+" Last Change: 2008-08-16
 " Maintainer:  Toralf Wittner <toralf.wittner@gmail.com>
 
 if version < 600
@@ -9,7 +9,8 @@ elseif exists("b:current_syntax")
     finish
 endif
 
-syn match clojureComment ";.*$"
+syn keyword clojureTodo contained FIXME XXX
+syn match clojureComment contains=clojureTodo ";.*$"
 syn match clojureKeyword ":\a[a-zA-Z0-9?!\-_+*\./=<>]*"
 syn region clojureString start=/"/ end=/"/ skip=/\\"/
 syn match clojureCharacter "\\."
@@ -44,6 +45,7 @@ syn match clojureSet "#\ze{"
 syn match clojureVarArg "&" containedin=clojureVector
 syn keyword clojureBoolean true false
 
+highlight link clojureTodo Todo
 highlight link clojureComment Comment
 highlight link clojureString String
 highlight link clojureCharacter Character

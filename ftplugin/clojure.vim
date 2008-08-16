@@ -1,7 +1,7 @@
 " Vim filetype plugin file
 " Language:     Clojure
 " Maintainer:   Meikel Brandmeyer <mb@kotka.de>
-" Last Change:  2008 Jun 21
+" Last Change:  2008 Aug 16
 
 " Only do this when not done yet for this buffer
 if exists("b:did_ftplugin")
@@ -13,7 +13,7 @@ let b:did_ftplugin = 1
 let s:cpo_save = &cpo
 set cpo&vim
 
-let b:undo_ftplugin = "setlocal fo< com< cms<"
+let b:undo_ftplugin = "setlocal fo< com< cms< cpt<"
 
 " Set 'formatoptions' to break comment lines but not other lines,
 " and insert the comment leader when hitting <CR> or using "o".
@@ -35,5 +35,9 @@ if has("gui_win32") && !exists("b:browsefilter")
 				\ "All Files (*.*)\t*.*\n"
 endif
 
+let s:completions = split(globpath(&rtp, "ftplugin/clojure/completions"), '\n')
+if s:completions != []
+	execute "setlocal complete+=k" . s:completions[0]
+endif
+
 let &cpo = s:cpo_save
-unlet s:cpo_save

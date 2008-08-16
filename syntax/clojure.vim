@@ -9,8 +9,6 @@ elseif exists("b:current_syntax")
     finish
 endif
 
-setl iskeyword+=?,-,*,!,+,/,=,<,>
-
 syn match clojureComment ";.*$"
 syn match clojureKeyword ":\a[a-zA-Z0-9?!\-_+*\./=<>]*"
 syn region clojureString start=/"/ end=/"/ skip=/\\"/

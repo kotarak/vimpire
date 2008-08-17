@@ -36,19 +36,22 @@ function! GetClojureIndent()
 	" Find the next enclosing [ or {. We can limit the second search
 	" to the line, where the [ was found. If no [ was there this is
 	" zero and we search for an enclosing {.
-	let bracket = s:MatchPairs('\[', '\]', 0)
+	let paren = s:MatchPairs('(', ')', 0)
+	let bracket = s:MatchPairs('\[', '\]', paren[0])
 	let curly = s:MatchPairs('{', '}', bracket[0])
 
 	" In case the curly brace is on a line later then the [ or - in
 	" case they are on the same line - in a higher column, we take the
 	" curly indent.
 	if curly[0] > bracket[0] || curly[1] > bracket[1]
-		return curly[1]
+		if curly[0] > paren[0] || curly[1] > paren[1]
+			return curly[1]
+		endif
 	endif
 
 	" If the curly was not chosen, we take the bracket indent - if
 	" there was one.
-	if bracket[1] > 0
+	if bracket[0] > paren[0] || bracket[1] > paren[1]
 		return bracket[1]
 	endif
 

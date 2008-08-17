@@ -33,6 +33,9 @@ function! s:MatchPairs(open, close, stopat)
 endfunction
 
 function! GetClojureIndent()
+	let c = getpos(".")
+	execute "normal ^"
+
 	" Find the next enclosing [ or {. We can limit the second search
 	" to the line, where the [ was found. If no [ was there this is
 	" zero and we search for an enclosing {.
@@ -56,7 +59,11 @@ function! GetClojureIndent()
 	endif
 
 	" Fallback to normal lispindent.
-	return lispindent(".")
+	let ind = lispindent(".")
+
+	call setpos(".", c)
+
+	return ind
 endfunction
 setlocal indentexpr=GetClojureIndent()
 

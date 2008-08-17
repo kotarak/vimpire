@@ -11,8 +11,13 @@ endif
 
 syn keyword clojureTodo contained FIXME XXX
 syn match clojureComment contains=clojureTodo ";.*$"
+
+syn match clojureNil "\<nil\>"
+
 syn match clojureKeyword ":\a[a-zA-Z0-9?!\-_+*\./=<>]*"
+
 syn region clojureString start=/"/ end=/"/ skip=/\\"/
+
 syn match clojureCharacter "\\."
 syn match clojureCharacter "\\[0-7]\{3\}"
 syn match clojureCharacter "\\u[0-9]\{4\}"
@@ -26,24 +31,23 @@ syn match clojureNumber "\<-\?[0-9]\+\>"
 syn match clojureRational "\<-\?[0-9]\+/[0-9]\+\>"
 syn match clojureFloat "\<-\?[0-9]\+\.[0-9]\+\([eE][-+]\=[0-9]\+\)\=\>"
 
-syn keyword clojureSyntax fn fn* if def let let* loop* new recur loop do quote the-var identical? throw set! monitor-enter monitor-exit try catch finally in-ns
-syn match clojureSyntax "(\s*\(\.\.\|\.\)"hs=s+1
+syn keyword clojureBoolean true false
 
-syn region clojureDef matchgroup=clojureSyntax start="(\s*\(defmethod\|defmulti\|defmacro\|defstruct\|defn-\?\|def\)\(\s\|\n\)\+"hs=s+1 end="\ze[\[('":)]\|\ze\(#^\)\@<!{" contains=ALLBUT,clojureFunc
-syn match clojureDefName "\<[^0-9][a-zA-Z0-9\?!\-\+\*\./<>=]*\>" contained
+syn keyword clojureSyntax fn fn* if def let let* loop* new recur loop do quote the-var identical? throw set! monitor-enter monitor-exit try catch finally in-ns .
 
-syn region clojureVector matchgroup=Delimiter start="\[" matchgroup=Delimiter end="\]" contains=ALLBUT,clojureDefName
-syn region clojureMap matchgroup=Delimiter start="{" matchgroup=Delimiter end="}" contains=ALLBUT,clojureDefName
-
-syn match clojureNil "\<nil\>"
 syn match clojureQuote "\('\|`\)"
 syn match clojureUnquote "\(\~@\|\~\)"
 syn match clojureDispatch "\(#^\|#'\)"
-syn match clojureAnonFn "#\ze("
-syn match clojurePattern /#\ze"/
-syn match clojureSet "#\ze{"
-syn match clojureVarArg "&" containedin=clojureVector
-syn keyword clojureBoolean true false
+
+syn match clojureAnonArg contained "%\(\d\|&\)\?"
+syn match clojureVarArg contained "&"
+
+syn region clojureAnonFn matchgroup=Delimiter start="#(" matchgroup=Delimiter end=")" contains=ALLBUT,clojureVarArg
+syn region clojureSexp matchgroup=Delimiter start="(" matchgroup=Delimiter end=")" contains=TOP
+syn region clojureVector matchgroup=Delimiter start="\[" matchgroup=Delimiter end="\]" contains=ALLBUT,clojureAnonArg
+syn region clojureMap matchgroup=Delimiter start="{" matchgroup=Delimiter end="}" contains=TOP
+syn region clojureSet matchgroup=Delimiter start="#{" matchgroup=Delimiter end="}" contains=TOP
+syn region clojurePattern start=/#"/ end=/"/ skip=/\\"/
 
 highlight link clojureTodo Todo
 highlight link clojureComment Comment
@@ -57,12 +61,11 @@ highlight link clojureSyntax Statement
 highlight link clojureDefName Function
 highlight link clojureNil Constant
 highlight link clojureQuote Macro
-highlight link clojureAnonFn Macro
-highlight link clojurePattern Macro
-highlight link clojureSet Macro
+highlight link clojureAnonArg Constant
+highlight link clojurePattern String
 highlight link clojureUnquote Delimiter
 highlight link clojureDispatch Constant
-highlight link clojureVarArg Number
+highlight link clojureVarArg Constant
 highlight link clojureBoolean Constant
 
 if exists("g:clj_highlight_builtins")

@@ -12,7 +12,7 @@ let b:did_indent = 1
 let s:save_cpo = &cpo
 set cpo&vim
 
-let b:undo_indent = "setlocal ai< si< lw< et< sts< sw< inde<"
+let b:undo_indent = "setlocal ai< si< lw< et< sts< sw< inde< indk<"
 
 setlocal autoindent expandtab nosmartindent
 
@@ -66,6 +66,7 @@ function! GetClojureIndent()
 	return ind
 endfunction
 setlocal indentexpr=GetClojureIndent()
+setlocal indentkeys=!,o,O
 
 " Defintions:
 setlocal lispwords=def,defn,defn-,defmacro,defmethod,let,fn,binding,proxy

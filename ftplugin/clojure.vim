@@ -39,7 +39,14 @@ endif
 
 let s:completions = split(globpath(&rtp, "ftplugin/clojure/completions"), '\n')
 if s:completions != []
-	execute "setlocal complete+=k" . fnameescape(s:completions[0])
+	if exists("*fnameescape")
+		let dictionary = fnameescape(s:completions[0])
+	else
+		let dictionary = s:completions[0]
+	endif
+
+	execute "setlocal complete+=k" . dictionary
 endif
+unlet s:completions
 
 let &cpo = s:cpo_save

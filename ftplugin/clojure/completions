@@ -3,11 +3,9 @@ read-line
 re-pattern
 keyword?
 val
-!
 max-key
 list*
 ns-aliases
-==
 longs
 instance?
 empty
@@ -31,7 +29,6 @@ for
 long-array
 cond
 bit-set
-fn
 ns-unalias
 ns-publics
 dosync
@@ -86,7 +83,6 @@ unchecked-inc
 *math-context*
 read
 make-hierarchy
-+
 descendants
 into-array
 last
@@ -96,17 +92,14 @@ prn
 with-meta
 with-out-str
 floats
-*
 fnseq
 when-not
 butlast
--
 completions
 rseq
 send-off
 seq?
 identical?
-..
 print
 *command-line-args*
 bit-flip
@@ -126,7 +119,6 @@ vector
 conj
 bases
 with-out-file
-/
 unchecked-add
 ref-set
 assoc
@@ -200,7 +192,6 @@ with-precision
 *use-context-classloader*
 ffirst
 bit-clear
-or
 hash
 drop-last
 replace
@@ -223,7 +214,6 @@ constantly
 load
 namespace
 pr-str
-<
 rationalize
 sort-by
 cycle
@@ -231,7 +221,6 @@ peek
 reduce
 interleave
 amap
-->
 cons
 macroexpand
 var-set
@@ -240,7 +229,6 @@ aset-boolean
 ns-imports
 first
 bean
-=
 var-get
 range
 tree-seq
@@ -251,7 +239,6 @@ ensure
 find-ns
 not-every?
 struct-map
->
 max
 proxy-mappings
 identity
@@ -262,7 +249,6 @@ agent-errors
 clear-agent-errors
 ns-resolve
 method-sig
->=
 shutdown-agents
 bit-shift-left
 touch
@@ -270,7 +256,6 @@ compare
 cast
 supers
 get
-<=
 await
 resolve
 force
@@ -313,7 +298,6 @@ bigint
 dec
 println
 aget
-pr
 drop
 gen-class
 eval

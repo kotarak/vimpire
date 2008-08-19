@@ -1,7 +1,7 @@
 " Vim filetype plugin file
 " Language:     Clojure
 " Maintainer:   Meikel Brandmeyer <mb@kotka.de>
-" Last Change:  2008 Aug 16
+" Last Change:  2008 Aug 19
 
 " Only do this when not done yet for this buffer
 if exists("b:did_ftplugin")
@@ -39,7 +39,7 @@ endif
 
 let s:completions = split(globpath(&rtp, "ftplugin/clojure/completions"), '\n')
 if s:completions != []
-	execute "setlocal complete+=k" . s:completions[0]
+	execute "setlocal complete+=k" . fnameescape(s:completions[0])
 endif
 
 let &cpo = s:cpo_save

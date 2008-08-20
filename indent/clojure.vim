@@ -19,6 +19,7 @@ setlocal autoindent expandtab nosmartindent
 setlocal softtabstop=2
 setlocal shiftwidth=2
 
+if exists("*searchpairpos")
 function! s:MatchPairs(open, close, stopat)
 	let c = getpos(".")
 
@@ -66,6 +67,12 @@ function! GetClojureIndent()
 	return ind
 endfunction
 setlocal indentexpr=GetClojureIndent()
+else
+	setlocal indentexpr=
+	setlocal lisp
+
+	let b:undo_indent = b:undo_indent . " lisp<"
+endif
 setlocal indentkeys=!,o,O
 
 " Defintions:

@@ -83,7 +83,7 @@ setlocal lispwords+=if-let,when,when-not,when-let,when-first
 setlocal lispwords+=cond,loop,dotimes,for
 
 " Blocks:
-setlocal lispwords+=do,doto,try,catch,locking,with-out-str,with-open
+setlocal lispwords+=do,doto,try,catch,locking,with-in-str,with-out-str,with-open
 setlocal lispwords+=dosync,with-local-vars,doseq
 
 let &cpo = s:save_cpo

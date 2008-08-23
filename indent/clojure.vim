@@ -79,7 +79,8 @@ setlocal indentkeys=!,o,O
 setlocal lispwords=def,defn,defn-,defmacro,defmethod,let,fn,binding,proxy
 
 " Conditionals and Loops:
-setlocal lispwords+=if,when,when-not,when-let,when-first,cond,loop,dotimes,for
+setlocal lispwords+=if-let,when,when-not,when-let,when-first
+setlocal lispwords+=cond,loop,dotimes,for
 
 " Blocks:
 setlocal lispwords+=do,doto,try,catch,locking,with-out-str,with-open

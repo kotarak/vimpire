@@ -138,6 +138,8 @@ syn region clojureMap matchgroup=Delimiter start="{" matchgroup=Delimiter end="}
 syn region clojureSet matchgroup=Delimiter start="#{" matchgroup=Delimiter end="}" contains=TOP
 syn region clojurePattern start=/#"/ end=/"/ skip=/\\"/
 
+syn sync match matchPlace grouphere NONE "^[^ \t]"
+
 highlight default link clojureConstant  Constant
 highlight default link clojureBoolean   Boolean
 highlight default link clojureCharacter Character

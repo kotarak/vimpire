@@ -172,7 +172,7 @@ else
 endif
 
 " Defintions:
-setlocal lispwords=def,defn,defn-,defmacro,defmethod,let,fn,binding,proxy
+setlocal lispwords=def,def-,defn,defn-,defmacro,defmethod,defonce,let,fn,binding,proxy
 
 " Conditionals and Loops:
 setlocal lispwords+=if,if-let,when,when-not,when-let,when-first
@@ -180,6 +180,8 @@ setlocal lispwords+=cond,loop,dotimes,for
 
 " Blocks:
 setlocal lispwords+=do,doto,try,catch,locking,with-in-str,with-out-str,with-open
-setlocal lispwords+=dosync,with-local-vars,doseq
+setlocal lispwords+=dosync,with-local-vars,doseq,dorun,doall
+
+setlocal lispwords+=ns,clojure/ns
 
 let &cpo = s:save_cpo

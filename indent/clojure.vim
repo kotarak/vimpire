@@ -24,106 +24,139 @@ setlocal indentkeys=!,o,O
 
 if exists("*searchpairpos")
 
-function! s:Yank(how)
-	let save_l = @l
-	execute a:how
-	let text = @l
-	let @l = save_l
-	return text
+function! s:WithSaved(closure)
+	let v = a:closure.get(a:closure.tosafe)
+	let r = a:closure.f()
+	call a:closure.set(a:closure.tosafe, v)
+	return r
+endfunction
+
+function! s:WithSavedRegister(closure)
+	let a:closure['get'] = function("getreg")
+	let a:closure['set'] = function("setreg")
+	return s:WithSaved(a:closure)
+endfunction
+
+function! s:Yank(r, how)
+	let closure = {'tosafe': a:r, 'yank': a:how}
+
+	function closure.f() dict
+		execute self.yank
+		return getreg(self.tosafe)
+	endfunction
+
+	return s:WithSavedRegister(closure)
 endfunction
 
 function! s:SynItem()
 	return synIDattr(synID(line("."), col("."), 0), "name")
 endfunction
 
-function! s:MatchPairs(open, close, stopat)
-	let c = getpos(".")
-
-	" Stop only on vector and map [ resp. {. Ignore the ones in strings and
-	" comments.
-	let nc = searchpairpos(a:open, '', a:close, 'bW',
-				\ 'synIDattr(synID(line("."), col("."), 0), "name") != "Delimiter"',
-				\ a:stopat)
-
-	call setpos(".", c)
-	return nc
+function! s:WithSavedPosition(closure)
+	let a:closure['tosafe'] = "."
+	let a:closure['get'] = function("getpos")
+	let a:closure['set'] = function("setpos")
+	return s:WithSaved(a:closure)
 endfunction
 
-function! s:CheckForString(pos)
-	" We have to apply some heuristics here to figure out, whether to use
-	" normal lisp indenting or not.
-	"
-	" Check whether there is the last character of the previous line is
-	" highlighted as a string. If so, we check whether it's a ". In this
-	" case we have to check also the previous character. The " might be the
-	" closing one.
-	let nb = prevnonblank(a:pos[1] - 1)
+function! s:MatchPairs(open, close, stopat)
+	let closure = { 'open': a:open, 'close': a:close, 'stopat': a:stopat }
 
-	execute ":" . nb
-	normal $
-	if s:SynItem() != "clojureString"
-		call setpos(".", a:pos)
-		return -1
-	endif
+	function closure.f() dict
+		" Stop only on vector and map [ resp. {. Ignore the ones in strings and
+		" comments.
+		return searchpairpos(self.open, '', self.close, 'bW',
+				\ 'synIDattr(synID(line("."), col("."), 0), "name") != "Delimiter"',
+				\ self.stopat)
+	endfunction
 
-	if s:Yank('normal "lyl') == '"'
-		normal h
-		if s:Yank('normal "lyl') != '\' && s:SynItem() == "clojureString"
-			call setpos(".", a:pos)
+	return s:WithSavedPosition(closure)
+endfunction
+
+function! s:CheckForString()
+	let closure = {}
+
+	function closure.f() dict
+		" Check whether there is the last character of the previous line is
+		" highlighted as a string. If so, we check whether it's a ". In this
+		" case we have to check also the previous character. The " might be the
+		" closing one. In case the we are still in the string, we search for the
+		" opening ". If this is not found we take the indent of the line.
+		let nb = prevnonblank(v:lnum - 1)
+
+		if nb == 0
+			return 0
+		endif
+
+		call cursor(nb, col([nb, "$"]) - 1)
+		if s:SynItem() != "clojureString"
 			return -1
 		endif
-	endif
 
-	let p = getpos(".")
-	silent! normal F"
+		if s:Yank('l', 'normal! "lyl') == '"'
+			call cursor(0, col("$") - 2)
+			if s:Yank('l', 'normal "lyl') != '\\' && s:SynItem() == "clojureString"
+				return -1
+			endif
+			call cursor(0, col("$") - 1)
+		endif
 
-	let p2 = getpos(".")
-	call setpos(".", a:pos)
-	if p != p2
-		return p2[2] - 1
-	else
+		let p = searchpos('\(^\|[^\\]\)\zs"', 'bW')
+
+		if p != [0, 0]
+			return p[1] - 1
+		endif
+
 		return indent(".")
-	endif
+	endfunction
+
+	return s:WithSavedPosition(closure)
 endfunction
 
 function! GetClojureIndent()
-	let c = getpos(".")
+	" Get rid of special case.
+	if line(".") == 1
+		return 0
+	endif
 
-	let i = s:CheckForString(c)
+	" We have to apply some heuristics here to figure out, whether to use
+	" normal lisp indenting or not.
+	let i = s:CheckForString()
 	if i > -1
 		return i
 	endif
 
-	normal ^
+	let closure = {}
+	function closure.f() dict
+		call cursor(0, 1)
 
-	" Find the next enclosing [ or {. We can limit the second search
-	" to the line, where the [ was found. If no [ was there this is
-	" zero and we search for an enclosing {.
-	let paren = s:MatchPairs('(', ')', 0)
-	let bracket = s:MatchPairs('\[', '\]', paren[0])
-	let curly = s:MatchPairs('{', '}', bracket[0])
+		" Find the next enclosing [ or {. We can limit the second search
+		" to the line, where the [ was found. If no [ was there this is
+		" zero and we search for an enclosing {.
+		let paren = s:MatchPairs('(', ')', 0)
+		let bracket = s:MatchPairs('\[', '\]', paren[0])
+		let curly = s:MatchPairs('{', '}', bracket[0])
 
-	" In case the curly brace is on a line later then the [ or - in
-	" case they are on the same line - in a higher column, we take the
-	" curly indent.
-	if curly[0] > bracket[0] || curly[1] > bracket[1]
-		if curly[0] > paren[0] || curly[1] > paren[1]
-			return curly[1]
+		" In case the curly brace is on a line later then the [ or - in
+		" case they are on the same line - in a higher column, we take the
+		" curly indent.
+		if curly[0] > bracket[0] || curly[1] > bracket[1]
+			if curly[0] > paren[0] || curly[1] > paren[1]
+				return curly[1]
+			endif
 		endif
-	endif
 
-	" If the curly was not chosen, we take the bracket indent - if
-	" there was one.
-	if bracket[0] > paren[0] || bracket[1] > paren[1]
-		return bracket[1]
-	endif
+		" If the curly was not chosen, we take the bracket indent - if
+		" there was one.
+		if bracket[0] > paren[0] || bracket[1] > paren[1]
+			return bracket[1]
+		endif
 
-	" Fallback to normal lispindent.
-	let ind = lispindent(".")
+		" Fallback to normal lispindent.
+		return lispindent(".")
+	endfunction
 
-	call setpos(".", c)
-
-	return ind
+	return s:WithSavedPosition(closure)
 endfunction
 
 setlocal indentexpr=GetClojureIndent()

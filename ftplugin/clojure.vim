@@ -13,9 +13,11 @@ let b:did_ftplugin = 1
 let s:cpo_save = &cpo
 set cpo&vim
 
-let b:undo_ftplugin = "setlocal fo< com< cms< cpt< isk<"
+let b:undo_ftplugin = "setlocal fo< com< cms< cpt< isk< def<"
 
 setlocal iskeyword+=?,-,*,!,+,/,=,<,>,.
+
+setlocal define=^\\s*(def\\(-\\|n\\|n-\\|macro\\|struct\\|multi\\)?
 
 " Set 'formatoptions' to break comment lines but not other lines,
 " and insert the comment leader when hitting <CR> or using "o".

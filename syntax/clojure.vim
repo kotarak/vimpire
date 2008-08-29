@@ -10,16 +10,102 @@ elseif exists("b:current_syntax")
 endif
 
 if exists("g:clj_highlight_builtins")
-    "Highlight Clojure's predefined functions"
-    syn keyword clojureFunc ! * *agent* *command-line-args* *in* *macro-meta* *ns* *out* *print-meta* *print-readably* *proxy-classes* *warn-on-reflection* + - -> .. / < <= = == > >= accessor agent agent-errors aget alength all-ns alter and apply array-map aset aset-boolean aset-byte aset-char aset-double aset-float aset-int aset-long aset-short assert assoc await await-for bean binding bit-and bit-not bit-or bit-shift-left bit-shift-right bit-xor boolean butlast byte cast char class clear-agent-errors commute comp comparator complement concat cond conj cons constantly construct-proxy contains? count create-ns create-struct cycle dec defmacro defmethod defmulti defn defn- defstruct deref destructure disj dissoc distinct doall doc dorun doseq dosync dotimes doto double drop drop-while ensure eval every? false? ffirst file-seq filter find find-doc find-ns find-var first float flush fnseq for frest gensym get get-proxy-class hash-map hash-set identity if-let import inc instance? int interleave into into-array iterate key keys keyword keyword? last lazy-cat lazy-cons line-seq list list* load load-file locking long macroexpand macroexpand-1 make-array map map? mapcat max max-key memfn merge merge-with meta min min-key name namespace neg? newline nil? not not-any? not-every? not= ns-imports ns-interns ns-map ns-name ns-publics ns-refers ns-resolve ns-unmap nth nthrest or partial peek pmap pop pos? pr pr-str print print-doc print-str println println-str prn prn-str proxy proxy-mappings quot rand rand-int range re-find re-groups re-matcher re-matches re-pattern re-seq read read-line reduce ref ref-set refer rem remove-method remove-ns repeat replace replicate require resolve rest resultset-seq reverse rfirst rrest rseq scan second select-keys send send-off seq seq? set short slurp some sort sort-by sorted-map sorted-map-by sorted-set special-symbol? split-at split-with str string? struct struct-map subs subvec symbol symbol? sync take take-nth take-while test this time to-array to-array-2d touch tree-seq true? update-proxy val vals var-get var-set var? vector vector? when when-first when-let when-not with-local-vars with-meta with-open with-out-str xml-seq zero? zipmap repeatedly add-classpath vec hash
-    highlight default link clojureFunc Special
+	" Boolean
+	syn keyword clojureBoolean true false
+
+	" Predicates and Tests
+	syn keyword clojureFunc = not= none= not nil? false? true? complement identical? string? symbol? map? seq? vector? keyword? special-symbol? var?
+	syn keyword clojureMacro and or
+
+	" Conditionals
+	syn keyword clojureCond if if-let when when-not when-let when-first cond
+	syn keyword clojureException try catch finally throw
+
+	" Functionals
+	syn keyword clojureFunc apply partial comp constantly identity comparator
+	syn keyword clojureMacro fn
+
+	" Regular Expressions
+	syn keyword clojureFunc re-matcher re-find re-matches re-groups re-seq re-pattern
+
+	" Define
+	syn keyword clojureDefine def def- defn defn- defmacro let
+
+	" Other Functions
+	syn keyword clojureFunc str time pr prn print println pr-str prn-str print-str println-str newline macroexpand macroexpand-1 monitor-enter monitor-exit doc eval find-doc file-seq flush hash load load-file print-doc read read-line scan slurp subs sync test
+	syn keyword clojureMacro -> assert with-out-str with-in-str with-open locking do quote var loop destructure
+	syn keyword clojureRepeat recur
+	syn keyword clojureComment comment
+	syn keyword clojureVariable *in* *out* *command-line-args* *print-meta* *print-readably*
+
+	" Nil
+	syn keyword clojureConstant nil
+
+	" Number Functions
+	syn keyword clojureFunc + - * / < <= == >= > dec inc min max neg? pos? quot rem zero? rand rand-int
+
+	" Bit Functions
+	syn keyword clojureFunc bit-and bit-or bit-xor bit-not bit-shift-left bit-shift-right
+
+	" Symbols
+	syn keyword clojureFunc symbol keyword gensym
+
+	" Collections
+	syn keyword clojureFunc count conj seq first rest ffirst frest rfirst rrest second every? not-every? some not-any? concat reverse cycle interleave interpose split-at split-with take take-nth take-while drop drop-while repeat replicate iterate range into distinct sort sort-by zipmap fnseq lazy-cons lazy-cat line-seq butlast last nth nthrest repeatedly tree-seq
+	syn keyword clojureRepeat map mapcat reduce filter for doseq dorun doall dotimes
+
+	" Lists
+	syn keyword clojureFunc list list* cons peek pop
+
+	" Vectors
+	syn keyword clojureFunc vec vector peek pop rseq subvec
+
+	" Maps
+	syn keyword clojureFunc array-map hash-map sorted-map sorted-map-by assoc dissoc get contains? find select-keys key val keys vals merge merge-with max-key min-key
+
+	" Struct-Maps
+	syn keyword clojureFunc create-struct struct-map struct accessor
+	syn keyword clojureDefine defstruct
+
+	" Sets
+	syn keyword clojureFunc hash-set sorted-set set disj union difference intersection select index rename join map-invert project
+
+	" Multimethods
+	syn keyword clojureDefine defmulti defmethod
+	syn keyword clojureFunc remove-method
+
+	" Metadata
+	syn keyword clojureFunc meta with-meta
+
+	" Namespaces
+	syn keyword clojureFunc in-ns clojure/in-ns refer clojure/refer create-ns find-ns all-ns remove-ns import ns-name ns-map ns-interns ns-publics ns-imports ns-refers ns-resolve resolve ns-unmap name namespace require use
+	syn keyword clojureMacro ns clojure/ns
+	syn keyword clojureVariable *ns*
+
+	" Vars and Environment
+	syn keyword clojureMacro binding with-local-vars
+	syn keyword clojureFunc set! find-var var-get var-set
+
+	" Refs and Transactions
+	syn keyword clojureFunc ref deref ensure alter ref-set commute
+	syn keyword clojureMacro dosync
+
+	" Agents
+	syn keyword clojureFunc agent send send-off agent-errors clear-agent-errors await await-for
+	syn keyword clojureVariable *agent*
+
+	" Java Interaction
+	syn keyword clojureSpecial . new
+	syn keyword clojureMacro .. doto memfn proxy
+	syn keyword clojureFunc instance? bean alength aget aset aset-boolean aset-byte aset-char aset-double aset-float aset-int aset-long aset-short areduce make-array to-array to-array-2d into-array int long float double char boolean short byte parse add-classpath cast class get-proxy-class proxy-mappings update-proxy
+	syn keyword clojureVariable *warn-on-reflection* *proxy-classes* this
+
+	" Zip
+	syn keyword clojureFunc append-child branch? children up down edit end? insert-child insert-left insert-right left lefts right rights make-node next node path remove replace root seq-zip vector-zip xml-zip zipper
 endif
 
 syn keyword clojureTodo contained FIXME XXX
 syn match clojureComment contains=clojureTodo ";.*$"
-syn keyword clojureComment comment
-
-syn match clojureNil "\<nil\>"
 
 syn match clojureKeyword ":\a[a-zA-Z0-9?!\-_+*\./=<>]*"
 
@@ -38,10 +124,6 @@ syn match clojureNumber "\<-\?[0-9]\+\>"
 syn match clojureRational "\<-\?[0-9]\+/[0-9]\+\>"
 syn match clojureFloat "\<-\?[0-9]\+\.[0-9]\+\([eE][-+]\=[0-9]\+\)\=\>"
 
-syn keyword clojureBoolean true false
-
-syn keyword clojureSyntax fn fn* if def let let* loop* new recur loop do quote the-var identical? throw set! monitor-enter monitor-exit try catch finally in-ns .
-
 syn match clojureQuote "\('\|`\)"
 syn match clojureUnquote "\(\~@\|\~\)"
 syn match clojureDispatch "\(#^\|#'\)"
@@ -56,23 +138,32 @@ syn region clojureMap matchgroup=Delimiter start="{" matchgroup=Delimiter end="}
 syn region clojureSet matchgroup=Delimiter start="#{" matchgroup=Delimiter end="}" contains=TOP
 syn region clojurePattern start=/#"/ end=/"/ skip=/\\"/
 
-highlight default link clojureTodo Todo
-highlight default link clojureComment Comment
-highlight default link clojureString String
+highlight default link clojureConstant  Constant
+highlight default link clojureBoolean   Boolean
 highlight default link clojureCharacter Character
-highlight default link clojureNumber Number
-highlight default link clojureFloat Number
-highlight default link clojureRational Number
-highlight default link clojureKeyword PreProc
-highlight default link clojureSyntax Statement
-highlight default link clojureDefName Function
-highlight default link clojureNil Constant
-highlight default link clojureQuote Macro
-highlight default link clojureAnonArg Constant
-highlight default link clojurePattern String
-highlight default link clojureUnquote Delimiter
-highlight default link clojureDispatch Constant
-highlight default link clojureVarArg Constant
-highlight default link clojureBoolean Constant
+highlight default link clojureKeyword   Operator
+highlight default link clojureNumber    Number
+highlight default link clojureRational  Number
+highlight default link clojureFloat     Float
+highlight default link clojureString    String
+highlight default link clojurePattern   Constant
+
+highlight default link clojureVariable  Identifier
+highlight default link clojureCond      Conditional
+highlight default link clojureDefine    Define
+highlight default link clojureException Exception
+highlight default link clojureFunc      Function
+highlight default link clojureMacro     Macro
+highlight default link clojureRepeat    Repeat
+
+highlight default link clojureQuote     Special
+highlight default link clojureUnquote   Special
+highlight default link clojureDispatch  Special
+highlight default link clojureAnonArg   Special
+highlight default link clojureVarArg    Special
+highlight default link clojureSpecial   Special
+
+highlight default link clojureComment   Comment
+highlight default link clojureTodo      Todo
 
 let b:current_syntax = "clojure"

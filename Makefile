@@ -11,7 +11,7 @@ bump-version:
 	shtool version -l txt -n vimclojure -i v version.txt
 
 bump-revision:
-	shtool version -l txt -n vimclojure -i i version.txt
+	shtool version -l txt -n vimclojure -i r version.txt
 
 bump-level:
 	shtool version -l txt -n vimclojure -i l version.txt

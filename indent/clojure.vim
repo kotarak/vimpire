@@ -1,7 +1,8 @@
 " Vim indent file
 " Language:      Clojure
 " Maintainer:    Meikel Brandmeyer <mb@kotka.de>
-" Last Change:   2008 Aug 16
+" Last Change:   2008 Aug 24
+" URL:           http://kotka.de/projects/clojure/vimclojure.html
 
 " Only load this indent file when no other was loaded.
 if exists("b:did_indent")
@@ -19,7 +20,22 @@ setlocal autoindent expandtab nosmartindent
 setlocal softtabstop=2
 setlocal shiftwidth=2
 
+setlocal indentkeys=!,o,O
+
 if exists("*searchpairpos")
+
+function! s:Yank(how)
+	let save_l = @l
+	execute a:how
+	let text = @l
+	let @l = save_l
+	return text
+endfunction
+
+function! s:SynItem()
+	return synIDattr(synID(line("."), col("."), 0), "name")
+endfunction
+
 function! s:MatchPairs(open, close, stopat)
 	let c = getpos(".")
 
@@ -33,9 +49,52 @@ function! s:MatchPairs(open, close, stopat)
 	return nc
 endfunction
 
+function! s:CheckForString(pos)
+	" We have to apply some heuristics here to figure out, whether to use
+	" normal lisp indenting or not.
+	"
+	" Check whether there is the last character of the previous line is
+	" highlighted as a string. If so, we check whether it's a ". In this
+	" case we have to check also the previous character. The " might be the
+	" closing one.
+	let nb = prevnonblank(a:pos[1] - 1)
+
+	execute ":" . nb
+	normal $
+	if s:SynItem() != "clojureString"
+		call setpos(".", a:pos)
+		return -1
+	endif
+
+	if s:Yank('normal "lyl') == '"'
+		normal h
+		if s:Yank('normal "lyl') != '\' && s:SynItem() == "clojureString"
+			call setpos(".", a:pos)
+			return -1
+		endif
+	endif
+
+	let p = getpos(".")
+	silent! normal F"
+
+	let p2 = getpos(".")
+	call setpos(".", a:pos)
+	if p != p2
+		return p2[2] - 1
+	else
+		return indent(".")
+	endif
+endfunction
+
 function! GetClojureIndent()
 	let c = getpos(".")
-	execute "normal ^"
+
+	let i = s:CheckForString(c)
+	if i > -1
+		return i
+	endif
+
+	normal ^
 
 	" Find the next enclosing [ or {. We can limit the second search
 	" to the line, where the [ was found. If no [ was there this is
@@ -66,14 +125,18 @@ function! GetClojureIndent()
 
 	return ind
 endfunction
+
 setlocal indentexpr=GetClojureIndent()
+
 else
+
+	" In case we have searchpairpos not available we fall back to
+	" normal lisp indenting.
 	setlocal indentexpr=
 	setlocal lisp
-
 	let b:undo_indent = b:undo_indent . " lisp<"
+
 endif
-setlocal indentkeys=!,o,O
 
 " Defintions:
 setlocal lispwords=def,defn,defn-,defmacro,defmethod,let,fn,binding,proxy

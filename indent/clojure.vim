@@ -1,7 +1,7 @@
 " Vim indent file
 " Language:      Clojure
 " Maintainer:    Meikel Brandmeyer <mb@kotka.de>
-" Last Change:   2008 Aug 24
+" Last Change:   2008 Aug 31
 " URL:           http://kotka.de/projects/clojure/vimclojure.html
 
 " Only load this indent file when no other was loaded.
@@ -66,7 +66,7 @@ function! s:MatchPairs(open, close, stopat)
 		" Stop only on vector and map [ resp. {. Ignore the ones in strings and
 		" comments.
 		return searchpairpos(self.open, '', self.close, 'bW',
-				\ 'synIDattr(synID(line("."), col("."), 0), "name") != "Delimiter"',
+				\ 'synIDattr(synID(line("."), col("."), 0), "name") !~ "clojureParen\\d"',
 				\ self.stopat)
 	endfunction
 
@@ -136,8 +136,32 @@ function! s:GetClojureIndentWorker()
 		return bracket[1]
 	endif
 
-	" Fallback to normal lispindent.
-	return lispindent(".")
+	" There are neither { nor [ nor (, ie. we are at the toplevel.
+	if paren == [0, 0]
+		return 0
+	endif
+
+	" Now we have to reimplement lispindent. This is surprisingly easy, as
+	" soon as one has access to syntax items.
+	"
+	" Get the next keyword after the (.  In case it is in lispwords, we indent
+	" the next line to the column of the ( + 2. If not, we check whether it is
+	" last word in the line. In that case we again use ( + 2 for indent. In
+	" any other case we use the column of the end of the word + 2.
+	call cursor(paren[0] , paren[1])
+	normal w
+	let w = s:Yank('l', 'normal "lye')
+	if &lispwords =~ '\<' . w . '\>'
+		return paren[1] + 1
+	endif
+
+	normal w
+	if paren[0] < line(".")
+		return paren[1] + 1
+	endif
+
+	normal ge
+	return col(".") + 1
 endfunction
 
 function! GetClojureIndent()

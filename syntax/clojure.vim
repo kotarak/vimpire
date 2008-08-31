@@ -16,7 +16,7 @@ if exists("g:clj_highlight_builtins")
 	syn keyword clojureBoolean   true false
 
 	" Predicates and Tests
-	syn keyword clojureFunc      = not= none= not nil? false? true? complement
+	syn keyword clojureFunc      = not= not nil? false? true? complement
 	syn keyword clojureFunc      identical? string? symbol? map? seq? vector?
 	syn keyword clojureFunc      keyword? special-symbol? var?
 	syn keyword clojureMacro     and or
@@ -40,7 +40,9 @@ if exists("g:clj_highlight_builtins")
 	syn keyword clojureFunc      print-str println-str newline macroexpand
 	syn keyword clojureFunc      macroexpand-1 monitor-enter monitor-exit doc
 	syn keyword clojureFunc      eval find-doc file-seq flush hash load load-file
-	syn keyword clojureFunc      print-doc read read-line scan slurp subs sync test
+	syn keyword clojureFunc      print-doc read read-line scan slurp subs sync
+	syn keyword clojureFunc      test format printf load-resources loaded-libs
+	syn keyword clojureFunc      use require
 	syn keyword clojureMacro     -> assert with-out-str with-in-str with-open
 	syn keyword clojureMacro     locking do quote var loop destructure
 	syn keyword clojureRepeat    recur
@@ -67,7 +69,7 @@ if exists("g:clj_highlight_builtins")
 	syn keyword clojureFunc      drop drop-while repeat replicate iterate range
 	syn keyword clojureFunc      into distinct sort sort-by zipmap fnseq lazy-cons
 	syn keyword clojureFunc      lazy-cat line-seq butlast last nth nthrest
-	syn keyword clojureFunc      repeatedly tree-seq
+	syn keyword clojureFunc      repeatedly tree-seq enumeration-seq iterator-seq
 	syn keyword clojureRepeat    map mapcat reduce filter for doseq dorun doall dotimes
 
 	" Lists
@@ -78,8 +80,9 @@ if exists("g:clj_highlight_builtins")
 
 	" Maps
 	syn keyword clojureFunc      array-map hash-map sorted-map sorted-map-by
-	syn keyword clojureFunc      assoc dissoc get contains? find select-keys key
-	syn keyword clojureFunc      val keys vals merge merge-with max-key min-key
+	syn keyword clojureFunc      assoc assoc-in dissoc get get-in contains? find
+	syn keyword clojureFunc      select-keys update-in key val keys vals merge
+	syn keyword clojureFunc      merge-with max-key min-key
 
 	" Struct-Maps
 	syn keyword clojureFunc      create-struct struct-map struct accessor

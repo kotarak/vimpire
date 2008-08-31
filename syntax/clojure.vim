@@ -35,7 +35,6 @@ if exists("g:clj_highlight_builtins")
 	syn keyword clojureFunc str time pr prn print println pr-str prn-str print-str println-str newline macroexpand macroexpand-1 monitor-enter monitor-exit doc eval find-doc file-seq flush hash load load-file print-doc read read-line scan slurp subs sync test
 	syn keyword clojureMacro -> assert with-out-str with-in-str with-open locking do quote var loop destructure
 	syn keyword clojureRepeat recur
-	syn keyword clojureComment comment
 	syn keyword clojureVariable *in* *out* *command-line-args* *print-meta* *print-readably*
 
 	" Nil
@@ -132,11 +131,14 @@ syn match clojureAnonArg contained "%\(\d\|&\)\?"
 syn match clojureVarArg contained "&"
 
 syn region clojureSexp matchgroup=Delimiter start="(" matchgroup=Delimiter end=")" contains=TOP
-syn region clojureAnonFn matchgroup=Delimiter start="#(" matchgroup=Delimiter end=")" contains=ALLBUT,clojureVarArg
-syn region clojureVector matchgroup=Delimiter start="\[" matchgroup=Delimiter end="\]" contains=ALLBUT,clojureAnonArg
+syn region clojureAnonFn matchgroup=Delimiter start="#(" matchgroup=Delimiter end=")" contains=ALLBUT,clojureVarArg,clojureCommentSexp
+syn region clojureVector matchgroup=Delimiter start="\[" matchgroup=Delimiter end="\]" contains=ALLBUT,clojureAnonArg,clojureCommentSexp
 syn region clojureMap matchgroup=Delimiter start="{" matchgroup=Delimiter end="}" contains=TOP
 syn region clojureSet matchgroup=Delimiter start="#{" matchgroup=Delimiter end="}" contains=TOP
 syn region clojurePattern start=/#"/ end=/"/ skip=/\\"/
+
+syn region clojureCommentSexp start="(" end=")" transparent contained contains=clojureCommentSexp
+syn region clojureComment matchgroup=Delimiter start="(comment"rs=s+1 matchgroup=Delimiter end=")" contains=clojureCommentSexp
 
 syn sync match matchPlace grouphere NONE "^[^ \t]"
 

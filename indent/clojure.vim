@@ -188,7 +188,7 @@ else
 	" normal lisp indenting.
 	setlocal indentexpr=
 	setlocal lisp
-	let b:undo_indent = b:undo_indent . " lisp<"
+	let b:undo_indent .= " lisp<"
 
 endif
 

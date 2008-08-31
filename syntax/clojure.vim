@@ -11,7 +11,7 @@ elseif exists("b:current_syntax")
     finish
 endif
 
-if exists("g:clj_highlight_builtins") && g:clj_highligh_builtins != 0
+if exists("g:clj_highlight_builtins") && g:clj_highlight_builtins != 0
 	" Boolean
 	syn keyword clojureBoolean   true false
 

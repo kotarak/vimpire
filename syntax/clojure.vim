@@ -230,7 +230,8 @@ HiLink clojureSpecial   Special
 HiLink clojureComment   Comment
 HiLink clojureTodo      Todo
 
-HiLink clojureParen0 Delimiter
+HiLink clojureParen0    Delimiter
+
 if exists("g:clj_paren_rainbow") && g:clj_paren_rainbow != 0
 	if &background == "dark"
 		highlight default clojureParen1 ctermfg=yellow      guifg=orange1

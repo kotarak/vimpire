@@ -73,44 +73,71 @@ function! s:MatchPairs(open, close, stopat)
 	return s:WithSavedPosition(closure)
 endfunction
 
-function! s:CheckForString()
-	let closure = {}
+function! s:CheckForStringWorker()
+	" Check whether there is the last character of the previous line is
+	" highlighted as a string. If so, we check whether it's a ". In this
+	" case we have to check also the previous character. The " might be the
+	" closing one. In case the we are still in the string, we search for the
+	" opening ". If this is not found we take the indent of the line.
+	let nb = prevnonblank(v:lnum - 1)
 
-	function closure.f() dict
-		" Check whether there is the last character of the previous line is
-		" highlighted as a string. If so, we check whether it's a ". In this
-		" case we have to check also the previous character. The " might be the
-		" closing one. In case the we are still in the string, we search for the
-		" opening ". If this is not found we take the indent of the line.
-		let nb = prevnonblank(v:lnum - 1)
+	if nb == 0
+		return 0
+	endif
 
-		if nb == 0
-			return 0
-		endif
+	call cursor(nb, col([nb, "$"]) - 1)
+	if s:SynItem() != "clojureString"
+		return -1
+	endif
 
-		call cursor(nb, col([nb, "$"]) - 1)
-		if s:SynItem() != "clojureString"
+	if s:Yank('l', 'normal! "lyl') == '"'
+		call cursor(0, col("$") - 2)
+		if s:Yank('l', 'normal "lyl') != '\\' && s:SynItem() == "clojureString"
 			return -1
 		endif
+		call cursor(0, col("$") - 1)
+	endif
 
-		if s:Yank('l', 'normal! "lyl') == '"'
-			call cursor(0, col("$") - 2)
-			if s:Yank('l', 'normal "lyl') != '\\' && s:SynItem() == "clojureString"
-				return -1
-			endif
-			call cursor(0, col("$") - 1)
+	let p = searchpos('\(^\|[^\\]\)\zs"', 'bW')
+
+	if p != [0, 0]
+		return p[1] - 1
+	endif
+
+	return indent(".")
+endfunction
+
+function! s:CheckForString()
+	return s:WithSavedPosition({'f': function("s:CheckForStringWorker")})
+endfunction
+
+function! s:GetClojureIndentWorker()
+	call cursor(0, 1)
+
+	" Find the next enclosing [ or {. We can limit the second search
+	" to the line, where the [ was found. If no [ was there this is
+	" zero and we search for an enclosing {.
+	let paren = s:MatchPairs('(', ')', 0)
+	let bracket = s:MatchPairs('\[', '\]', paren[0])
+	let curly = s:MatchPairs('{', '}', bracket[0])
+
+	" In case the curly brace is on a line later then the [ or - in
+	" case they are on the same line - in a higher column, we take the
+	" curly indent.
+	if curly[0] > bracket[0] || curly[1] > bracket[1]
+		if curly[0] > paren[0] || curly[1] > paren[1]
+			return curly[1]
 		endif
+	endif
 
-		let p = searchpos('\(^\|[^\\]\)\zs"', 'bW')
+	" If the curly was not chosen, we take the bracket indent - if
+	" there was one.
+	if bracket[0] > paren[0] || bracket[1] > paren[1]
+		return bracket[1]
+	endif
 
-		if p != [0, 0]
-			return p[1] - 1
-		endif
-
-		return indent(".")
-	endfunction
-
-	return s:WithSavedPosition(closure)
+	" Fallback to normal lispindent.
+	return lispindent(".")
 endfunction
 
 function! GetClojureIndent()
@@ -126,37 +153,7 @@ function! GetClojureIndent()
 		return i
 	endif
 
-	let closure = {}
-	function closure.f() dict
-		call cursor(0, 1)
-
-		" Find the next enclosing [ or {. We can limit the second search
-		" to the line, where the [ was found. If no [ was there this is
-		" zero and we search for an enclosing {.
-		let paren = s:MatchPairs('(', ')', 0)
-		let bracket = s:MatchPairs('\[', '\]', paren[0])
-		let curly = s:MatchPairs('{', '}', bracket[0])
-
-		" In case the curly brace is on a line later then the [ or - in
-		" case they are on the same line - in a higher column, we take the
-		" curly indent.
-		if curly[0] > bracket[0] || curly[1] > bracket[1]
-			if curly[0] > paren[0] || curly[1] > paren[1]
-				return curly[1]
-			endif
-		endif
-
-		" If the curly was not chosen, we take the bracket indent - if
-		" there was one.
-		if bracket[0] > paren[0] || bracket[1] > paren[1]
-			return bracket[1]
-		endif
-
-		" Fallback to normal lispindent.
-		return lispindent(".")
-	endfunction
-
-	return s:WithSavedPosition(closure)
+	return s:WithSavedPosition({'f': function("s:GetClojureIndentWorker")})
 endfunction
 
 setlocal indentexpr=GetClojureIndent()

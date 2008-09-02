@@ -145,13 +145,31 @@ function! s:GetClojureIndentWorker()
 	" Now we have to reimplement lispindent. This is surprisingly easy, as
 	" soon as one has access to syntax items.
 	"
-	" Get the next keyword after the (.  In case it is in lispwords, we indent
-	" the next line to the column of the ( + 2. If not, we check whether it is
-	" last word in the line. In that case we again use ( + 2 for indent. In
-	" any other case we use the column of the end of the word + 2.
+	" - Get the next keyword after the (.
+	" - If its first character is also a (, we have another sexp and align
+	"   one column to the right of the unmatched (.
+	" - In case it is in lispwords, we indent the next line to the column of
+	"   the ( + 2.
+	" - If not, we check whether it is last word in the line. In that case
+	"   we again use ( + 2 for indent.
+	" - In any other case we use the column of the end of the word + 2.
 	call cursor(paren[0] , paren[1])
 	normal w
+
+	" w skips over ((. So we check whether we are now in different set
+	" of matching parens. If so, we have the (( case and align to the
+	" first paren.
+	if s:MatchPairs('(', ')', paren[0]) != paren
+		return paren[1]
+	endif
+
+	" We still have to check, whether the keyword starts with a (,
+	" since in the ( (x case, w aligns on the second (.
 	let w = s:Yank('l', 'normal "lye')
+	if w[0] == '('
+		return paren[1]
+	endif
+
 	if &lispwords =~ '\<' . w . '\>'
 		return paren[1] + 1
 	endif

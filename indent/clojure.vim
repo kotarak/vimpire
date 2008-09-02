@@ -85,7 +85,8 @@ function! s:CheckForStringWorker()
 		return 0
 	endif
 
-	call cursor(nb, col([nb, "$"]) - 1)
+	call cursor(nb, 0)
+	call cursor(0, col("$") - 1)
 	if s:SynItem() != "clojureString"
 		return -1
 	endif

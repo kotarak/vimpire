@@ -91,9 +91,13 @@ function! s:CheckForStringWorker()
 		return -1
 	endif
 
+	" This will not work for a " in the first column...
 	if s:Yank('l', 'normal! "lyl') == '"'
 		call cursor(0, col("$") - 2)
-		if s:Yank('l', 'normal "lyl') != '\\' && s:SynItem() == "clojureString"
+		if s:SynItem() != "clojureString"
+			return -1
+		endif
+		if s:Yank('l', 'normal "lyl') != '\\'
 			return -1
 		endif
 		call cursor(0, col("$") - 1)

@@ -154,19 +154,28 @@ function! s:GetClojureIndentWorker()
 	"   we again use ( + 2 for indent.
 	" - In any other case we use the column of the end of the word + 2.
 	call cursor(paren[0] , paren[1])
-	normal w
 
-	" w skips over ((. So we check whether we are now in different set
-	" of matching parens. If so, we have the (( case and align to the
-	" first paren.
-	if s:MatchPairs('(', ')', paren[0]) != paren
+	" In case we are at the last character, we use the paren position.
+	if col("$") - 1 == paren[1]
 		return paren[1]
 	endif
 
-	" We still have to check, whether the keyword starts with a (,
-	" since in the ( (x case, w aligns on the second (.
+	" In case after the paren is a whitespace, we search for the next word.
+	normal l
+	if s:Yank('l', 'normal "lyl') == ' '
+		normal w
+	endif
+
+	" If we moved to another line, there is no word after the (. We
+	" use the ( position for indent.
+	if line(".") > paren[0]
+		return paren[1]
+	endif
+
+	" We still have to check, whether the keyword starts with a (, [ or {.
+	" In that case we use the ( position for indent.
 	let w = s:Yank('l', 'normal "lye')
-	if w[0] == '('
+	if stridx('([{', w[0]) > 0
 		return paren[1]
 	endif
 

@@ -153,9 +153,9 @@ function! s:GetClojureIndentWorker()
 	" - If its first character is also a (, we have another sexp and align
 	"   one column to the right of the unmatched (.
 	" - In case it is in lispwords, we indent the next line to the column of
-	"   the ( + 2.
+	"   the ( + sw.
 	" - If not, we check whether it is last word in the line. In that case
-	"   we again use ( + 2 for indent.
+	"   we again use ( + sw for indent.
 	" - In any other case we use the column of the end of the word + 2.
 	call cursor(paren[0] , paren[1])
 
@@ -184,12 +184,12 @@ function! s:GetClojureIndentWorker()
 	endif
 
 	if &lispwords =~ '\<' . w . '\>'
-		return paren[1] + 1
+		return paren[1] + &shiftwidth - 1
 	endif
 
 	normal w
 	if paren[0] < line(".")
-		return paren[1] + 1
+		return paren[1] + &shiftwidth - 1
 	endif
 
 	normal ge

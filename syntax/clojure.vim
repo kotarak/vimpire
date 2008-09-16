@@ -140,7 +140,7 @@ if exists("g:clj_highlight_builtins") && g:clj_highlight_builtins != 0
 	syn keyword clojureFunc      replace root seq-zip vector-zip xml-zip zipper
 endif
 
-syn cluster clojureAtomCluster   contains=clojureFunc,clojureMacro,clojureCond,clojureDefine,clojureRepeat,clojureConstant,clojureVariable,clojureSpecial,clojureKeyword,clojureString,clojureCharacter,clojureNumber,clojureRational,clojureFloat,clojureBoolean,clojureQuote,clojureUnquote,clojureDispatch,clojurePattern
+syn cluster clojureAtomCluster   contains=clojureFunc,clojureMacro,clojureCond,clojureDefine,clojureRepeat,clojureException,clojureConstant,clojureVariable,clojureSpecial,clojureKeyword,clojureString,clojureCharacter,clojureNumber,clojureRational,clojureFloat,clojureBoolean,clojureQuote,clojureUnquote,clojureDispatch,clojurePattern
 syn cluster clojureTopCluster    contains=@clojureAtomCluster,clojureComment,clojureSexp,clojureAnonFn,clojureVector,clojureMap,clojureSet
 
 syn keyword clojureTodo contained FIXME XXX

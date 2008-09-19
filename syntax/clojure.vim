@@ -30,6 +30,7 @@ if exists("g:clj_highlight_builtins") && g:clj_highlight_builtins != 0
 
 	" Functionals
 	syn keyword clojureFunc      apply partial comp constantly identity comparator
+	syn keyword clojureFunc      fn?
 	syn keyword clojureMacro     fn
 
 	" Regular Expressions
@@ -44,8 +45,8 @@ if exists("g:clj_highlight_builtins") && g:clj_highlight_builtins != 0
 	syn keyword clojureFunc      macroexpand-1 monitor-enter monitor-exit doc
 	syn keyword clojureFunc      eval find-doc file-seq flush hash load load-file
 	syn keyword clojureFunc      print-doc read read-line scan slurp subs sync
-	syn keyword clojureFunc      test format printf load-resources loaded-libs
-	syn keyword clojureFunc      use require
+	syn keyword clojureFunc      test format printf loaded-libs
+	syn keyword clojureFunc      use require load-reader load-string
 	syn keyword clojureMacro     -> assert with-out-str with-in-str with-open
 	syn keyword clojureMacro     locking do quote var loop destructure
 	syn keyword clojureRepeat    recur
@@ -56,7 +57,8 @@ if exists("g:clj_highlight_builtins") && g:clj_highlight_builtins != 0
 
 	" Number Functions
 	syn keyword clojureFunc      + - * / < <= == >= > dec inc min max neg? pos?
-	syn keyword clojureFunc      quot rem zero? rand rand-int
+	syn keyword clojureFunc      quot rem zero? rand rand-int decimal? even? odd?
+	syn keyword clojureFunc      float? integer? number? ratio? rational?
 
 	" Bit Functions
 	syn keyword clojureFunc      bit-and bit-or bit-xor bit-not bit-shift-left bit-shift-right
@@ -73,6 +75,8 @@ if exists("g:clj_highlight_builtins") && g:clj_highlight_builtins != 0
 	syn keyword clojureFunc      into distinct sort sort-by zipmap fnseq lazy-cons
 	syn keyword clojureFunc      lazy-cat line-seq butlast last nth nthrest
 	syn keyword clojureFunc      repeatedly tree-seq enumeration-seq iterator-seq
+	syn keyword clojureFunc      coll? associative? empty? list? reversible?
+	syn keyword clojureFunc      sequential? sorted?
 	syn keyword clojureRepeat    map mapcat reduce filter for doseq dorun doall dotimes
 
 	" Lists
@@ -94,7 +98,7 @@ if exists("g:clj_highlight_builtins") && g:clj_highlight_builtins != 0
 	" Sets
 	syn keyword clojureFunc      hash-set sorted-set set disj union difference
 	syn keyword clojureFunc      intersection select index rename join
-	syn keyword clojureFunc      map-invert project
+	syn keyword clojureFunc      map-invert project set?
 
 	" Multimethods
 	syn keyword clojureFunc      remove-method
@@ -108,7 +112,7 @@ if exists("g:clj_highlight_builtins") && g:clj_highlight_builtins != 0
 	syn keyword clojureFunc      find-ns all-ns remove-ns import ns-name ns-map
 	syn keyword clojureFunc      ns-interns ns-publics ns-imports ns-refers
 	syn keyword clojureFunc      ns-resolve resolve ns-unmap name namespace
-	syn keyword clojureFunc      require use
+	syn keyword clojureFunc      require use refer-clojure
 	syn keyword clojureMacro     ns clojure/ns
 	syn keyword clojureVariable  *ns*
 

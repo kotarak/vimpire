@@ -41,6 +41,7 @@ aset-short
 assert
 assoc
 assoc-in
+associative?
 await
 await-for
 await1
@@ -69,6 +70,7 @@ char
 class
 class?
 clear-agent-errors
+coll?
 comment
 commute
 comp
@@ -88,6 +90,7 @@ create-ns
 create-struct
 cycle
 dec
+decimal?
 definline
 defmacro
 defmethod
@@ -120,9 +123,11 @@ drop
 drop-last
 drop-while
 empty
+empty?
 ensure
 enumeration-seq
 eval
+even?
 every?
 false?
 ffirst
@@ -135,8 +140,10 @@ find-var
 first
 float
 float-array
+float?
 floats
 flush
+fn?
 fnseq
 for
 force
@@ -162,6 +169,7 @@ inc
 instance?
 int
 int-array
+integer?
 interleave
 interpose
 into
@@ -181,9 +189,11 @@ let
 line-seq
 list
 list*
+list?
 load
 load-file
-load-resources
+load-reader
+load-string
 loaded-libs
 locking
 long
@@ -229,6 +239,8 @@ ns-unmap
 nth
 nthrest
 num
+number?
+odd?
 parents
 partial
 partition
@@ -254,6 +266,8 @@ quot
 rand
 rand-int
 range
+ratio?
+rational?
 rationalize
 re-find
 re-groups
@@ -267,6 +281,7 @@ reduce
 ref
 ref-set
 refer
+refer-clojure
 rem
 remove-method
 remove-ns
@@ -279,6 +294,7 @@ resolve
 rest
 resultset-seq
 reverse
+reversible?
 rfirst
 rrest
 rseq
@@ -291,8 +307,10 @@ send-off
 seq
 seq?
 seque
+sequential?
 set
 set-validator
+set?
 short
 shutdown-agents
 slurp
@@ -302,6 +320,7 @@ sort-by
 sorted-map
 sorted-map-by
 sorted-set
+sorted?
 special-symbol?
 split-at
 split-with

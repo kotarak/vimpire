@@ -11,6 +11,9 @@ elseif exists("b:current_syntax")
     finish
 endif
 
+" Highlight superfluous closing parens, brackets and braces.
+syn match clojureError "]\|}\|)"
+
 if exists("g:clj_highlight_builtins") && g:clj_highlight_builtins != 0
 	" Boolean
 	syn keyword clojureBoolean   true false
@@ -140,7 +143,7 @@ if exists("g:clj_highlight_builtins") && g:clj_highlight_builtins != 0
 	syn keyword clojureFunc      replace root seq-zip vector-zip xml-zip zipper
 endif
 
-syn cluster clojureAtomCluster   contains=clojureFunc,clojureMacro,clojureCond,clojureDefine,clojureRepeat,clojureException,clojureConstant,clojureVariable,clojureSpecial,clojureKeyword,clojureString,clojureCharacter,clojureNumber,clojureRational,clojureFloat,clojureBoolean,clojureQuote,clojureUnquote,clojureDispatch,clojurePattern
+syn cluster clojureAtomCluster   contains=clojureError,clojureFunc,clojureMacro,clojureCond,clojureDefine,clojureRepeat,clojureException,clojureConstant,clojureVariable,clojureSpecial,clojureKeyword,clojureString,clojureCharacter,clojureNumber,clojureRational,clojureFloat,clojureBoolean,clojureQuote,clojureUnquote,clojureDispatch,clojurePattern
 syn cluster clojureTopCluster    contains=@clojureAtomCluster,clojureComment,clojureSexp,clojureAnonFn,clojureVector,clojureMap,clojureSet
 
 syn keyword clojureTodo contained FIXME XXX
@@ -229,6 +232,8 @@ HiLink clojureSpecial   Special
 
 HiLink clojureComment   Comment
 HiLink clojureTodo      Todo
+
+HiLink clojureError     Error
 
 HiLink clojureParen0    Delimiter
 

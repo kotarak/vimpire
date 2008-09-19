@@ -147,6 +147,18 @@ if exists("g:clj_highlight_builtins") && g:clj_highlight_builtins != 0
 	syn keyword clojureFunc      replace root seq-zip vector-zip xml-zip zipper
 endif
 
+if exists("g:clj_highlight_contrib") && g:clj_highlight_contrib != 0
+	" Def
+	syn keyword clojureDefine    defvar defvar- defunbound defunbound- defmacro-
+	syn keyword clojureDefine    defstruct- defalias
+
+	" Fcase
+	syn keyword clojureFunc      fcase case re-case instance-case in-case
+
+	" Duck Streams
+	syn keyword clojureFunc      reader writer write-lines spit
+endif
+
 syn cluster clojureAtomCluster   contains=clojureError,clojureFunc,clojureMacro,clojureCond,clojureDefine,clojureRepeat,clojureException,clojureConstant,clojureVariable,clojureSpecial,clojureKeyword,clojureString,clojureCharacter,clojureNumber,clojureRational,clojureFloat,clojureBoolean,clojureQuote,clojureUnquote,clojureDispatch,clojurePattern
 syn cluster clojureTopCluster    contains=@clojureAtomCluster,clojureComment,clojureSexp,clojureAnonFn,clojureVector,clojureMap,clojureSet
 

@@ -178,7 +178,7 @@ syn match   clojureCharacter "\\newline"
 syn match   clojureCharacter "\\backspace"
 syn match   clojureCharacter "\\formfeed"
 
-syn match   clojureNumber "\<-\?[0-9]\+\>"
+syn match   clojureNumber "\<-\?[0-9]\+M\?\>"
 syn match   clojureRational "\<-\?[0-9]\+/[0-9]\+\>"
 syn match   clojureFloat "\<-\?[0-9]\+\.[0-9]\+\([eE][-+]\=[0-9]\+\)\=\>"
 

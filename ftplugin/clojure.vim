@@ -44,7 +44,7 @@ if s:completions != []
 	if exists("*fnameescape")
 		let dictionary = fnameescape(s:completions[0])
 	else
-		let dictionary = s:completions[0]
+		let dictionary = escape(s:completions[0], ' ')
 	endif
 
 	execute "setlocal complete+=k" . dictionary

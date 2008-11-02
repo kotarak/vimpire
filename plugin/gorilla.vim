@@ -51,23 +51,33 @@ module Gorilla
                                "Telnetmode" => false, "Prompt" => PROMPT)
     end
 
+    def Gorilla.command(cmd)
+        result = ""
+        t = Gorilla.connect()
+        begin
+            t.waitfor(PROMPT)
+            result = t.cmd(cmd + "\n")
+        ensure
+            t.close
+        end
+        result.sub(PROMPT, "")
+    end
+
+    def Gorilla.show_result(res)
+        VIM.command("new")
+        VIM.set_option("buftype=nofile")
+        VIM.command("nmap <buffer> <silent> q :bd<CR>")
+
+        res.split(/\n/).each { |l| $curbuf.append($curbuf.length, l) }
+    end
+
     DOCS = {}
 
     def Gorilla.doc(word)
         if DOCS.has_key?(word)
             return DOCS[word]
         end
-
-        result = ""
-        t = Gorilla.connect()
-        begin
-            t.waitfor(PROMPT)
-            result = t.cmd("(doc " + word + ")\n")
-        ensure
-            t.close
-        end
-
-        result.sub(PROMPT, "").split(/\n/)
+        return Gorilla.command("(doc " + word + ")")
     end
 end
 EOF

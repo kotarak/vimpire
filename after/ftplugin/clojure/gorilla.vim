@@ -113,6 +113,25 @@ function! s:EvalTopSexp()
     call s:WithSavedPosition({'f': function("s:SendSexp"), 'flags': 'r'})
 endfunction
 
+function! s:SendMacroExpand() dict
+    let sexp = s:ExtractSexpr('')
+    if sexp != ""
+        let sexp = "(macroexpand" . self.level . " '" . sexp . ")"
+        ruby <<
+        sexp = VIM.evaluate("sexp")
+        Gorilla.show_result(Gorilla.command(sexp))
+.
+    endif
+endfunction
+
+function! s:MacroExpand()
+    call s:WithSavedPosition({'f': function("s:SendMacroExpand"), 'level': ''})
+endfunction
+
+function! s:MacroExpand1()
+    call s:WithSavedPosition({'f': function("s:SendMacroExpand"), 'level': '-1'})
+endfunction
+
 " Lookup Documentation
 function! s:LookupDocumentation(word)
     let w =
@@ -128,11 +147,15 @@ endfunction
 if !exists("no_plugin_maps") && !exists("no_clojure_gorilla_maps")
     call s:MakePlug('n', 'EvalInnerSexp', 'EvalInnerSexp()')
     call s:MakePlug('n', 'EvalTopSexp', 'EvalTopSexp()')
+    call s:MakePlug('n', 'MacroExpand', 'MacroExpand()')
+    call s:MakePlug('n', 'MacroExpand1', 'MacroExpand1()')
     call s:MakePlug('n', 'DocForWord', 'LookupDocumentation(expand("<cword>"))')
     call s:MakePlug('n', 'LookupDoc', 'LookupDocumentation("")')
 
     call s:MapPlug('n', 'es', 'EvalInnerSexp')
     call s:MapPlug('n', 'et', 'EvalTopSexp')
+    call s:MapPlug('n', 'me', 'MacroExpand')
+    call s:MapPlug('n', 'm1', 'MacroExpand1')
     call s:MapPlug('n', 'lw', 'DocForWord')
     call s:MapPlug('n', 'ld', 'LookupDoc')
 endif

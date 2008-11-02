@@ -87,27 +87,52 @@ function! s:Yank(reg, how)
     return s:WithSavedRegister(a:reg, closure)
 endfunction
 
+function! s:ExtractSexpr(flags)
+    if searchpairpos('(', '', ')', 'bW' . a:flags,
+                \ 's:SynItem() !~ "clojureParen\\d"') != [0, 0]
+        return s:Yank('l', 'normal "ly%')
+    end
+    return ""
+endfunction
+
+function! s:SendSexp() dict
+    let sexp = s:ExtractSexpr(self.flags)
+    if sexp != ""
+        ruby <<
+        sexp = VIM.evaluate("sexp")
+        Gorilla.show_result(Gorilla.command(sexp))
+.
+    endif
+endfunction
+
+function! s:EvalInnerSexp()
+    call s:WithSavedPosition({'f': function("s:SendSexp"), 'flags': ''})
+endfunction
+
+function! s:EvalTopSexp()
+    call s:WithSavedPosition({'f': function("s:SendSexp"), 'flags': 'r'})
+endfunction
+
 " Lookup Documentation
 function! s:LookupDocumentation(word)
     let w =
                 \ a:word == ""
                 \ ? input("Which word to look up? ")
                 \ : a:word
-
-    new
-    set buftype=nofile
-    nmap <buffer> <silent> q :bd<CR>
-
     ruby <<
-    doc = Gorilla.doc(VIM.evaluate("w"))
-    doc.each { |l| $curbuf.append($curbuf.length, l) }
+    Gorilla.show_result(Gorilla.doc(VIM.evaluate("w")))
 .
 endfunction
 
+" Keyboard Mappings
 if !exists("no_plugin_maps") && !exists("no_clojure_gorilla_maps")
+    call s:MakePlug('n', 'EvalInnerSexp', 'EvalInnerSexp()')
+    call s:MakePlug('n', 'EvalTopSexp', 'EvalTopSexp()')
     call s:MakePlug('n', 'DocForWord', 'LookupDocumentation(expand("<cword>"))')
     call s:MakePlug('n', 'LookupDoc', 'LookupDocumentation("")')
 
+    call s:MapPlug('n', 'es', 'EvalInnerSexp')
+    call s:MapPlug('n', 'et', 'EvalTopSexp')
     call s:MapPlug('n', 'lw', 'DocForWord')
     call s:MapPlug('n', 'ld', 'LookupDoc')
 endif

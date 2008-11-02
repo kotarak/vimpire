@@ -24,7 +24,7 @@ test: jar
 	env CLASSPATH=${JAR}:$${CLASSPATH} prove t
 
 clean:
-	rm -rf ${DISTDIR} ${JAR} ${TGZ} README.txt
+	rm -rf ${DISTDIR} ${JAR} ${TGZ}
 
 compile: ${CLJSRC:C/^/dist\//} ${GCCLJSRC:R:R:C/^/dist\//:C/$/.class/} ${JAVASRC:C/^/dist\//:C/.java$/.class/}
 

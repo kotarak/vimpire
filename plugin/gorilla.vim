@@ -42,6 +42,7 @@ set cpo&vim
 " The Gorilla Module
 ruby <<EOF
 require 'net/telnet'
+require 'singleton'
 
 module Gorilla
     PROMPT = /^Gorilla=> \z/n
@@ -51,24 +52,32 @@ module Gorilla
                                "Telnetmode" => false, "Prompt" => PROMPT)
     end
 
-    def Gorilla.command(cmd)
+    def Gorilla.one_command(cmd)
         result = ""
         t = Gorilla.connect()
         begin
             t.waitfor(PROMPT)
-            result = t.cmd(cmd + "\n")
+            result = Gorilla.command(t, cmd)
         ensure
             t.close
         end
-        result.sub(PROMPT, "")
+        return result
+    end
+
+    def Gorilla.command(t, cmd)
+        result = t.cmd(cmd + "\n")
+        return result.sub(PROMPT, "")
+    end
+
+    def Gorilla.print_in_buffer(buf, msg)
+        msg.split(/\n/).each { |l| buf.append(buf.length, l) }
     end
 
     def Gorilla.show_result(res)
         VIM.command("new")
         VIM.set_option("buftype=nofile")
         VIM.command("nmap <buffer> <silent> q :bd<CR>")
-
-        res.split(/\n/).each { |l| $curbuf.append($curbuf.length, l) }
+        Gorilla.print_in_buffer($curbuf, res)
     end
 
     DOCS = {}
@@ -77,7 +86,77 @@ module Gorilla
         if DOCS.has_key?(word)
             return DOCS[word]
         end
-        return Gorilla.command("(doc " + word + ")")
+        return Gorilla.one_command("(doc " + word + ")")
+    end
+
+    class Repl
+        include Singleton
+
+        def initialize()
+            @history = []
+            @history_depth = []
+            @buf = $curbuf
+            @conn = Gorilla.connect()
+
+            Gorilla.print_in_buffer(@buf, @conn.waitfor(PROMPT))
+            VIM.command("normal G$")
+        end
+
+        def send_off()
+            l = @buf.length
+            cmd = @buf[l]
+            while cmd !~ /^Gorilla=> /
+                l -= 1
+                cmd = @buf[l] + "\n" + cmd
+            end
+            cmd = cmd.sub(/^Gorilla=> /, "")
+
+            @history_depth = 0
+            @history.unshift(cmd)
+
+            Gorilla.print_in_buffer(@buf, Gorilla.command(@conn, cmd))
+            Gorilla.print_in_buffer(@buf, "Gorilla=> ")
+            VIM.command("normal G$")
+        end
+
+        def delete_last()
+            VIM.command("normal gg")
+            n = @buf.length
+            while @buf[n] !~ /^Gorilla=> /
+                @buf.delete(n)
+                n -= 1
+            end
+            @buf.delete(n)
+        end
+
+        def go_up_in_history()
+            if @history.length > 0 && @history_depth < @history.length
+                cmd = @history[@history_depth]
+                @history_depth += 1
+
+                delete_last()
+                Gorilla.print_in_buffer(@buf, "Gorilla=> " + cmd)
+            end
+            VIM.command("normal G$")
+        end
+
+        def go_down_in_history()
+            if @history_depth > 0 && @history.length > 0
+                @history_depth -= 1
+                cmd = @history[@history_depth]
+
+                delete_last()
+                Gorilla.print_in_buffer(@buf, "Gorilla=> " + cmd)
+            elsif @history_depth == 0
+                delete_last()
+                Gorilla.print_in_buffer(@buf, "Gorilla=> ")
+            end
+            VIM.command("normal G$")
+        end
+
+        def close()
+            @conn.close
+        end
     end
 end
 EOF

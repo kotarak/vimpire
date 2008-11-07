@@ -117,16 +117,21 @@ module Gorilla
                                "Telnetmode" => false, "Prompt" => PROMPT_C)
     end
 
-    def Gorilla.one_command(cmd)
+    def Gorilla.one_command_in_ns(ns, cmd)
         result = ""
         t = Gorilla.connect()
         begin
             t.waitfor(PROMPT_C)
+            Gorilla.command(t, "(clojure/in-ns '" + ns + ")")
             result = Gorilla.command(t, cmd)
         ensure
             t.close
         end
         return result
+    end
+
+    def Gorilla.one_command(cmd)
+        return Gorilla.one_command_in_ns("user", cmd)
     end
 
     def Gorilla.command(t, cmd)

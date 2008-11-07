@@ -139,6 +139,13 @@ module Gorilla
         return r
     end
 
+    def Gorilla.yank(r, how)
+        Gorilla.with_saved_register(r) do
+            VIM.command(how)
+            Cmd.getreg(r)
+        end
+    end
+
     def Gorilla.connect()
         return Net::Telnet.new("Host" => "127.0.0.1", "Port" => 10123,
                                "Telnetmode" => false, "Prompt" => PROMPT_C)

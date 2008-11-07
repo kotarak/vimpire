@@ -55,17 +55,6 @@ function! s:SynItem()
     return synIDattr(synID(line("."), col("."), 0), "name")
 endfunction
 
-function! s:Yank(reg, how)
-    let closure = {'register': a:reg, 'yank': a:how}
-
-    function closure.f() dict
-        execute self.yank
-        return getreg(self.register)
-    endfunction
-
-    return s:WithSavedRegister(a:reg, closure)
-endfunction
-
 function! s:ExtractSexpr(flags)
     if searchpairpos('(', '', ')', 'bW' . a:flags,
                 \ 's:SynItem() !~ "clojureParen\\d"') != [0, 0]

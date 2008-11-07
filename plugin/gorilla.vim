@@ -165,9 +165,13 @@ module Gorilla
 
     def Gorilla.show_result(res)
         Cmd.new()
-        Cmd.set("buftype=nofile")
+        Cmd.set_local("buftype=nofile")
+        Cmd.set_local("bufhidden=delete")
+        Cmd.set_local("noswapfile")
         Cmd.map("n", true, "<buffer> <silent>", "q", ":bd<CR>")
         Gorilla.print_in_buffer($curbuf, res)
+        Cmd.normal("ggdd")
+        Cmd.resize([$curbuf.length, 3].max)
     end
 
     def Gorilla.lookup_word(*args)

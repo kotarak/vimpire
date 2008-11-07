@@ -132,32 +132,19 @@ function! s:MacroExpand1()
     call s:WithSavedPosition({'f': function("s:SendMacroExpand"), 'level': '-1'})
 endfunction
 
-" Lookup Documentation
-function! s:LookupDocumentation(word)
-    let w =
-                \ a:word == ""
-                \ ? input("Which word to look up? ")
-                \ : a:word
-    ruby <<
-    Gorilla.show_result(Gorilla.doc(VIM.evaluate("w")))
-.
-endfunction
-
 " Keyboard Mappings
 if !exists("no_plugin_maps") && !exists("no_clojure_gorilla_maps")
     call s:MakePlug('n', 'EvalInnerSexp', 'EvalInnerSexp()')
     call s:MakePlug('n', 'EvalTopSexp', 'EvalTopSexp()')
     call s:MakePlug('n', 'MacroExpand', 'MacroExpand()')
     call s:MakePlug('n', 'MacroExpand1', 'MacroExpand1()')
-    call s:MakePlug('n', 'DocForWord', 'LookupDocumentation(expand("<cword>"))')
-    call s:MakePlug('n', 'LookupDoc', 'LookupDocumentation("")')
 
     call s:MapPlug('n', 'es', 'EvalInnerSexp')
     call s:MapPlug('n', 'et', 'EvalTopSexp')
     call s:MapPlug('n', 'me', 'MacroExpand')
     call s:MapPlug('n', 'm1', 'MacroExpand1')
-    call s:MapPlug('n', 'lw', 'DocForWord')
-    call s:MapPlug('n', 'ld', 'LookupDoc')
+
+    ruby Gorilla.setup_maps()
 
     if !exists("no_clojure_gorilla_repl")
         nnoremap <buffer> <silent> <unique> <LocalLeader>sr :ruby Gorilla::Repl.start()<CR>a

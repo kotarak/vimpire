@@ -112,6 +112,13 @@ module Gorilla
         end
     end
 
+    def Gorilla.setup_maps()
+        Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>lw",
+                ":ruby Gorilla.lookup_word(Gorilla.namespace_of($curbuf), Gorilla::Cmd.expand('<cword>'))<CR>")
+        Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>ld",
+                ":ruby Gorilla.lookup_word()<CR>")
+    end
+
     def Gorilla.connect()
         return Net::Telnet.new("Host" => "127.0.0.1", "Port" => 10123,
                                "Telnetmode" => false, "Prompt" => PROMPT_C)
@@ -163,13 +170,30 @@ module Gorilla
         Gorilla.print_in_buffer($curbuf, res)
     end
 
+    def Gorilla.lookup_word(*args)
+        ns, word = args
+
+        ns = ns.nil? ? "user" : ns
+        word = word.nil? ? Cmd.input("Symbol to look up? ") : word
+
+        if word =~ /\//
+            ns, word = word.split(/\//)
+        end
+
+        Gorilla.show_result(Gorilla.find_doc(ns, word))
+    end
+
     DOCS = {}
 
-    def Gorilla.doc(word)
-        if DOCS.has_key?(word)
-            return DOCS[word]
-        end
-        return Gorilla.one_command("(doc " + word + ")")
+    def Gorilla.find_doc(ns, word)
+        pair = [ns, word]
+
+        return DOCS[pair] if DOCS.has_key?(pair)
+
+        ds = Gorilla.one_command_in_ns(pair[0], "(doc " + pair[1] + ")")
+        DOCS[pair] = ds
+
+        return ds
     end
 
     class Repl

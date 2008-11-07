@@ -47,6 +47,69 @@ require 'singleton'
 module Gorilla
     PROMPT = /^Gorilla=> \z/n
 
+    module Cmd
+        def Cmd.bdelete()
+            VIM.command("bdelete")
+        end
+
+        def Cmd.expand(str)
+            return VIM.evaluate("expand('" + str + "')")
+        end
+
+        def Cmd.getpos(p)
+            return VIM.evaluate("getpos('#{p}')").split(/\n/)
+        end
+
+        def Cmd.setpos(p, cursor)
+            VIM.command("call setpos('#{p}', [#{cursor.join(",")}])")
+        end
+
+        def Cmd.getreg(r)
+            return VIM.evaluate("getreg('#{r}')")
+        end
+
+        def Cmd.setreg(r, val)
+            VIM.command("call setreg('#{r}', '#{val}')")
+        end
+
+        def Cmd.input(str)
+            return VIM.evaluate("input('" + str + "')")
+        end
+
+        def Cmd.map(mode, remap, options, key, target)
+            cmd = mode
+            cmd = remap ? cmd + "map" : cmd + "noremap"
+            cmd = options != "" ? cmd + " " + options : cmd
+            cmd = cmd + " " + key
+            cmd = cmd + " " + target
+            VIM.command(cmd)
+        end
+
+        def Cmd.new()
+            VIM.command("new")
+        end
+
+        def Cmd.normal(cmd)
+            VIM.command("normal " + cmd)
+        end
+
+        def Cmd.resize(size)
+            VIM.command("resize " + size.to_s)
+        end
+
+        def Cmd.set(option)
+            VIM.set_option(option)
+        end
+
+        def Cmd.set_local(option)
+            VIM.command("setlocal " + option)
+        end
+
+        def Cmd.setfiletype(type)
+            VIM.command("setfiletype " + type)
+        end
+    end
+
     def Gorilla.connect()
         return Net::Telnet.new("Host" => "127.0.0.1", "Port" => 10123,
                                "Telnetmode" => false, "Prompt" => PROMPT)
@@ -74,9 +137,9 @@ module Gorilla
     end
 
     def Gorilla.show_result(res)
-        VIM.command("new")
-        VIM.set_option("buftype=nofile")
-        VIM.command("nmap <buffer> <silent> q :bd<CR>")
+        Cmd.new()
+        Cmd.set("buftype=nofile")
+        Cmd.map("n", true, "<buffer> <silent>", "q", ":bd<CR>")
         Gorilla.print_in_buffer($curbuf, res)
     end
 
@@ -99,7 +162,7 @@ module Gorilla
             @conn = Gorilla.connect()
 
             Gorilla.print_in_buffer(@buf, @conn.waitfor(PROMPT))
-            VIM.command("normal G$")
+            Cmd.normal("G$")
         end
 
         def send_off()
@@ -116,11 +179,11 @@ module Gorilla
 
             Gorilla.print_in_buffer(@buf, Gorilla.command(@conn, cmd))
             Gorilla.print_in_buffer(@buf, "Gorilla=> ")
-            VIM.command("normal G$")
+            Cmd.normal("G$")
         end
 
         def delete_last()
-            VIM.command("normal gg")
+            Cmd.normal("gg")
             n = @buf.length
             while @buf[n] !~ /^Gorilla=> /
                 @buf.delete(n)
@@ -137,7 +200,7 @@ module Gorilla
                 delete_last()
                 Gorilla.print_in_buffer(@buf, "Gorilla=> " + cmd)
             end
-            VIM.command("normal G$")
+            Cmd.normal("G$")
         end
 
         def go_down_in_history()
@@ -151,7 +214,7 @@ module Gorilla
                 delete_last()
                 Gorilla.print_in_buffer(@buf, "Gorilla=> ")
             end
-            VIM.command("normal G$")
+            Cmd.normal("G$")
         end
 
         def close()

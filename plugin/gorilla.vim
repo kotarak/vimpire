@@ -117,6 +117,19 @@ module Gorilla
                                "Telnetmode" => false, "Prompt" => PROMPT_C)
     end
 
+    def Gorilla.namespace_of(buf)
+        len = buf.length
+        i = 1
+        while i < len
+            if buf[i] =~ /^\((clojure\/)?(in-)?ns\s+'?([a-z][a-z0-9._-]*)/
+                return $3
+            end
+            i += 1
+        end
+
+        return "user"
+    end
+
     def Gorilla.one_command_in_ns(ns, cmd)
         result = ""
         t = Gorilla.connect()

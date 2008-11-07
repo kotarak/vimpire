@@ -51,33 +51,8 @@ function! s:MapPlug(mode, keys, plug)
     endif
 endfunction
 
-function! s:SendMacroExpand() dict
-    let sexp = s:ExtractSexpr('')
-    if sexp != ""
-        let sexp = "(macroexpand" . self.level . " '" . sexp . ")"
-        ruby <<
-        sexp = VIM.evaluate("sexp")
-        Gorilla.show_result(Gorilla.one_command(sexp))
-.
-    endif
-endfunction
-
-function! s:MacroExpand()
-    call s:WithSavedPosition({'f': function("s:SendMacroExpand"), 'level': ''})
-endfunction
-
-function! s:MacroExpand1()
-    call s:WithSavedPosition({'f': function("s:SendMacroExpand"), 'level': '-1'})
-endfunction
-
 " Keyboard Mappings
 if !exists("no_plugin_maps") && !exists("no_clojure_gorilla_maps")
-    call s:MakePlug('n', 'MacroExpand', 'MacroExpand()')
-    call s:MakePlug('n', 'MacroExpand1', 'MacroExpand1()')
-
-    call s:MapPlug('n', 'me', 'MacroExpand')
-    call s:MapPlug('n', 'm1', 'MacroExpand1')
-
     ruby Gorilla.setup_maps()
 
     if !exists("no_clojure_gorilla_repl")

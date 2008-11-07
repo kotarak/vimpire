@@ -126,6 +126,11 @@ module Gorilla
                 ":ruby Gorilla.send_sexp(true)<CR>")
         Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>es",
                 ":ruby Gorilla.send_sexp(false)<CR>")
+
+        Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>me",
+                ":ruby Gorilla.macro_expand(true)<CR>")
+        Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>m1",
+                ":ruby Gorilla.macro_expand(false)<CR>")
     end
 
     def Gorilla.with_saved_register(reg, &block)
@@ -252,6 +257,16 @@ module Gorilla
         return if sexp == ""
 
         ns = Gorilla.namespace_of($curbuf)
+        Gorilla.show_result(Gorilla.one_command_in_ns(ns, sexp))
+    end
+
+    def Gorilla.expand_macro(total)
+        level = total ? "" : "-1"
+        sexp = Gorilla.extrast_sexp(false)
+        return if sexp == ""
+
+        ns = Gorilla.namespace_of($curbuf)
+        sexp = "(macroexpand#{level} '#{sexp})"
         Gorilla.show_result(Gorilla.one_command_in_ns(ns, sexp))
     end
 

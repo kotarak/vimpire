@@ -39,6 +39,10 @@ endtry
 let s:save_cpo = &cpo
 set cpo&vim
 
+function! GorillaSynItem()
+    return synIDattr(synID(line("."), col("."), 0), "name")
+endfunction
+
 " The Gorilla Module
 ruby <<EOF
 require 'net/telnet'
@@ -117,6 +121,11 @@ module Gorilla
                 ":ruby Gorilla.lookup_word(Gorilla.namespace_of($curbuf), Gorilla::Cmd.expand('<cword>'))<CR>")
         Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>ld",
                 ":ruby Gorilla.lookup_word()<CR>")
+
+        Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>et",
+                ":ruby Gorilla.send_sexp(true)<CR>")
+        Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>es",
+                ":ruby Gorilla.send_sexp(false)<CR>")
     end
 
     def Gorilla.with_saved_register(reg, &block)
@@ -225,6 +234,25 @@ module Gorilla
         DOCS[pair] = ds
 
         return ds
+    end
+
+    def Gorilla.extract_sexp(toplevel)
+        flags = toplevel ? 'bWr' : 'bW'
+        sexp = ""
+        Gorilla.with_saved_position() do
+            if VIM.evaluate("searchpairpos('(', '', ')', '#{flags}', 'GorillaSynItem() !~ \"clojureParen\\\\d\"') != [0, 0]") then
+                sexp = Gorilla.yank('l', 'normal "ly%')
+            end
+        end
+        return sexp
+    end
+
+    def Gorilla.send_sexp(toplevel)
+        sexp = Gorilla.extract_sexp(toplevel)
+        return if sexp == ""
+
+        ns = Gorilla.namespace_of($curbuf)
+        Gorilla.show_result(Gorilla.one_command_in_ns(ns, sexp))
     end
 
     class Repl

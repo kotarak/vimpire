@@ -51,36 +51,6 @@ function! s:MapPlug(mode, keys, plug)
     endif
 endfunction
 
-function! s:SynItem()
-    return synIDattr(synID(line("."), col("."), 0), "name")
-endfunction
-
-function! s:ExtractSexpr(flags)
-    if searchpairpos('(', '', ')', 'bW' . a:flags,
-                \ 's:SynItem() !~ "clojureParen\\d"') != [0, 0]
-        return s:Yank('l', 'normal "ly%')
-    end
-    return ""
-endfunction
-
-function! s:SendSexp() dict
-    let sexp = s:ExtractSexpr(self.flags)
-    if sexp != ""
-        ruby <<
-        sexp = VIM.evaluate("sexp")
-        Gorilla.show_result(Gorilla.one_command(sexp))
-.
-    endif
-endfunction
-
-function! s:EvalInnerSexp()
-    call s:WithSavedPosition({'f': function("s:SendSexp"), 'flags': ''})
-endfunction
-
-function! s:EvalTopSexp()
-    call s:WithSavedPosition({'f': function("s:SendSexp"), 'flags': 'r'})
-endfunction
-
 function! s:SendMacroExpand() dict
     let sexp = s:ExtractSexpr('')
     if sexp != ""
@@ -102,13 +72,9 @@ endfunction
 
 " Keyboard Mappings
 if !exists("no_plugin_maps") && !exists("no_clojure_gorilla_maps")
-    call s:MakePlug('n', 'EvalInnerSexp', 'EvalInnerSexp()')
-    call s:MakePlug('n', 'EvalTopSexp', 'EvalTopSexp()')
     call s:MakePlug('n', 'MacroExpand', 'MacroExpand()')
     call s:MakePlug('n', 'MacroExpand1', 'MacroExpand1()')
 
-    call s:MapPlug('n', 'es', 'EvalInnerSexp')
-    call s:MapPlug('n', 'et', 'EvalTopSexp')
     call s:MapPlug('n', 'me', 'MacroExpand')
     call s:MapPlug('n', 'm1', 'MacroExpand1')
 

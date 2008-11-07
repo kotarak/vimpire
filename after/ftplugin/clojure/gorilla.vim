@@ -54,10 +54,6 @@ endfunction
 " Keyboard Mappings
 if !exists("no_plugin_maps") && !exists("no_clojure_gorilla_maps")
     ruby Gorilla.setup_maps()
-
-    if !exists("no_clojure_gorilla_repl")
-        nnoremap <buffer> <silent> <unique> <LocalLeader>sr :ruby Gorilla::Repl.start()<CR>a
-    endif
 endif
 
 " Epilog

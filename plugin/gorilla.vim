@@ -131,6 +131,9 @@ module Gorilla
                 ":ruby Gorilla.macro_expand(true)<CR>")
         Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>m1",
                 ":ruby Gorilla.macro_expand(false)<CR>")
+
+        Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>sr",
+                ":ruby Gorilla::Repl.start()<CR>a")
     end
 
     def Gorilla.with_saved_register(reg, &block)

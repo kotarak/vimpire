@@ -192,6 +192,14 @@ module Gorilla
         end
         attr :id
 
+        def repl_command(cmd)
+            case cmd.chomp
+            when ",close" then close()
+            else return false
+            end
+            return true
+        end
+
         def send()
             l = @buf.length
             cmd = @buf[l]
@@ -200,6 +208,8 @@ module Gorilla
                 cmd = @buf[l] + "\n" + cmd
             end
             cmd = cmd.sub(PROMPT_B, "")
+
+            return if repl_command(cmd)
 
             @history_depth = 0
             @history.unshift(cmd)

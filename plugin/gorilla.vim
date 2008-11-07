@@ -45,7 +45,9 @@ require 'net/telnet'
 require 'singleton'
 
 module Gorilla
-    PROMPT = /^Gorilla=> \z/n
+    PROMPT = "Gorilla=> "
+    PROMPT_C = /^#{PROMPT}\z/
+    PROMPT_B = /^#{PROMPT}/
 
     module Cmd
         def Cmd.bdelete()
@@ -112,14 +114,14 @@ module Gorilla
 
     def Gorilla.connect()
         return Net::Telnet.new("Host" => "127.0.0.1", "Port" => 10123,
-                               "Telnetmode" => false, "Prompt" => PROMPT)
+                               "Telnetmode" => false, "Prompt" => PROMPT_C)
     end
 
     def Gorilla.one_command(cmd)
         result = ""
         t = Gorilla.connect()
         begin
-            t.waitfor(PROMPT)
+            t.waitfor(PROMPT_C)
             result = Gorilla.command(t, cmd)
         ensure
             t.close
@@ -129,7 +131,7 @@ module Gorilla
 
     def Gorilla.command(t, cmd)
         result = t.cmd(cmd + "\n")
-        return result.sub(PROMPT, "")
+        return result.sub(PROMPT_B, "")
     end
 
     def Gorilla.print_in_buffer(buf, msg)
@@ -161,31 +163,31 @@ module Gorilla
             @buf = $curbuf
             @conn = Gorilla.connect()
 
-            Gorilla.print_in_buffer(@buf, @conn.waitfor(PROMPT))
+            Gorilla.print_in_buffer(@buf, @conn.waitfor(PROMPT_C))
             Cmd.normal("G$")
         end
 
         def send_off()
             l = @buf.length
             cmd = @buf[l]
-            while cmd !~ /^Gorilla=> /
+            while cmd !~ PROMPT_B
                 l -= 1
                 cmd = @buf[l] + "\n" + cmd
             end
-            cmd = cmd.sub(/^Gorilla=> /, "")
+            cmd = cmd.sub(PROMPT_B, "")
 
             @history_depth = 0
             @history.unshift(cmd)
 
             Gorilla.print_in_buffer(@buf, Gorilla.command(@conn, cmd))
-            Gorilla.print_in_buffer(@buf, "Gorilla=> ")
+            Gorilla.print_in_buffer(@buf, PROMPT)
             Cmd.normal("G$")
         end
 
         def delete_last()
             Cmd.normal("gg")
             n = @buf.length
-            while @buf[n] !~ /^Gorilla=> /
+            while @buf[n] !~ PROMPT_B
                 @buf.delete(n)
                 n -= 1
             end
@@ -198,7 +200,7 @@ module Gorilla
                 @history_depth += 1
 
                 delete_last()
-                Gorilla.print_in_buffer(@buf, "Gorilla=> " + cmd)
+                Gorilla.print_in_buffer(@buf, PROMPT + cmd)
             end
             Cmd.normal("G$")
         end
@@ -209,10 +211,10 @@ module Gorilla
                 cmd = @history[@history_depth]
 
                 delete_last()
-                Gorilla.print_in_buffer(@buf, "Gorilla=> " + cmd)
+                Gorilla.print_in_buffer(@buf, PROMPT + cmd)
             elsif @history_depth == 0
                 delete_last()
-                Gorilla.print_in_buffer(@buf, "Gorilla=> ")
+                Gorilla.print_in_buffer(@buf, PROMPT)
             end
             Cmd.normal("G$")
         end

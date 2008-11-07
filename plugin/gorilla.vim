@@ -119,6 +119,26 @@ module Gorilla
                 ":ruby Gorilla.lookup_word()<CR>")
     end
 
+    def Gorilla.with_saved_register(reg, &block)
+        s = Cmd.getreg(reg)
+        begin
+            r = yield
+        ensure
+            Cmd.setreg(reg, s)
+        end
+        return r
+    end
+
+    def Gorilla.with_saved_position(&block)
+        s = Cmd.getpos(".")
+        begin
+            r = yield
+        ensure
+            Cmd.setpos(".", s)
+        end
+        return r
+    end
+
     def Gorilla.connect()
         return Net::Telnet.new("Host" => "127.0.0.1", "Port" => 10123,
                                "Telnetmode" => false, "Prompt" => PROMPT_C)

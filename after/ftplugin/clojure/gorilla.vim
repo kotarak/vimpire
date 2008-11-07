@@ -55,27 +55,6 @@ function! s:SynItem()
     return synIDattr(synID(line("."), col("."), 0), "name")
 endfunction
 
-function! s:WithSaved(closure)
-    let v = a:closure.get(a:closure.tosafe)
-    let r = a:closure.f()
-    call a:closure.set(a:closure.tosafe, v)
-    return r
-endfunction
-
-function! s:WithSavedRegister(reg, closure)
-    let a:closure['tosafe'] = a:reg
-    let a:closure['get'] = function("getreg")
-    let a:closure['set'] = function("setreg")
-    return s:WithSaved(a:closure)
-endfunction
-
-function! s:WithSavedPosition(closure)
-    let a:closure['tosafe'] = "."
-    let a:closure['get'] = function("getpos")
-    let a:closure['set'] = function("setpos")
-    return s:WithSaved(a:closure)
-endfunction
-
 function! s:Yank(reg, how)
     let closure = {'register': a:reg, 'yank': a:how}
 

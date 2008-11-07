@@ -143,31 +143,6 @@ function! s:LookupDocumentation(word)
 .
 endfunction
 
-function! GorillaReplSend()
-    ruby Gorilla::Repl.instance.send_off()
-endfunction
-
-function! GorillaReplUpHistory()
-    ruby Gorilla::Repl.instance.go_up_in_history()
-endfunction
-
-function! GorillaReplDownHistory()
-    ruby Gorilla::Repl.instance.go_down_in_history()
-endfunction
-
-if !exists("*GorillaStartRepl")
-    function! GorillaStartRepl()
-        new
-        set buftype=nofile
-        setfiletype clojure
-        inoremap <silent> <C-CR> <C-o>:call GorillaReplSend()<CR>
-        inoremap <silent> <C-Up> <C-o>:call GorillaReplUpHistory()<CR>
-        inoremap <silent> <C-Down> <C-o>:call GorillaReplDownHistory()<CR>
-        " Set up the buffer.
-        ruby Gorilla::Repl.instance
-    endfunction
-endif
-
 " Keyboard Mappings
 if !exists("no_plugin_maps") && !exists("no_clojure_gorilla_maps")
     call s:MakePlug('n', 'EvalInnerSexp', 'EvalInnerSexp()')
@@ -185,7 +160,7 @@ if !exists("no_plugin_maps") && !exists("no_clojure_gorilla_maps")
     call s:MapPlug('n', 'ld', 'LookupDoc')
 
     if !exists("no_clojure_gorilla_repl")
-        nnoremap <buffer> <silent> <unique> <LocalLeader>sr :call GorillaStartRepl()<CR>a
+        nnoremap <buffer> <silent> <unique> <LocalLeader>sr :ruby Gorilla::Repl.start()<CR>a
     endif
 endif
 

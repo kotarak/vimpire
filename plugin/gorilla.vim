@@ -155,19 +155,44 @@ module Gorilla
     end
 
     class Repl
-        include Singleton
+        @@id = 1
+        @@repls = {}
 
-        def initialize()
+        def Repl.by_id(id)
+            return @@repls[id]
+        end
+
+        def Repl.start()
+            Cmd.new()
+            Cmd.set("buftype=nofile")
+            Cmd.setfiletype("clojure")
+
+            id = Repl.new($curbuf).id
+
+            Cmd.map("i", false, "<buffer> <silent>", "<C-CR>",
+                    "<C-O>:ruby Gorilla::Repl.by_id(#{id}).send()<CR>")
+            Cmd.map("i", false, "<buffer> <silent>", "<C-Up>",
+                    "<C-O>:ruby Gorilla::Repl.by_id(#{id}).up_history()<CR>")
+            Cmd.map("i", false, "<buffer> <silent>", "<C-Down>",
+                    "<C-O>:ruby Gorilla::Repl.by_id(#{id}).down_history()<CR>")
+        end
+
+        def initialize(buf)
             @history = []
             @history_depth = []
-            @buf = $curbuf
+            @buf = buf
             @conn = Gorilla.connect()
+            @id = @@id
+
+            @@id = @@id.next
+            @@repls[id] = self
 
             Gorilla.print_in_buffer(@buf, @conn.waitfor(PROMPT_C))
             Cmd.normal("G$")
         end
+        attr :id
 
-        def send_off()
+        def send()
             l = @buf.length
             cmd = @buf[l]
             while cmd !~ PROMPT_B
@@ -194,7 +219,7 @@ module Gorilla
             @buf.delete(n)
         end
 
-        def go_up_in_history()
+        def up_history()
             if @history.length > 0 && @history_depth < @history.length
                 cmd = @history[@history_depth]
                 @history_depth += 1
@@ -205,7 +230,7 @@ module Gorilla
             Cmd.normal("G$")
         end
 
-        def go_down_in_history()
+        def down_history()
             if @history_depth > 0 && @history.length > 0
                 @history_depth -= 1
                 cmd = @history[@history_depth]
@@ -221,6 +246,8 @@ module Gorilla
 
         def close()
             @conn.close
+            @@repls[@id] = nil
+            Cmd.bdelete()
         end
     end
 end

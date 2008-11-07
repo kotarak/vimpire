@@ -39,18 +39,6 @@ endtry
 let s:save_cpo = &cpo
 set cpo&vim
 
-function! s:MakePlug(mode, plug, f)
-    execute a:mode . "noremap <Plug>ClojureGorilla" . a:plug
-                \ . " :call <SID>" . a:f . "<CR>"
-endfunction
-
-function! s:MapPlug(mode, keys, plug)
-    if !hasmapto("<Plug>ClojureGorilla" . a:plug)
-        execute a:mode . "map <buffer> <unique> <silent> <LocalLeader>" . a:keys
-                    \ . " <Plug>ClojureGorilla" . a:plug
-    endif
-endfunction
-
 " Keyboard Mappings
 if !exists("no_plugin_maps") && !exists("no_clojure_gorilla_maps")
     ruby Gorilla.setup_maps()

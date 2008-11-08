@@ -181,17 +181,23 @@ module Gorilla
         return "user"
     end
 
-    def Gorilla.one_command_in_ns(ns, cmd)
-        result = ""
+    def Gorilla.with_connection(&block)
+        result = nil
         t = Gorilla.connect()
         begin
-            t.waitfor(PROMPT_C)
-            Gorilla.command(t, "(clojure/in-ns '" + ns + ")")
-            result = Gorilla.command(t, cmd)
+            result = yield(t)
         ensure
             t.close
         end
         return result
+    end
+
+    def Gorilla.one_command_in_ns(ns, cmd)
+        Gorilla.with_connection() do |t|
+            t.waitfor(PROMPT_C)
+            Gorilla.command(t, "(clojure/in-ns '" + ns + ")")
+            result = Gorilla.command(t, cmd)
+        end
     end
 
     def Gorilla.one_command(cmd)

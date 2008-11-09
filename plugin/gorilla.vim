@@ -133,7 +133,7 @@ module Gorilla
                 ":ruby Gorilla.macro_expand(false)<CR>")
 
         Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>sr",
-                ":ruby Gorilla::Repl.start()<CR>a")
+                ":ruby Gorilla::Repl.start()<CR>")
     end
 
     def Gorilla.with_saved_register(reg, &block)
@@ -289,13 +289,13 @@ module Gorilla
 
         def Repl.start()
             Cmd.new()
-            Cmd.set("buftype=nofile")
+            Cmd.set_local("buftype=nofile")
             Cmd.setfiletype("clojure")
 
             id = Repl.new($curbuf).id
 
-            Cmd.map("i", false, "<buffer> <silent>", "<C-CR>",
-                    "<C-O>:ruby Gorilla::Repl.by_id(#{id}).send()<CR>")
+            Cmd.map("i", false, "<buffer> <silent>", "<CR>",
+                    "<Esc>:ruby Gorilla::Repl.by_id(#{id}).enter_hook()<CR>")
             Cmd.map("i", false, "<buffer> <silent>", "<C-Up>",
                     "<C-O>:ruby Gorilla::Repl.by_id(#{id}).up_history()<CR>")
             Cmd.map("i", false, "<buffer> <silent>", "<C-Down>",
@@ -314,6 +314,7 @@ module Gorilla
 
             Gorilla.print_in_buffer(@buf, @conn.waitfor(PROMPT_C))
             Cmd.normal("G$")
+            VIM.command("startinsert!")
         end
         attr :id
 
@@ -325,15 +326,66 @@ module Gorilla
             return true
         end
 
-        def send()
+        def get_command()
             l = @buf.length
             cmd = @buf[l]
             while cmd !~ PROMPT_B
                 l -= 1
                 cmd = @buf[l] + "\n" + cmd
             end
-            cmd = cmd.sub(PROMPT_B, "")
+            return cmd.sub(PROMPT_B, "")
+        end
 
+        def enter_hook()
+            delim = nil
+            pos = nil
+
+            Gorilla.with_saved_position() do
+                if VIM.evaluate("getline('.')") !~ PROMPT_B then
+                    VIM.command("?#{PROMPT}")
+                end
+                Cmd.normal("0")
+
+                l = VIM.evaluate("getline('.')")
+                if l =~ /^#{PROMPT}\s*(\(|\[|#?\{)/ then
+                    delim = $1.sub(/#/, "")
+                    Cmd.normal("f#{delim}")
+                    pos = Cmd.getpos(".")
+                end
+            end
+
+            if delim.nil? then
+                send(get_command())
+                VIM.command("startinsert!")
+                return
+            end
+
+            Cmd.normal("g_")
+
+            if VIM.evaluate("GorillaSynItem()") == "clojureParen0" then
+                submit = false
+
+                Gorilla.with_saved_position() do
+                    Cmd.normal("%")
+                    submit = Cmd.getpos(".") == pos
+                end
+
+                if submit then
+                    send(get_command())
+                    VIM.command("startinsert!")
+                    return
+                end
+            end
+
+            # This is a hack to enter a new line and get indenting...
+            @buf.append(@buf.length, "")
+            Cmd.normal("G")
+            Cmd.normal("ix")
+            Cmd.normal("==x")
+            VIM.command("startinsert!")
+        end
+
+        def send(cmd)
             return if repl_command(cmd)
 
             @history_depth = 0

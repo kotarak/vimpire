@@ -120,6 +120,8 @@ module Gorilla
                 ":ruby Gorilla.lookup_word(Gorilla.namespace_of($curbuf), Gorilla::Cmd.expand('<cword>'))<CR>")
         Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>ld",
                 ":ruby Gorilla.lookup_word()<CR>")
+        Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>fd",
+                ":ruby Gorilla.find_doc()<CR>")
 
         Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>et",
                 ":ruby Gorilla.send_sexp(true)<CR>")
@@ -233,12 +235,12 @@ module Gorilla
             ns, word = word.split(/\//)
         end
 
-        Gorilla.show_result(Gorilla.find_doc(ns, word))
+        Gorilla.show_result(Gorilla.lookup_doc_in_ns(ns, word))
     end
 
     DOCS = {}
 
-    def Gorilla.find_doc(ns, word)
+    def Gorilla.lookup_doc_in_ns(ns, word)
         pair = [ns, word]
 
         return DOCS[pair] if DOCS.has_key?(pair)
@@ -247,6 +249,14 @@ module Gorilla
         DOCS[pair] = ds
 
         return ds
+    end
+
+    def Gorilla.find_doc()
+        ns = Gorilla.namespace_of($curbuf)
+        pattern = Cmd.input("Pattern to look up? ")
+
+        Gorilla.show_result(Gorilla.one_command_in_ns(ns,
+                        "(find-doc \"#{pattern}\")"))
     end
 
     def Gorilla.extract_sexp(toplevel)

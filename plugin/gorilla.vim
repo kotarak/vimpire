@@ -46,7 +46,6 @@ endfunction
 " The Gorilla Module
 ruby <<EOF
 require 'net/telnet'
-require 'singleton'
 
 module Gorilla
     PROMPT = "Gorilla=> "
@@ -210,7 +209,7 @@ module Gorilla
     end
 
     def Gorilla.print_in_buffer(buf, msg)
-        msg.split(/\n/).each { |l| buf.append(buf.length, l) }
+        msg.split(/\n/, -1).each { |l| buf.append(buf.length, l) }
     end
 
     def Gorilla.show_result(res)
@@ -283,6 +282,14 @@ module Gorilla
         @@id = 1
         @@repls = {}
 
+        @@warning = "!!! WARNING !!!\n" +
+                "Do NOT send several forms at once!\n" +
+                "This will make your Repl go banana!\n" +
+                "\n" +
+                "Example: 123\"Hello\":foo\n" +
+                "These are actually three items: 123, \"Hello\" and :foo!\n" +
+                "!!! WARNING !!!\n"
+
         def Repl.by_id(id)
             return @@repls[id]
         end
@@ -312,6 +319,7 @@ module Gorilla
             @@id = @@id.next
             @@repls[id] = self
 
+            Gorilla.print_in_buffer(@buf, @@warning)
             Gorilla.print_in_buffer(@buf, @conn.waitfor(PROMPT_C))
             Cmd.normal("G$")
             VIM.command("startinsert!")

@@ -59,7 +59,7 @@ ${JAR}: compile
 
 ${TGZ}:
 	shtool tarball -c "gzip -9" -o ${TGZ} \
-		-e '\.DS_Store,${DISTDIR},\.jar,\.hg,\.tar\.gz' .
+		-e '\.DS_Store,${DISTDIR},\.hg,\.tar\.gz' .
 
 ${DISTDIR}:
 	shtool mkdir -p ${DISTDIR}

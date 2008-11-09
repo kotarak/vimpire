@@ -1,4 +1,85 @@
-Copyright 2008 (c) Meikel Brandmeyer.
+*gorilla.txt*                       Gorilla
+
+Gorilla - A Clojure Environment
+===============================
+
+Introduction
+------------
+
+Gorilla is the successor of Chimp for Clojure. It uses a network connection
+to talk to running Clojure. This has several advantages over Chimp. The main
+factor is, that it's a two-way street where the screen interface is only one
+way. This makes eg. balloons with docstrings possible. Also using a second
+channel to send expressions doesn't interfere with the user command history.
+
+For Windows users the Ruby dependency might be also more tolerable than the
+Cygwin dependency for screen.
+
+It currently supports the extraction and sending of s-expressions, the lookup
+of docstrings and expansion of macros.
+
+A feature unique to Gorilla compared to Chimp is the Repl running in a Vim
+buffer. Supports syntax highlighting, indenting of multi-line expressions
+and command history. This is currently very experimental.
+
+To use the Gorilla you have to start Clojure via the SocketRepl class in the
+de.kotka.socketrepl package. This is supplied in the accompanying jar file.
+Keep this somewhere in the foreground to be able to kill it.
+
+Keybindings
+-----------
+
+<LocalLeader>et                                 *et* *EvaluateTop*
+                        Send off the toplevel sexpressions currently
+                        containing the cursor to the chimp instance.
+
+<LocalLeader>es                                 *es* *EvaluateSexp*
+                        Send off the innermost sexpression currently
+                        containing the cursor to the chimp instance.
+
+<LocalLeader>me                                 *me* *MacroExpand*
+                        Expand the innermost sexpression currently
+                        containing the cursor using macroexpand.
+
+<LocalLeader>m1                                 *m1* *MacroExpand1*
+                        Same as MacroExpand, but use macroexpand-1.
+
+
+<LocalLeader>lw                                 *lw* *LookupWord*
+                        Lookup up the word under the cursor and print
+                        the documentation for it via (doc).
+
+<LocalLeader>ld                                 *ld* *LookupDocumentation*
+                        Lookup the documentation of an arbitrary word.
+                        The user is prompted for input.
+
+<LocalLeader>fd                                 *fd* *FindDocumentation*
+                        Find a the documentation for a given pattern
+                        with (find-doc). The user is prompted for input.
+
+<LocalLeader>sr                                 *sr* *StartRepl*
+                        Start a new Vim Repl in a fresh buffer. There
+                        might be multiple Repls at the same time.
+
+Vim Repl
+--------
+
+Start a Repl via the |sr| shortcut. At the prompt just type expressions.
+Hitting enter will determine, whether the expression is complete and
+will send it to the Clojure instance. In case the expression is incomplete,
+eg. after "(defn foo" will result in a newline for multiline expressions.
+
+Previously sent expressions may be recalled via <C-Up> and <C-Down>.
+
+Never send multiple expressions at once in the Vim Repl! This will send
+the Clojure side in a loop and desync the Vim side of the Repl. The script
+currently cannot catch this case. Eg. a 123"Hello":foo are actually three
+items. This is almost only recognisable via a full-blown reader.
+
+License
+-------
+
+Copyright (c) 2008 Meikel Brandmeyer, Frankfurt am Main
 All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -19,7 +100,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
--------------------------------------------------------------------------------
+License of SocketRepl Code
+--------------------------
 
 The code of the socket repl is taken from Clojure's repl. It is licensed
 under the CPL as follows:

@@ -10,5 +10,8 @@ Gorilla provides a similar, although as sophisticated environment for
 Vim as SLIME does for Emacs. It uses a modified Repl, which is provides
 a network interface to a running Clojure.
 
+Please refer to the online documentation in the doc folder for further
+information on how to use Gorilla, its features and its caveats.
+
 Meikel Branmdeyer <mb@kotka.de>
 Frankfurt am Main, 2008

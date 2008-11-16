@@ -173,7 +173,7 @@ module Gorilla
         len = buf.length
         i = 1
         while i < len
-            if buf[i] =~ /^\((clojure\/)?(in-)?ns\s+'?([a-z][a-z0-9._-]*)/
+            if buf[i] =~ /^\((clojure\.core\/)?(in-)?ns\s+'?([a-z][a-z0-9._-]*)/
                 return $3
             end
             i += 1
@@ -196,7 +196,7 @@ module Gorilla
     def Gorilla.one_command_in_ns(ns, cmd)
         Gorilla.with_connection() do |t|
             t.waitfor(PROMPT_C)
-            Gorilla.command(t, "(clojure/in-ns '" + ns + ")")
+            Gorilla.command(t, "(clojure.core/in-ns '" + ns + ")")
             result = Gorilla.command(t, cmd)
         end
     end
@@ -245,7 +245,7 @@ module Gorilla
 
         return DOCS[pair] if DOCS.has_key?(pair)
 
-        ds = Gorilla.one_command_in_ns(pair[0], "(doc " + pair[1] + ")")
+        ds = Gorilla.one_command_in_ns(pair[0], "(clojure.core/doc " + pair[1] + ")")
         DOCS[pair] = ds
 
         return ds
@@ -256,7 +256,7 @@ module Gorilla
         pattern = Cmd.input("Pattern to look up? ")
 
         Gorilla.show_result(Gorilla.one_command_in_ns(ns,
-                        "(find-doc \"#{pattern}\")"))
+                        "(clojure.core/find-doc \"#{pattern}\")"))
     end
 
     def Gorilla.extract_sexp(toplevel)

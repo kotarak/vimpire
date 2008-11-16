@@ -1,15 +1,13 @@
 PROJECT := gorilla
 
 SRCDIR  := src
-DISTDIR := dist
+DISTDIR := classes
 
-JAVASRC != cd ${SRCDIR} && find * -type f -name \*.java
-CLJSRC  != cd ${SRCDIR} && find * -type f \( -name \*.clj -and -not -name \*.gen.clj \)
-GCCLJSRC!= cd ${SRCDIR} && find * -type f -name \*.gen.clj
+CLJSRC  != find ${SRCDIR} -type f -name \*.clj
 DIRS    != cd ${SRCDIR} && find * -type d
 
 VERSION != shtool version -d short version.txt
-JAR     := ${PROJECT}-${VERSION}.jar
+JAR     := ${PROJECT}.jar
 TGZ     := ${PROJECT}-${VERSION}.tar.gz
 
 all: jar
@@ -26,7 +24,9 @@ test: jar
 clean:
 	rm -rf ${DISTDIR} ${JAR} ${TGZ}
 
-compile: ${CLJSRC:C/^/dist\//} ${GCCLJSRC:R:R:C/^/dist\//:C/$/.class/} ${JAVASRC:C/^/dist\//:C/.java$/.class/}
+compile: ${CLJSRC} ${DISTDIR}
+	env CLASSPATH=${SRCDIR}:${DISTDIR}:$${CLASSPATH}\
+		java clojure.lang.Script compile.clj
 
 bump-version:
 	shtool version -l txt -n ${PROJECT} -i v version.txt
@@ -36,21 +36,6 @@ bump-revision:
 
 bump-level:
 	shtool version -l txt -n ${PROJECT} -i l version.txt
-
-.for _clj in ${CLJSRC}
-dist/${_clj}: src/${_clj} ${DISTDIR}
-	shtool install -c src/${_clj} dist/${_clj}
-.endfor
-
-.for _clj in ${GCCLJSRC}
-dist/${_clj:R:R}.class: src/${_clj} ${DISTDIR}
-	java clojure.lang.Script gen-class.clj -- ${DISTDIR} ${_clj}
-.endfor
-
-.for _java in ${JAVASRC}
-dist/${_java:R}.class: src/${_java} ${DISTDIR}
-	javac -d dist src/${_java}
-.endfor
 
 ${JAR}: compile
 	cp README.txt ${DISTDIR}

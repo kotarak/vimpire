@@ -129,9 +129,9 @@ module Gorilla
                 ":ruby Gorilla.send_sexp(false)<CR>")
 
         Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>me",
-                ":ruby Gorilla.macro_expand(true)<CR>")
+                ":ruby Gorilla.expand_macro(true)<CR>")
         Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>m1",
-                ":ruby Gorilla.macro_expand(false)<CR>")
+                ":ruby Gorilla.expand_macro(false)<CR>")
 
         Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>sr",
                 ":ruby Gorilla::Repl.start()<CR>")
@@ -280,7 +280,7 @@ module Gorilla
 
     def Gorilla.expand_macro(total)
         level = total ? "" : "-1"
-        sexp = Gorilla.extrast_sexp(false)
+        sexp = Gorilla.extract_sexp(false)
         return if sexp == ""
 
         ns = Gorilla.namespace_of($curbuf)

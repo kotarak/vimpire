@@ -48,9 +48,9 @@ ruby <<EOF
 require 'net/telnet'
 
 module Gorilla
-    PROMPT = "Gorilla=> "
-    PROMPT_C = /^#{PROMPT}\z/
-    PROMPT_B = /^#{PROMPT}/
+    PROMPT = "Gorilla=>"
+    PROMPT_C = /^#{PROMPT}\s*\z/
+    PROMPT_B = /^#{PROMPT}\s*/
 
     module Cmd
         def Cmd.bdelete()
@@ -410,7 +410,7 @@ module Gorilla
             @history.unshift(cmd)
 
             Gorilla.print_in_buffer(@buf, Gorilla.command(@conn, cmd))
-            Gorilla.print_in_buffer(@buf, PROMPT)
+            Gorilla.print_in_buffer(@buf, PROMPT + " ")
             Cmd.normal("G$")
         end
 
@@ -430,7 +430,7 @@ module Gorilla
                 @history_depth += 1
 
                 delete_last()
-                Gorilla.print_in_buffer(@buf, PROMPT + cmd)
+                Gorilla.print_in_buffer(@buf, PROMPT + " " + cmd)
             end
             Cmd.normal("G$")
         end
@@ -441,10 +441,10 @@ module Gorilla
                 cmd = @history[@history_depth]
 
                 delete_last()
-                Gorilla.print_in_buffer(@buf, PROMPT + cmd)
+                Gorilla.print_in_buffer(@buf, PROMPT + " " + cmd)
             elsif @history_depth == 0
                 delete_last()
-                Gorilla.print_in_buffer(@buf, PROMPT)
+                Gorilla.print_in_buffer(@buf, PROMPT + " ")
             end
             Cmd.normal("G$")
         end

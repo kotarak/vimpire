@@ -373,9 +373,12 @@ module Gorilla
             end
 
             if delim.nil? then
-                send(get_command())
-                VIM.command("startinsert!")
-                return
+                c = get_command()
+                if c != "" then
+                    send(c)
+                    VIM.command("startinsert!")
+                    return
+                end
             end
 
             Cmd.normal("g_")

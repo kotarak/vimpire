@@ -49,8 +49,8 @@ require 'net/telnet'
 
 module Gorilla
     PROMPT = "Gorilla=>"
-    PROMPT_C = /^#{PROMPT}\s*\z/
     PROMPT_B = /^#{PROMPT}\s*/
+    PROMPT_C = /^\+OK$/
 
     module Cmd
         def Cmd.bdelete()
@@ -207,7 +207,7 @@ module Gorilla
 
     def Gorilla.command(t, cmd)
         result = t.cmd(cmd + "\n")
-        return result.sub(PROMPT_B, "")
+        return result.sub(/^\+OK\n$/, "")
     end
 
     def Gorilla.print_in_buffer(buf, msg)
@@ -292,14 +292,6 @@ module Gorilla
         @@id = 1
         @@repls = {}
 
-        @@warning = "!!! WARNING !!!\n" +
-                "Do NOT send several forms at once!\n" +
-                "This will make your Repl go banana!\n" +
-                "\n" +
-                "Example: 123\"Hello\":foo\n" +
-                "These are actually three items: 123, \"Hello\" and :foo!\n" +
-                "!!! WARNING !!!\n"
-
         def Repl.by_id(id)
             return @@repls[id]
         end
@@ -329,8 +321,10 @@ module Gorilla
             @@id = @@id.next
             @@repls[id] = self
 
-            Gorilla.print_in_buffer(@buf, @@warning)
-            Gorilla.print_in_buffer(@buf, @conn.waitfor(PROMPT_C))
+            @conn.waitfor(PROMPT_C)
+
+            Gorilla.print_in_buffer(@buf, "Clojure\nGorilla=> ")
+
             Cmd.normal("G$")
             VIM.command("startinsert!")
         end
@@ -358,63 +352,40 @@ module Gorilla
             delim = nil
             pos = nil
 
-            Gorilla.with_saved_position() do
-                if VIM.evaluate("getline('.')") !~ PROMPT_B then
-                    VIM.command("?#{PROMPT}")
-                end
-                Cmd.normal("0")
-
-                l = VIM.evaluate("getline('.')")
-                if l =~ /^#{PROMPT}\s*(\(|\[|#?\{)/ then
-                    delim = $1.sub(/#/, "")
-                    Cmd.normal("f#{delim}")
-                    pos = Cmd.getpos(".")
-                end
+            if !send(get_command()) then
+                # This is a hack to enter a new line and get indenting...
+                @buf.append(@buf.length, "")
+                Cmd.normal("G")
+                Cmd.normal("ix")
+                Cmd.normal("==x")
+                VIM.command("startinsert!")
             end
-
-            if delim.nil? then
-                c = get_command()
-                if c != "" then
-                    send(c)
-                    VIM.command("startinsert!")
-                    return
-                end
-            end
-
-            Cmd.normal("g_")
-
-            if VIM.evaluate("GorillaSynItem()") == "clojureParen0" then
-                submit = false
-
-                Gorilla.with_saved_position() do
-                    Cmd.normal("%")
-                    submit = Cmd.getpos(".") == pos
-                end
-
-                if submit then
-                    send(get_command())
-                    VIM.command("startinsert!")
-                    return
-                end
-            end
-
-            # This is a hack to enter a new line and get indenting...
-            @buf.append(@buf.length, "")
-            Cmd.normal("G")
-            Cmd.normal("ix")
-            Cmd.normal("==x")
-            VIM.command("startinsert!")
         end
 
         def send(cmd)
-            return if repl_command(cmd)
+            return true if repl_command(cmd)
 
             @history_depth = 0
             @history.unshift(cmd)
 
-            Gorilla.print_in_buffer(@buf, Gorilla.command(@conn, cmd))
+            delete_last()
+            result = Gorilla.command(@conn, cmd).split(/\n/)
+
+            while result.length > 0
+                l = result.shift
+                if l == "-ERR incomplete expression" then
+                    Gorilla.print_in_buffer(@buf, PROMPT + " " + result.join("\n"))
+                    return false
+                else
+                    Gorilla.print_in_buffer(@buf, l)
+                end
+            end
+
             Gorilla.print_in_buffer(@buf, PROMPT + " ")
-            Cmd.normal("G$")
+            Cmd.normal("G")
+            VIM.command("startinsert!")
+
+            return true
         end
 
         def delete_last()

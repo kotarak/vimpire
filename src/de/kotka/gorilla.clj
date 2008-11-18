@@ -28,6 +28,19 @@
      (java.io InputStreamReader OutputStreamWriter PrintWriter)
      (java.net InetAddress ServerSocket Socket)))
 
+(defn go-word-position
+  [v]
+  (let [m      (meta v)
+        vns    (name (ns-name (m :ns)))
+        nsbase (.substring vns (inc (.lastIndexOf vns (int \.))))
+        nspath (.replace vns \. \/)
+        file   (m :file)
+        fbase  (.substring file 0 (.lastIndexOf file (int \.)))
+        line   (m :line)]
+    (if (= fbase nsbase)
+      (str nspath ".clj " line)
+      (str nspath "/" file " " line))))
+
 (defn print-rest
   [input]
   (loop [c (.read input)]

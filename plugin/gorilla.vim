@@ -78,7 +78,7 @@ module Gorilla
         end
 
         def Cmd.input(str)
-            return VIM.evaluate("input('" + str + "')")
+            return VIM.evaluate("input('" + str + "')").chomp
         end
 
         def Cmd.map(mode, remap, options, key, target)
@@ -122,6 +122,11 @@ module Gorilla
                 ":ruby Gorilla.lookup_word()<CR>")
         Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>fd",
                 ":ruby Gorilla.find_doc()<CR>")
+
+        Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>gw",
+                ":ruby Gorilla.go_word(Gorilla.namespace_of($curbuf), Gorilla::Cmd.expand('<cword>'))<CR>")
+        Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>gd",
+                ":ruby Gorilla.go_word()<CR>")
 
         Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>et",
                 ":ruby Gorilla.send_sexp(true)<CR>")
@@ -292,6 +297,18 @@ module Gorilla
         ns = Gorilla.namespace_of($curbuf)
         sexp = "(macroexpand#{level} '#{sexp})"
         Gorilla.show_result(Gorilla.one_command_in_ns(ns, sexp))
+    end
+
+    def Gorilla.go_word(*args)
+        ns, word = Gorilla.word_or_input(args)
+
+        sexp = "(de.kotka.gorilla/go-word-position (clojure.core/resolve '#{word}))"
+        file, line = Gorilla.one_command_in_ns(ns, sexp).chomp.split(/ /)
+
+        file = VIM.evaluate("findfile('#{file}')")
+        if file != "" then
+            VIM.command("edit +#{line} #{file}")
+        end
     end
 
     class Repl

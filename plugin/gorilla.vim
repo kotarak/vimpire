@@ -225,16 +225,22 @@ module Gorilla
         Cmd.resize([$curbuf.length, 3].max)
     end
 
-    def Gorilla.lookup_word(*args)
+    def Gorilla.word_or_input(args)
         ns, word = args
 
-        ns = ns.nil? ? "user" : ns
-        word = word.nil? ? Cmd.input("Symbol to look up? ") : word
+        word = word.nil? ? ns : word
+        word = word.nil? ? Cmd.input("Symbol? ") : word
 
-        if word =~ /\//
+        if word =~ /\// then
             ns, word = word.split(/\//)
         end
+        ns = (ns.nil? or ns == word) ? "user" : ns
 
+        return [ns, word]
+    end
+
+    def Gorilla.lookup_word(*args)
+        ns, word = Gorilla.word_or_input(args)
         Gorilla.show_result(Gorilla.lookup_doc_in_ns(ns, word))
     end
 

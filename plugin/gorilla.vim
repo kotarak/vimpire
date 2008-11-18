@@ -427,6 +427,7 @@ module Gorilla
             @conn.close
             @@repls[@id] = nil
             Cmd.bdelete()
+            VIM.command("stopinsert")
         end
     end
 end

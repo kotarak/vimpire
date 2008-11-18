@@ -134,6 +134,8 @@ module Gorilla
                 ":ruby Gorilla.send_sexp(false)<CR>")
         Cmd.map("v", false, "<buffer> <silent>", "<LocalLeader>eb",
                 ":ruby Gorilla.send_block()<CR>")
+        Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>ef",
+                ":ruby Gorilla.send_file()<CR>")
 
         Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>me",
                 ":ruby Gorilla.expand_macro(true)<CR>")
@@ -295,6 +297,12 @@ module Gorilla
         txt = Gorilla.yank("l", "'<,'>yank l")
         return if txt == ""
         Gorilla.show_result(Gorilla.one_command_in_ns(Gorilla.namespace_of($curbuf), txt))
+    end
+
+    def Gorilla.send_file()
+        txt = Gorilla.yank("l", "normal ggVG\"ly")
+        return if txt == ""
+        Gorilla.show_result(Gorilla.one_command(txt))
     end
 
     def Gorilla.expand_macro(total)

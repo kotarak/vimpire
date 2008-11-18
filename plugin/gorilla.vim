@@ -132,6 +132,8 @@ module Gorilla
                 ":ruby Gorilla.send_sexp(true)<CR>")
         Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>es",
                 ":ruby Gorilla.send_sexp(false)<CR>")
+        Cmd.map("v", false, "<buffer> <silent>", "<LocalLeader>eb",
+                ":ruby Gorilla.send_block()<CR>")
 
         Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>me",
                 ":ruby Gorilla.expand_macro(true)<CR>")
@@ -287,6 +289,12 @@ module Gorilla
 
         ns = Gorilla.namespace_of($curbuf)
         Gorilla.show_result(Gorilla.one_command_in_ns(ns, sexp))
+    end
+
+    def Gorilla.send_block()
+        txt = Gorilla.yank("l", "'<,'>yank l")
+        return if txt == ""
+        Gorilla.show_result(Gorilla.one_command_in_ns(Gorilla.namespace_of($curbuf), txt))
     end
 
     def Gorilla.expand_macro(total)

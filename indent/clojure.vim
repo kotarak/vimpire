@@ -24,39 +24,8 @@ setlocal indentkeys=!,o,O
 
 if exists("*searchpairpos")
 
-function! s:WithSaved(closure)
-	let v = a:closure.get(a:closure.tosafe)
-	let r = a:closure.f()
-	call a:closure.set(a:closure.tosafe, v)
-	return r
-endfunction
-
-function! s:WithSavedRegister(closure)
-	let a:closure['get'] = function("getreg")
-	let a:closure['set'] = function("setreg")
-	return s:WithSaved(a:closure)
-endfunction
-
-function! s:Yank(r, how)
-	let closure = {'tosafe': a:r, 'yank': a:how}
-
-	function closure.f() dict
-		execute self.yank
-		return getreg(self.tosafe)
-	endfunction
-
-	return s:WithSavedRegister(closure)
-endfunction
-
 function! s:SynItem()
 	return synIDattr(synID(line("."), col("."), 0), "name")
-endfunction
-
-function! s:WithSavedPosition(closure)
-	let a:closure['tosafe'] = "."
-	let a:closure['get'] = function("getpos")
-	let a:closure['set'] = function("setpos")
-	return s:WithSaved(a:closure)
 endfunction
 
 function! s:MatchPairs(open, close, stopat)
@@ -70,10 +39,10 @@ function! s:MatchPairs(open, close, stopat)
 				\ self.stopat)
 	endfunction
 
-	return s:WithSavedPosition(closure)
+	return vimclojure#WithSavedPosition(closure)
 endfunction
 
-function! s:CheckForStringWorker()
+function! VimClojureCheckForStringWorker()
 	" Check whether there is the last character of the previous line is
 	" highlighted as a string. If so, we check whether it's a ". In this
 	" case we have to check also the previous character. The " might be the
@@ -82,7 +51,7 @@ function! s:CheckForStringWorker()
 	let nb = prevnonblank(v:lnum - 1)
 
 	if nb == 0
-		return 0
+		return -1
 	endif
 
 	call cursor(nb, 0)
@@ -92,12 +61,12 @@ function! s:CheckForStringWorker()
 	endif
 
 	" This will not work for a " in the first column...
-	if s:Yank('l', 'normal! "lyl') == '"'
+	if vimclojure#Yank('l', 'normal! "lyl') == '"'
 		call cursor(0, col("$") - 2)
 		if s:SynItem() != "clojureString"
 			return -1
 		endif
-		if s:Yank('l', 'normal "lyl') != '\\'
+		if vimclojure#Yank('l', 'normal "lyl') != '\\'
 			return -1
 		endif
 		call cursor(0, col("$") - 1)
@@ -112,11 +81,11 @@ function! s:CheckForStringWorker()
 	return indent(".")
 endfunction
 
-function! s:CheckForString()
-	return s:WithSavedPosition({'f': function("s:CheckForStringWorker")})
+function! VimClojureCheckForString()
+	return vimclojure#WithSavedPosition({'f': function("VimClojureCheckForStringWorker")})
 endfunction
 
-function! s:GetClojureIndentWorker()
+function! GetClojureIndentWorker()
 	call cursor(0, 1)
 
 	" Find the next enclosing [ or {. We can limit the second search
@@ -166,7 +135,7 @@ function! s:GetClojureIndentWorker()
 
 	" In case after the paren is a whitespace, we search for the next word.
 	normal l
-	if s:Yank('l', 'normal "lyl') == ' '
+	if vimclojure#Yank('l', 'normal "lyl') == ' '
 		normal w
 	endif
 
@@ -178,7 +147,7 @@ function! s:GetClojureIndentWorker()
 
 	" We still have to check, whether the keyword starts with a (, [ or {.
 	" In that case we use the ( position for indent.
-	let w = s:Yank('l', 'normal "lye')
+	let w = vimclojure#Yank('l', 'normal "lye')
 	if stridx('([{', w[0]) > 0
 		return paren[1]
 	endif
@@ -204,12 +173,12 @@ function! GetClojureIndent()
 
 	" We have to apply some heuristics here to figure out, whether to use
 	" normal lisp indenting or not.
-	let i = s:CheckForString()
+	let i = VimClojureCheckForString()
 	if i > -1
 		return i
 	endif
 
-	return s:WithSavedPosition({'f': function("s:GetClojureIndentWorker")})
+	return vimclojure#WithSavedPosition({'f': function("GetClojureIndentWorker")})
 endfunction
 
 setlocal indentexpr=GetClojureIndent()

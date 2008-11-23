@@ -11,6 +11,43 @@ elseif exists("b:current_syntax")
     finish
 endif
 
+function! s:ColorNamespace(ns, keywords)
+	let ens = escape(a:ns, '-.')
+	let as_pat = '^.*\[' . ens . '\s\+:as\s\+\([a-zA-Z0-9.-]\+\)*\].*$'
+	let use_pat = '^\s\+' . ens . '\s*)*$'
+	let only_pat = '^.*\[' . ens . '\s\+:only\s\+(\([ a-zA-Z0-9.-]\+\))\].*$'
+
+	let as_l = search(as_pat, "Wn")
+	let use_l = search(use_pat, "Wn")
+	let only_l = search(only_pat, "Wn")
+
+	if as_l + use_l + only_l == 0
+		return
+	endif
+
+	for k in keys(a:keywords)
+		let kws = split(a:keywords[k])
+
+		if as_l > 0
+			let as = substitute(getline(as_l), as_pat, '\1', '')
+			let akws = map(copy(kws), 'as . "/" . v:val')
+			execute "syntax keyword clojure" . k . " " . join(akws, " ")
+		endif
+
+		if use_l > 0
+			execute "syntax keyword clojure" . k . " " . join(kws, " ")
+		endif
+
+		if only_l > 0
+			let only = substitute(getline(only_l), only_pat, '\1', '')
+			execute "syntax keyword clojure" . k . " " . only
+		endif
+
+		call map(kws, 'a:ns . "/" . v:val')
+		execute "syntax keyword clojure" . k . " " . join(kws, " ")
+	endfor
+endfunction
+
 " Highlight superfluous closing parens, brackets and braces.
 syn match clojureError "]\|}\|)"
 
@@ -95,11 +132,6 @@ if exists("g:clj_highlight_builtins") && g:clj_highlight_builtins != 0
 	syn keyword clojureFunc      create-struct struct-map struct accessor
 	syn keyword clojureDefine    defstruct
 
-	" Sets
-	syn keyword clojureFunc      hash-set sorted-set set disj union difference
-	syn keyword clojureFunc      intersection select index rename join
-	syn keyword clojureFunc      map-invert project set?
-
 	" Multimethods
 	syn keyword clojureFunc      remove-method
 	syn keyword clojureDefine    defmulti defmethod
@@ -140,24 +172,40 @@ if exists("g:clj_highlight_builtins") && g:clj_highlight_builtins != 0
 	syn keyword clojureSpecial   . new
 	syn keyword clojureVariable  *warn-on-reflection* *proxy-classes* this
 
+	" Sets
+	syn keyword clojureFunc      hash-set sorted-set set disj set?
+	call s:ColorNamespace("clojure.core.set", {
+				\ "Func": "union difference intersection select index rename "
+				\       . "join map-invert project rename-keys"
+				\ })
+
 	" Zip
-	syn keyword clojureFunc      append-child branch? children up down edit end?
-	syn keyword clojureFunc      insert-child insert-left insert-right left lefts
-	syn keyword clojureFunc      right rights make-node next node path remove
-	syn keyword clojureFunc      replace root seq-zip vector-zip xml-zip zipper
+	call s:ColorNamespace("clojure.core.zip", {
+				\ "Func": "append-child branch? children up down edit end? "
+				\       . "insert-child insert-left insert-right left lefts "
+				\       . "right rights make-node next node path remove "
+				\       . "replace root seq-zip vector-zip xml-zip zipper"
+				\ })
 endif
 
 if exists("g:clj_highlight_contrib") && g:clj_highlight_contrib != 0
 	" Def
-	syn keyword clojureDefine    defvar defvar- defunbound defunbound- defmacro-
-	syn keyword clojureDefine    defstruct- defalias
+	call s:ColorNamespace("clojure.contrib.def", {
+				\ "Define": "defvar defvar- defunbound defunbound- defmacro- "
+				\         . "defstruct- defalias"
+				\ })
 
 	" Fcase
-	syn keyword clojureFunc      fcase case re-case instance-case in-case
+	call s:ColorNamespace("clojure.contrib.fcase", {
+				\ "Func": "fcase case re-case instance-case in-case"
+				\ })
 
 	" Duck Streams
-	syn keyword clojureFunc      reader writer write-lines spit
+	call s:ColorNamespace("clojure.contrib.duck-streams", {
+				\ "Func": "reader writer write-lines spit"
+				\ })
 endif
+
 
 syn cluster clojureAtomCluster   contains=clojureError,clojureFunc,clojureMacro,clojureCond,clojureDefine,clojureRepeat,clojureException,clojureConstant,clojureVariable,clojureSpecial,clojureKeyword,clojureString,clojureCharacter,clojureNumber,clojureRational,clojureFloat,clojureBoolean,clojureQuote,clojureUnquote,clojureDispatch,clojurePattern
 syn cluster clojureTopCluster    contains=@clojureAtomCluster,clojureComment,clojureSexp,clojureAnonFn,clojureVector,clojureMap,clojureSet

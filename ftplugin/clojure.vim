@@ -29,12 +29,14 @@ setlocal comments=sO:;\ -,mO:;\ \ ,n:;
 
 " Take all directories of the CLOJURE_SOURCE_DIRS environment variable
 " and add them to the path option.
-if exists("*fnameescape")
-	let s:clj_src_dirs = split($CLOJURE_SOURCE_DIRS, ":")
-	for dir in s:clj_src_dirs
-		execute "setlocal path+=" . fnameescape(dir) . "/**"
-	endfor
+if has("win32") || has("win64")
+	let s:delim = ";"
+else
+	let s:delim = ":"
 endif
+for dir in split($CLOJURE_SOURCE_DIRS, s:delim)
+	call vimclojure#AddPathToOption(dir . "/**", 'path')
+endfor
 
 " When the matchit plugin is loaded, this makes the % command skip parens and
 " braces in comments.

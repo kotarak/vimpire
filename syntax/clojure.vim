@@ -108,12 +108,12 @@ if exists("g:clj_highlight_builtins") && g:clj_highlight_builtins != 0
 	syn keyword clojureFunc      meta with-meta
 
 	" Namespaces
-	syn keyword clojureFunc      in-ns clojure/in-ns refer clojure/refer create-ns
+	syn keyword clojureFunc      in-ns clojure.core/in-ns refer clojure.core/refer create-ns
 	syn keyword clojureFunc      find-ns all-ns remove-ns import ns-name ns-map
 	syn keyword clojureFunc      ns-interns ns-publics ns-imports ns-refers
 	syn keyword clojureFunc      ns-resolve resolve ns-unmap name namespace
 	syn keyword clojureFunc      require use refer-clojure
-	syn keyword clojureMacro     ns clojure/ns
+	syn keyword clojureMacro     ns clojure.core/ns
 	syn keyword clojureVariable  *ns*
 
 	" Vars and Environment

@@ -236,7 +236,7 @@ setlocal lispwords+=do,doto,try,catch,locking,with-in-str,with-out-str,with-open
 setlocal lispwords+=dosync,with-local-vars,doseq,dorun,doall,->
 
 " Namespaces:
-setlocal lispwords+=ns,clojure/ns
+setlocal lispwords+=ns,clojure.core/ns
 
 " Java Classes:
 setlocal lispwords+=gen-class,gen-and-load-class,gen-and-save-class

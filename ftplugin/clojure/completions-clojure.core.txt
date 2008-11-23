@@ -1,5 +1,9 @@
 *agent*
+*allow-unresolved-vars*
 *command-line-args*
+*compile-files*
+*compile-path*
+*err*
 *file*
 *flush-on-newline*
 *in*
@@ -7,6 +11,9 @@
 *math-context*
 *ns*
 *out*
+*print-dup*
+*print-length*
+*print-level*
 *print-meta*
 *print-readably*
 *proxy-classes*
@@ -15,6 +22,7 @@
 accessor
 aclone
 add-classpath
+add-watch
 agent
 agent-errors
 aget
@@ -67,6 +75,8 @@ byte
 cache-seq
 cast
 char
+char-escape-string
+char-name-string
 class
 class?
 clear-agent-errors
@@ -76,8 +86,8 @@ commute
 comp
 comparator
 compare
+compile
 complement
-completions
 concat
 cond
 conj
@@ -91,6 +101,7 @@ create-struct
 cycle
 dec
 decimal?
+declare
 definline
 defmacro
 defmethod
@@ -149,8 +160,6 @@ for
 force
 format
 frest
-gen-and-load-class
-gen-and-save-class
 gen-class
 gensym
 get
@@ -250,8 +259,14 @@ pop
 pos?
 pr-str
 prefer-method
+primitives-classnames
 print
+print-ctor
 print-doc
+print-dup
+print-method
+print-simple
+print-special-doc
 print-str
 printf
 println
@@ -277,14 +292,17 @@ re-pattern
 re-seq
 read
 read-line
+read-string
 reduce
 ref
 ref-set
 refer
 refer-clojure
 rem
+remove
 remove-method
 remove-ns
+remove-watch
 repeat
 repeatedly
 replace
@@ -299,7 +317,6 @@ rfirst
 rrest
 rseq
 rsubseq
-scan
 second
 select-keys
 send
@@ -321,6 +338,7 @@ sorted-map
 sorted-map-by
 sorted-set
 sorted?
+special-form-anchor
 special-symbol?
 split-at
 split-with
@@ -335,6 +353,7 @@ supers
 symbol
 symbol?
 sync
+syntax-symbol-anchor
 take
 take-nth
 take-while
@@ -342,7 +361,6 @@ test
 time
 to-array
 to-array-2d
-touch
 tree-seq
 true?
 unchecked-add
@@ -372,7 +390,6 @@ with-in-str
 with-local-vars
 with-meta
 with-open
-with-out-file
 with-out-str
 with-precision
 xml-seq

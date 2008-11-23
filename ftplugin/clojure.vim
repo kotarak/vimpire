@@ -48,16 +48,8 @@ if has("gui_win32") && !exists("b:browsefilter")
 				\ "All Files (*.*)\t*.*\n"
 endif
 
-let s:completions = split(globpath(&rtp, "ftplugin/clojure/completions"), '\n')
-if s:completions != []
-	if exists("*fnameescape")
-		let dictionary = fnameescape(s:completions[0])
-	else
-		let dictionary = escape(s:completions[0], ' ')
-	endif
-
-	execute "setlocal complete+=k" . dictionary
-endif
-unlet s:completions
+for ns in ['clojure.core', 'clojure.set', 'clojure.xml', 'clojure.zip']
+	call vimclojure#AddCompletions(ns)
+endfor
 
 let &cpo = s:cpo_save

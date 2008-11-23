@@ -27,6 +27,15 @@ setlocal commentstring=;%s
 " Set 'comments' to format dashed lists in comments.
 setlocal comments=sO:;\ -,mO:;\ \ ,n:;
 
+" Take all directories of the CLOJURE_SOURCE_DIRS environment variable
+" and add them to the path option.
+if exists("*fnameescape")
+	let s:clj_src_dirs = split($CLOJURE_SOURCE_DIRS, ":")
+	for dir in s:clj_src_dirs
+		execute "setlocal path+=" . fnameescape(dir) . "/**"
+	endfor
+endif
+
 " When the matchit plugin is loaded, this makes the % command skip parens and
 " braces in comments.
 let b:match_words = &matchpairs

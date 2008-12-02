@@ -21,6 +21,7 @@
 ; THE SOFTWARE.
 
 (clojure.core/ns de.kotka.gorilla
+  (:gen-class)
   (:use [clojure.contrib.fcase :only (case)])
   (:import
      (clojure.lang RT Compiler Compiler$CompilerException LispReader
@@ -156,7 +157,7 @@
     (handle-connection conn)
     (recur server)))
 
-(defn main
+(defn -main
   [& _]
   (let [address (InetAddress/getByName "localhost")
         server  (new ServerSocket 10123 0 address)]

@@ -128,6 +128,11 @@ module Gorilla
         Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>gd",
                 ":ruby Gorilla.go_word()<CR>")
 
+        Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>sw",
+                ":ruby Gorilla.show_word(Gorilla.namespace_of($curbuf), Gorilla::Cmd.expand('<cword>'))<CR>")
+        Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>sd",
+                ":ruby Gorilla.show_word()<CR>")
+
         Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>et",
                 ":ruby Gorilla.send_sexp(true)<CR>")
         Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>es",
@@ -325,6 +330,13 @@ module Gorilla
         if file != "" then
             VIM.command("edit +#{line} #{file}")
         end
+    end
+
+    def Gorilla.show_word(*args)
+        ns, word = Gorilla.word_or_input(args)
+
+        cmd = "(de.kotka.gorilla/show #{word})"
+        Gorilla.show_result(Gorilla.one_command_in_ns(ns, cmd))
     end
 
     class Repl

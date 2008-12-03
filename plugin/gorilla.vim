@@ -43,6 +43,20 @@ function! GorillaSynItem()
     return synIDattr(synID(line("."), col("."), 0), "name")
 endfunction
 
+if !exists("g:GorillaJavadocPath")
+    let g:GorillaJavadocPath = "http://java.sun.com/javase/6/docs/api/"
+endif
+
+if !exists("g:GorillaBrowser")
+    if has("win32") || has("win64")
+        let g:GorillaBrowser = "start"
+    elseif has("mac")
+        let g:GorillaBrowser = "open"
+    else
+        let g:GorillaBrowser = "firefox -new-window"
+    endif
+endif
+
 " The Gorilla Module
 ruby <<EOF
 require 'net/telnet'
@@ -132,6 +146,11 @@ module Gorilla
                 ":ruby Gorilla.show_word(Gorilla.namespace_of($curbuf), Gorilla::Cmd.expand('<cword>'))<CR>")
         Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>sd",
                 ":ruby Gorilla.show_word()<CR>")
+
+        Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>jw",
+                ":ruby Gorilla.javadoc_word(Gorilla.namespace_of($curbuf), Gorilla::Cmd.expand('<cword>'))<CR>")
+        Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>jd",
+                ":ruby Gorilla.javadoc_word()<CR>")
 
         Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>et",
                 ":ruby Gorilla.send_sexp(true)<CR>")
@@ -337,6 +356,18 @@ module Gorilla
 
         cmd = "(de.kotka.gorilla/show #{word})"
         Gorilla.show_result(Gorilla.one_command_in_ns(ns, cmd))
+    end
+
+    def Gorilla.javadoc_word(*args)
+        ns, word = Gorilla.word_or_input(args)
+
+        cmd = "(de.kotka.gorilla/get-javadoc-path #{word})"
+        path = Gorilla.one_command_in_ns(ns, cmd)
+
+        url = VIM.evaluate("g:GorillaJavadocPath") + path
+
+        browser = VIM.evaluate("g:GorillaBrowser")
+        system(browser + " " + url.chomp)
     end
 
     class Repl

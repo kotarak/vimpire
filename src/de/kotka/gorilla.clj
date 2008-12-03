@@ -65,6 +65,10 @@
          (doseq [[e i] (map list items (iterate inc 0))]
            (printf "[%2d] %s%n" i (nth e 2))))))))
 
+(defn get-javadoc-path
+  [x]
+  (-> x .getName (.replace \. \/) (.replace \$ \.) (.concat ".html")))
+
 (defn go-word-position
   [v]
   (let [m      (meta v)

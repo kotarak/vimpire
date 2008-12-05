@@ -64,7 +64,7 @@ require 'net/telnet'
 module Gorilla
     PROMPT = "Gorilla=>"
     PROMPT_B = /^#{PROMPT}\s*/
-    PROMPT_C = /^\+OK$/
+    PROMPT_C = /^#{PROMPT} /
 
     module Cmd
         def Cmd.bdelete()
@@ -230,7 +230,7 @@ module Gorilla
         Gorilla.with_connection() do |t|
             t.waitfor(PROMPT_C)
             Gorilla.command(t, "(clojure.core/in-ns '" + ns + ")")
-            result = Gorilla.command(t, cmd)
+            Gorilla.command(t, cmd)
         end
     end
 
@@ -239,8 +239,8 @@ module Gorilla
     end
 
     def Gorilla.command(t, cmd)
-        result = t.cmd(cmd + "\n")
-        return result.sub(/^\+OK\n$/, "")
+        result = t.cmd(cmd)
+        return result.sub(/^Gorilla=> /, "")
     end
 
     def Gorilla.print_in_buffer(buf, msg)
@@ -370,6 +370,11 @@ module Gorilla
         system(browser + " " + url.chomp)
     end
 
+    def Gorilla.check_completeness(text)
+        cmd = "(de.kotka.gorilla/check-completeness \"#{text}\")"
+        Gorilla.show_result(Gorilla.one_command(cmd))
+    end
+
     class Repl
         @@id = 1
         @@repls = {}
@@ -434,7 +439,15 @@ module Gorilla
             delim = nil
             pos = nil
 
-            if !send(get_command()) then
+            cmd = get_command()
+
+            return if repl_command(cmd)
+
+            cmde = cmd.gsub(/\\/, "\\\\").gsub(/"/, "\\\"")
+            cmde = "(de.kotka.gorilla/check-completeness \"" + cmde + "\")"
+            if Gorilla.one_command(cmde).chomp == "true" then
+                send(cmd)
+            else
                 # This is a hack to enter a new line and get indenting...
                 @buf.append(@buf.length, "")
                 Cmd.normal("G")
@@ -445,29 +458,19 @@ module Gorilla
         end
 
         def send(cmd)
-            return true if repl_command(cmd)
-
             @history_depth = 0
             @history.unshift(cmd)
 
-            delete_last()
             result = Gorilla.command(@conn, cmd).split(/\n/)
 
             while result.length > 0
                 l = result.shift
-                if l == "-ERR incomplete expression" then
-                    Gorilla.print_in_buffer(@buf, PROMPT + " " + result.join("\n"))
-                    return false
-                else
-                    Gorilla.print_in_buffer(@buf, l)
-                end
+                Gorilla.print_in_buffer(@buf, l)
             end
 
             Gorilla.print_in_buffer(@buf, PROMPT + " ")
             Cmd.normal("G")
             VIM.command("startinsert!")
-
-            return true
         end
 
         def delete_last()

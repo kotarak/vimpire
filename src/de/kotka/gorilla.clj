@@ -22,11 +22,10 @@
 
 (clojure.core/ns de.kotka.gorilla
   (:gen-class)
-  (:use [clojure.contrib.fcase :only (case)])
+  (:require
+     clojure.contrib.repl-ln)
   (:import
-     (clojure.lang RT Compiler Compiler$CompilerException LispReader
-                   LineNumberingPushbackReader)
-     (java.io InputStreamReader OutputStreamWriter PrintWriter)
+     (java.io PushbackReader StringReader)
      (java.net InetAddress ServerSocket Socket)
      (java.lang.reflect Modifier Method Constructor)))
 
@@ -82,109 +81,27 @@
       (str nspath ".clj " line)
       (str nspath "/" file " " line))))
 
-(defn print-rest
+(defn check-completeness
   [input]
-  (loop [c (.read input)]
-    (when-not (neg? c)
-      (print (char c))
-      (recur (.read input)))))
-
-(defn try-eval
-  [input]
-  (loop [state :running]
-    (when (= state :running)
-      (recur
-        (do
-          (.mark input 0)
-          (set! *in* (new java.io.PushbackReader input))
-          (try
-            (let [eof (new Object)
-                  r   (read *in* false eof)]
-              (if (= r eof)
-                :done
-                (let [r (eval r)]
-                  (println r)
-                  (flush)
-                  (set! *3 *2)
-                  (set! *2 *1)
-                  (set! *1 r)
-                  :running)))
-            (catch Throwable e
-              (if (and (instance? Exception e)
-                       (= (.getMessage e) "EOF while reading"))
-                (do
-                  (println "-ERR incomplete expression")
-                  (.reset input)
-                  (print-rest input)
-                  :done)
-                (let [c (last (take-while #(not (nil? %))
-                                          (iterate #(.getCause %) e)))]
-                  (binding [*out* *err*]
-                    (println (if (instance? Compiler$CompilerException e) e c))
-                    (flush))
-                  (set! *e e)
-                  :running)))))))))
-
-(defn try-read
-  [in]
-  (let [s (new StringBuilder)]
-    (loop [wait true]
-      (if (or (.ready in) wait)
-        (let [c (.read in)]
-          (if (neg? c)
-            (if wait
-              nil
-              (str s))
-            (do
-              (.append s (char c))
-              (recur false))))
-        (str s)))))
-
-(defn repl
-  [in out]
-  (try
-    (binding [*in*  *in*
-              *out* out
-              *err* (new PrintWriter out true)
-              *ns*  *ns*
-              *warn-on-reflection* *warn-on-reflection*
-              *print-meta*   *print-meta*
-              *print-length* *print-length*
-              *print-level*  *print-level*
-              *1 nil
-              *2 nil
-              *3 nil
-              *e nil]
-      (in-ns 'user)
-      (refer 'clojure.core)
-      (loop [state :prompt]
-        (case state
-          :prompt (recur
-                    (do
-                      (println "+OK")
-                      (flush)
-                      :eval))
-
-          :eval   (recur
-                    (let [input (try-read in)]
-                      (if input
-                        (do
-                          (try-eval (new java.io.StringReader input))
-                          :prompt)
-                        :exit)))
-
-          :exit   (do
-                    (println)
-                    (flush))))
-      (catch Exception e
-        (.printStackTrace e *err*)))))
+  (let [irdr (PushbackReader. (StringReader. input))
+        eof  (Object.)]
+    (loop []
+      (try
+        (if (= (read irdr false eof) eof)
+          true
+          (recur))
+        (catch Exception _
+          false)))))
 
 (defn handle-connection
   [conn]
   (-> (fn []
-        (repl
-          (new InputStreamReader (.getInputStream conn)  RT/UTF8)
-          (new OutputStreamWriter (.getOutputStream conn) RT/UTF8))
+        (binding [*ns* *ns*]
+          (in-ns 'user)
+          (let [in  (.getInputStream conn)
+                out (.getOutputStream conn)]
+            (clojure.contrib.repl-ln/repl :in in :out out :err out
+                                          :prompt-fmt "Gorilla=> ")))
         (.close conn)
         (println "Connection closed."))
     Thread.

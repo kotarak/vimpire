@@ -29,6 +29,20 @@
      (java.net InetAddress ServerSocket Socket)
      (java.lang.reflect Modifier Method Constructor)))
 
+(defn uniq
+  [l]
+  (cons (first l)
+        (mapcat (fn [[x y]] (when-not (= x y) [y]))
+                (partition 2 1 l))))
+
+(defn get-static-info
+  [c]
+  (let [items (concat (.getFields c) (.getMethods c) (.getConstructors c))
+        items (filter #(pos? (bit-and Modifier/STATIC (.getModifiers %))) items)
+        items (map #(.getName %) items)
+        items (uniq items)]
+    (doseq [i items] (println i))))
+
 ;; From: http://groups.google.com/group/clojure/msg/96ed91f823305f02
 ;; by: Chris Houser
 ;; usage:

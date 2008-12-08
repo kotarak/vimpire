@@ -57,6 +57,23 @@ if !exists("g:GorillaBrowser")
     endif
 endif
 
+function! GorillaOmniTrampoline(findstart, base)
+    if a:findstart
+        let pos = getpos(".")
+        normal b
+        let pos2 = col(".")
+        call setpos(".", pos)
+        return pos2 - 1
+    else
+        ruby <<EOF
+        base = VIM.evaluate("a:base")
+        result = Gorilla.omni_complete(base)
+        VIM.command("let result = " + result)
+EOF
+        return result
+    endif
+endfunction
+
 " The Gorilla Module
 ruby <<EOF
 require 'net/telnet'
@@ -256,6 +273,18 @@ module Gorilla
         Gorilla.print_in_buffer($curbuf, res)
         Cmd.normal("ggdd")
         Cmd.resize([$curbuf.length, 3].max)
+    end
+
+    def Gorilla.omni_complete(base)
+        klass, stem = base.split(/\//)
+        stem = stem.nil? ? "" : stem
+        ns = Gorilla.namespace_of($curbuf)
+        cmd = "(de.kotka.gorilla/get-static-info #{klass})"
+        completions = Gorilla.one_command_in_ns(ns, cmd).split(/\n/)
+        completions.pop
+        completions = completions.select { |c| !c.nil? && c =~ /^#{stem}/ }
+        completions = completions.map { |c| "{ 'word': '#{klass + "/" + c}', 'abbr': '#{c}' }" }
+        return "[" + completions.join(",") + "]"
     end
 
     def Gorilla.word_or_input(args)

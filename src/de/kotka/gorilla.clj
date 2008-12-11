@@ -23,7 +23,7 @@
 (clojure.core/ns de.kotka.gorilla
   (:gen-class)
   (:require
-     clojure.contrib.repl-ln)
+     de.kotka.gorilla.repl-ln)
   (:import
      (java.io PushbackReader StringReader)
      (java.net InetAddress ServerSocket Socket)
@@ -114,8 +114,8 @@
           (in-ns 'user)
           (let [in  (.getInputStream conn)
                 out (.getOutputStream conn)]
-            (clojure.contrib.repl-ln/repl :in in :out out :err out
-                                          :prompt-fmt "Gorilla=> ")))
+            (de.kotka.gorilla.repl-ln/repl :in in :out out :err out
+                                           :prompt-fmt "Gorilla=> ")))
         (.close conn)
         (println "Connection closed."))
     Thread.

@@ -27,6 +27,7 @@
 				<pathelement location="${clojure-contrib.jar}"/>
 			</classpath>
 			<sysproperty key="clojure.compile.path" value="${build}"/>
+			<arg value="de.kotka.gorilla.repl-ln"/>
 			<arg value="de.kotka.gorilla"/>
 		</java>
 	</target>

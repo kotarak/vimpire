@@ -178,6 +178,9 @@ module Gorilla
         Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>ef",
                 ":ruby Gorilla.send_file()<CR>")
 
+        Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>rf",
+                ":ruby Gorilla.require_file()<CR>")
+
         Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>me",
                 ":ruby Gorilla.expand_macro(true)<CR>")
         Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>m1",
@@ -401,6 +404,13 @@ module Gorilla
 
     def Gorilla.check_completeness(text)
         cmd = "(de.kotka.gorilla/check-completeness \"#{text}\")"
+        Gorilla.show_result(Gorilla.one_command(cmd))
+    end
+
+    def Gorilla.require_file()
+        ns = Gorilla.namespace_of($curbuf)
+        return if ns == "user"
+        cmd = "(clojure.core/require :reload '#{ns})"
         Gorilla.show_result(Gorilla.one_command(cmd))
     end
 

@@ -1,3 +1,6 @@
+Gorilla itself, excluding the repl-ln, is licensed under the MIT license
+as follows:
+
 Copyright 2008 (c) Meikel Brandmeyer.
 All rights reserved.
 
@@ -21,8 +24,8 @@ THE SOFTWARE.
 
 -------------------------------------------------------------------------------
 
-The code of the socket repl is taken from Clojure's repl. It is licensed
-under the CPL as follows:
+The code of the repl-ln is taken from Clojure Contrib and is copyright
+by Stephen C. Gilardi. It is licensed under the CPL as follows:
 
 THE ACCOMPANYING PROGRAM IS PROVIDED UNDER THE TERMS OF THIS COMMON PUBLIC
 LICENSE ("AGREEMENT"). ANY USE, REPRODUCTION OR DISTRIBUTION OF THE PROGRAM

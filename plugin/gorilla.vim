@@ -149,24 +149,24 @@ module Gorilla
     def Gorilla.setup_maps()
         Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>lw",
                 ":ruby Gorilla.lookup_word(Gorilla.namespace_of($curbuf), Gorilla::Cmd.expand('<cword>'))<CR>")
-        Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>ld",
+        Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>li",
                 ":ruby Gorilla.lookup_word()<CR>")
         Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>fd",
                 ":ruby Gorilla.find_doc()<CR>")
 
         Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>gw",
                 ":ruby Gorilla.go_word(Gorilla.namespace_of($curbuf), Gorilla::Cmd.expand('<cword>'))<CR>")
-        Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>gd",
+        Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>gi",
                 ":ruby Gorilla.go_word()<CR>")
 
         Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>sw",
                 ":ruby Gorilla.show_word(Gorilla.namespace_of($curbuf), Gorilla::Cmd.expand('<cword>'))<CR>")
-        Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>sd",
+        Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>si",
                 ":ruby Gorilla.show_word()<CR>")
 
         Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>jw",
                 ":ruby Gorilla.javadoc_word(Gorilla.namespace_of($curbuf), Gorilla::Cmd.expand('<cword>'))<CR>")
-        Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>jd",
+        Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>ji",
                 ":ruby Gorilla.javadoc_word()<CR>")
 
         Cmd.map("n", false, "<buffer> <silent>", "<LocalLeader>et",

@@ -259,7 +259,7 @@ module Gorilla
     end
 
     def Gorilla.command(t, cmd)
-        result = t.cmd(cmd + 0x00.chr)
+        result = t.cmd(cmd + " " + 0x00.chr)
         return result.sub(/^Gorilla=> /, "")
     end
 

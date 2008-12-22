@@ -456,9 +456,17 @@ module Gorilla
         end
         attr :id
 
+        def print_stacktrace()
+            stacktrace = Gorilla.command(@conn, "(.printStackTrace *e *err*)")
+            Gorilla.show_result(stacktrace)
+            delete_last()
+            Gorilla.print_in_buffer(@buf, PROMPT + " ")
+        end
+
         def repl_command(cmd)
             case cmd.chomp
             when ",close" then close()
+            when ",st" then print_stacktrace()
             else return false
             end
             return true

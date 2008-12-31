@@ -23,9 +23,13 @@
 (clojure.core/ns de.kotka.gorilla
   (:gen-class)
   (:require
-     de.kotka.gorilla.repl-ln)
+     [clojure.contrib.repl-ln :as repl])
+  (:use
+     [clojure.contrib.def :only (defvar-)])
   (:import
-     (java.io PushbackReader StringReader)
+     (clojure.lang RT LineNumberingPushbackReader)
+     (java.io PushbackReader StringReader InputStreamReader
+              OutputStreamWriter PrintWriter)
      (java.net InetAddress ServerSocket Socket)
      (java.lang.reflect Modifier Method Constructor)))
 
@@ -107,15 +111,53 @@
         (catch Exception _
           false)))))
 
+(defvar- chartype
+  {(int \newline) :eol
+   (int \return)  :eol
+   (int \space)   :ws
+   (int \tab)     :ws
+   (int \,)       :ws
+   (int \;)       :comment
+   0              :eoi
+   -1             :eos})
+
+(defn- skip-to-eol
+  []
+  (let [c (.read *in*)]
+    (condp = (chartype c)
+      :eol (.unread *in* c)
+      :eoi (.unread *in* c)
+      :eos nil
+      (recur))))
+
+(defn- need-prompt
+  []
+  (let [c (.read *in*)]
+    (condp = (chartype c)
+      :ws      (recur)
+      :eol     (recur)
+      :eoi     true
+      :eos     false
+      :comment (do (skip-to-eol) (recur))
+      (do (.unread *in* c) false))))
+
 (defn handle-connection
   [conn]
   (-> (fn []
         (binding [*ns* *ns*]
           (in-ns 'user)
-          (let [in  (.getInputStream conn)
-                out (.getOutputStream conn)]
-            (de.kotka.gorilla.repl-ln/repl :in in :out out :err out
-                                           :prompt-fmt "Gorilla=> ")))
+          (let [in          (-> conn
+                              .getInputStream
+                              (InputStreamReader. RT/UTF8)
+                              LineNumberingPushbackReader.)
+                outs        (.getOutputStream conn)
+                out         (OutputStreamWriter. outs RT/UTF8)
+                err         (-> outs
+                              (OutputStreamWriter. RT/UTF8)
+                              (PrintWriter. true))]
+            (repl/stream-repl :in in :out out :err err
+                              :prompt-fmt "Gorilla=> "
+                              :need-prompt need-prompt)))
         (.close conn)
         (println "Connection closed."))
     Thread.

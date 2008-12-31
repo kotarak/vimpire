@@ -12,7 +12,7 @@
 
 	<property file="local.properties"/>
 
-	<target name="init">
+	<target name="init" depends="clean">
 		<tstamp/>
 		<mkdir dir="${build}"/>
 	</target>

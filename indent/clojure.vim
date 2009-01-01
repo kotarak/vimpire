@@ -1,7 +1,6 @@
 " Vim indent file
 " Language:      Clojure
 " Maintainer:    Meikel Brandmeyer <mb@kotka.de>
-" Last Change:   2008 Aug 31
 " URL:           http://kotka.de/projects/clojure/vimclojure.html
 
 " Only load this indent file when no other was loaded.

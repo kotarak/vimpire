@@ -1,7 +1,6 @@
 " Vim filetype plugin file
 " Language:     Clojure
 " Maintainer:   Meikel Brandmeyer <mb@kotka.de>
-" Last Change:  2008 Aug 19
 
 " Only do this when not done yet for this buffer
 if exists("b:did_ftplugin")

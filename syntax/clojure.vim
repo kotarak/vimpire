@@ -1,6 +1,5 @@
 " Vim syntax file
 " Language:	   Clojure
-" Last Change: 2008-08-31
 " Maintainer:  Toralf Wittner <toralf.wittner@gmail.com>
 "              modified by Meikel Brandmeyer <mb@kotka.de>
 " URL:         http://kotka.de/projects/clojure/vimclojure.html

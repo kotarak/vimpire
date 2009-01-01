@@ -1,7 +1,6 @@
 " Part of Vim filetype plugin for Clojure
 " Language:     Clojure
 " Maintainer:   Meikel Brandmeyer <mb@kotka.de>
-" Last Change:  2008 Nov 23
 
 function! vimclojure#WithSaved(closure)
 	let v = a:closure.get(a:closure.tosafe)

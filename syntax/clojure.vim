@@ -187,6 +187,7 @@ syn match   clojureCharacter "\\u[0-9]\{4\}"
 syn match   clojureCharacter "\\space"
 syn match   clojureCharacter "\\tab"
 syn match   clojureCharacter "\\newline"
+syn match   clojureCharacter "\\return"
 syn match   clojureCharacter "\\backspace"
 syn match   clojureCharacter "\\formfeed"
 

@@ -194,11 +194,12 @@ else
 endif
 
 " Defintions:
-setlocal lispwords=def,def-,defn,defn-,defmacro,defmethod,defonce,let,fn,binding,proxy
+setlocal lispwords=def,def-,defn,defn-,defmacro,defmacro-,defmethod,defonce
+setlocal lispwords+=defvar,defvar-,defunbound,let,fn,binding,proxy
 
 " Conditionals and Loops:
-setlocal lispwords+=if,if-let,when,when-not,when-let,when-first
-setlocal lispwords+=cond,loop,dotimes,for
+setlocal lispwords+=if,if-not,if-let,when,when-not,when-let,when-first
+setlocal lispwords+=cond,condp,loop,dotimes,for
 
 " Blocks:
 setlocal lispwords+=do,doto,try,catch,locking,with-in-str,with-out-str,with-open
@@ -208,6 +209,6 @@ setlocal lispwords+=dosync,with-local-vars,doseq,dorun,doall,->
 setlocal lispwords+=ns,clojure.core/ns
 
 " Java Classes:
-setlocal lispwords+=gen-class,gen-and-load-class,gen-and-save-class
+setlocal lispwords+=gen-class
 
 let &cpo = s:save_cpo

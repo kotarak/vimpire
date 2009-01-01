@@ -47,12 +47,13 @@ if exists("g:clj_highlight_builtins") && g:clj_highlight_builtins != 0
 	let builtins_map = {
 				\ "Constant":  "nil",
 				\ "Boolean":   "true false",
-				\ "Cond":      "if if-let when when-not when-let when-first cond",
+				\ "Cond":      "if if-not if-let when when-not when-let "
+				\            . "when-first cond condp",
 				\ "Exception": "try catch finally throw",
 				\ "Repeat":    "recur map mapcat reduce filter for doseq dorun "
 				\            . "doall dotimes",
 				\ "Special":   ". def do fn if let new quote var loop",
-				\ "Variable":  "*warn-on-reflection* *proxy-classes* this "
+				\ "Variable":  "*warn-on-reflection* this "
 				\            . "*agent* *ns* *in* *out* *err* *command-line-args* "
 				\            . "*print-meta* *print-readably* *print-length* "
 				\            . "*allow-unresolved-args* *compile-files* "
@@ -128,7 +129,11 @@ if exists("g:clj_highlight_builtins") && g:clj_highlight_builtins != 0
 				\            . "special-form-anchor syntax-symbol-anchor supers "
 				\            . "unchecked-add unchecked-dec unchecked-divide "
 				\            . "unchecked-inc unchecked-multiply unchecked-negate "
-				\            . "unchecked-subtract underive xml-seq trampoline"
+				\            . "unchecked-subtract underive xml-seq trampoline "
+				\            . "atom compare-and-set! ifn? gen-interface "
+				\            . "intern init-proxy io! memoize proxy-name swap! "
+				\            . "release-pending-sends the-ns unquote while "
+				\            . "unchecked-remainder"
 				\ }
 
 	for k in keys(builtins_map)

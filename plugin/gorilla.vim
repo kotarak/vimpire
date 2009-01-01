@@ -490,7 +490,7 @@ module Gorilla
 
             return if repl_command(cmd)
 
-            cmde = cmd.gsub(/\\/, "\\\\").gsub(/"/, "\\\"")
+            cmde = cmd.gsub('\\', "\\\\\\\\").gsub(/"/, "\\\"")
             cmde = "(de.kotka.gorilla/check-completeness \"" + cmde + "\")"
             if Gorilla.one_command(cmde).chomp == "true" then
                 send(cmd)

@@ -28,6 +28,7 @@
 			</classpath>
 			<sysproperty key="clojure.compile.path" value="${build}"/>
 			<arg value="de.kotka.gorilla"/>
+			<arg value="de.kotka.gorilla.DocLookup"/>
 		</java>
 	</target>
 

@@ -20,48 +20,46 @@
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 ; THE SOFTWARE.
 
-(clojure.core/ns de.kotka.gorilla.NamespaceInfo
-  (:use
-     [de.kotka.gorilla.util :only (with-command-line)])
-  (:import
-     com.martiansoftware.nailgun.NGContext)
-  (:gen-class
-     :methods [#^{:static true}
-               [nailMain [com.martiansoftware.nailgun.NGContext] void]]
-     :main    false))
+(clojure.core/ns de.kotka.gorilla.backend)
 
-(defn- meta-info
+; Documentation:
+(defn doc-lookup
+  "Lookup up the documentation for the given symbols in the given namespace.
+  The documentation is returned as a string."
+  [namespace symbols]
+  (with-out-str
+    (doseq [sym symbols]
+      (cond
+        (special-form-anchor sym)
+        (print-special-doc sym "Special Form" (special-form-anchor sym))
+
+        (syntax-symbol-anchor sym)
+        (print-special-doc sym "Special Form" (syntax-symbol-anchor sym))
+
+        :else
+        (print-doc (ns-resolve (symbol namespace) (symbol sym)))))))
+
+; Namespace Information:
+(defn meta-info
   "Convert the meta data of the given Var into a map with the
   values converted to strings."
   [the-var]
   (reduce #(assoc %1 (first %2) (str (second %2))) {} (meta the-var)))
 
-(defn- symbol-info
+(defn symbol-info
   "Creates a tree node containing the meta information of the Var named
   by the fully qualified symbol."
   [the-symbol]
   (merge {:type "symbol" :name (name the-symbol)}
          (meta-info (find-var the-symbol))))
 
-(defn- var-info
+(defn var-info
   "Creates a tree node containing the meta information of the given Var."
   [the-var]
   (merge {:type "var" :name (str the-var)} (meta-info the-var)))
 
-(defn- ns-info
+(defn ns-info
   "Creates a tree node containing the information about the given namespace."
   [the-namespace]
   {:name (-> the-namespace ns-name name) :type "namespace"
    :children (map #(-> % second var-info) (ns-interns the-namespace))})
-
-(defn namespaces-info
-  []
-  {:name "namespaces" :type "namespaces"
-   :children (apply vector (map ns-info (all-ns)))})
-
-(defn -nailMain
-  [#^NGContext context]
-  (with-command-line (.getArgs context)
-    "Usage: ng de.kotka.gorilla.NamespaceBrowser namespace ..."
-    [namespaces]
-    (prn (map (comp ns-info find-ns symbol) namespaces))))

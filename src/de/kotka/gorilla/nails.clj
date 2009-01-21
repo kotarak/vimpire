@@ -20,30 +20,40 @@
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 ; THE SOFTWARE.
 
-(clojure.core/ns de.kotka.gorilla.DocLookup
+(clojure.core/ns de.kotka.gorilla.nails
   (:use
-     [de.kotka.gorilla.util :only (with-command-line)])
+     (de.kotka.gorilla [util :only (with-command-line clj->vim)]
+                       backend))
   (:import
-     com.martiansoftware.nailgun.NGContext)
-  (:gen-class
-     :methods [#^{:static true}
-               [nailMain [com.martiansoftware.nailgun.NGContext] void]]
-     :main    false))
+     com.martiansoftware.nailgun.NGContext))
 
-(defn -nailMain
+(gen-class
+  :name    de.kotka.gorilla.nails.DocLookup
+  :prefix  DocLookup-
+  :methods [#^{:static true}
+            [nailMain [com.martiansoftware.nailgun.NGContext] void]]
+  :main    false)
+
+(defn DocLookup-nailMain
   [#^NGContext context]
   (with-command-line (.getArgs context)
-    "Usage: ng de.kotka.gorilla.DocString [options] [--] symbol ..."
+    "Usage: ng de.kotka.gorilla.nails.DocString [options] [--] symbol ..."
     [[namespace n "Lookup the symbols in the given namespace." "user"]
      symbols]
     (binding [*out* (-> context .out java.io.OutputStreamWriter.)]
-      (doseq [sym symbols]
-        (cond
-          (special-form-anchor sym)
-          (print-special-doc sym "Special Form" (special-form-anchor sym))
+      (print (doc-lookup namespace symbols))
+      (flush))))
 
-          (syntax-symbol-anchor sym)
-          (print-special-doc sym "Special Form" (syntax-symbol-anchor sym))
+(gen-class
+  :name    de.kotka.gorilla.nails.NamespaceInfo
+  :prefix  NamespaceInfo-
+  :methods [#^{:static true}
+            [nailMain [com.martiansoftware.nailgun.NGContext] void]]
+  :main    false)
 
-          :else
-          (print-doc (ns-resolve (symbol namespace) (symbol sym))))))))
+(defn NamespaceInfo-nailMain
+  [#^NGContext context]
+  (with-command-line (.getArgs context)
+    "Usage: ng de.kotka.gorilla.nails.NamespaceInfo namespace ..."
+    [namespaces]
+    (println (clj->vim (map #(-> % symbol find-ns ns-info) namespaces)))))

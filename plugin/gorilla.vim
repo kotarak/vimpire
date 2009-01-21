@@ -57,6 +57,15 @@ if !exists("g:GorillaBrowser")
     endif
 endif
 
+if !exists("g:GorillaNailgunClient")
+	let g:GorillaNailgunClient = "ng"
+endif
+
+function! s:ExecuteNail(nail, ...)
+	let result = system(g:GorillaNailgunClient . " de.kotka.gorilla.nails "
+				\ . a:nail . FIXME
+endfunction
+
 function! GorillaOmniTrampoline(findstart, base)
     if a:findstart
         let pos = getpos(".")

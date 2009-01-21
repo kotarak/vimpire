@@ -22,11 +22,26 @@
 
 (clojure.core/ns de.kotka.gorilla.util)
 
+; Common helpers
 (defn str-cut
   "Cut n characters of the end of the string s."
-  [s n]
-  (.substring s 0 (- (.length s) n)))
+  [string n]
+  (.substring string 0 (- (.length string) n)))
 
+(defn str-wrap
+  "Wrap the given string into the given separators."
+  ([string sep]
+   (str-wrap string sep sep))
+  ([string before after]
+   (str before string after)))
+
+(defn str-cat
+  "Concatenate the given collection to a string, separating the
+  collection's items with the given separator."
+  [coll sep]
+  (apply str (interpose sep coll)))
+
+; Command-line handling
 (defn print-usage
   "Print usage information for the given option spec."
   [description specs]
@@ -157,3 +172,45 @@
        (fn [{:strs ~(vec (map first defaults))
              :or   ~(into {} defaults)}]
          ~@body))))
+
+; Vim Interface:
+(defmulti
+  #^{:arglists '([thing])
+     :doc
+  "Convert the Clojure thing into a Vim thing."}
+  clj->vim
+  class)
+
+(defmethod clj->vim :default
+  [thing]
+  (str-wrap thing \"))
+
+(derive clojure.lang.ISeq              ::ToVimList)
+(derive clojure.lang.IPersistentSet    ::ToVimList)
+(derive clojure.lang.IPersistentVector ::ToVimList)
+
+(defmethod clj->vim ::ToVimList
+  [thing]
+  (str-wrap (str-cat (map clj->vim thing) ", ") \[ \]))
+
+(derive clojure.lang.IPersistentMap ::ToVimDict)
+
+(defmethod clj->vim ::ToVimDict
+  [thing]
+  (str-wrap (str-cat (map (fn [[kei value]]
+                            (str (clj->vim kei) " : " (clj->vim value)))
+                          thing)
+                     ", ")
+            \{ \}))
+
+(defmethod clj->vim String
+  [thing]
+  (pr-str thing))
+
+(defmethod clj->vim clojure.lang.Named
+  [thing]
+  (str-wrap (name thing) \"))
+
+(defmethod clj->vim Number
+  [thing]
+  (str thing))

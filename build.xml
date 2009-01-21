@@ -29,6 +29,7 @@
 			<sysproperty key="clojure.compile.path" value="${build}"/>
 			<arg value="de.kotka.gorilla"/>
 			<arg value="de.kotka.gorilla.DocLookup"/>
+			<arg value="de.kotka.gorilla.NamespaceInfo"/>
 		</java>
 	</target>
 

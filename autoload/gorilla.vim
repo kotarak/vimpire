@@ -20,6 +20,18 @@
 " OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 " THE SOFTWARE.
 
+function! gorilla#MakePlug(mode, plug, f)
+	execute a:mode . "noremap <Plug>ClojureChimp" . a:plug
+				\ . " :call " . a:f . "<CR>"
+endfunction
+
+function! gorilla#MapPlug(mode, keys, plug)
+	if !hasmapto("<Plug>ClojureChimp" . a:plug)
+		execute a:mode . "map <buffer> <unique> <silent> <LocalLeader>" . a:keys
+					\ . " <Plug>ClojureChimp" . a:plug
+	endif
+endfunction
+
 " The transient buffer, used to display results.
 let gorilla#TransientBuffer = {}
 

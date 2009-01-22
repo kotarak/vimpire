@@ -39,6 +39,11 @@
         :else
         (print-doc (ns-resolve (symbol namespace) (symbol sym)))))))
 
+(defn javadoc-path-for-class
+  "Translate the name of a Class to the path of its javadoc file."
+  [x]
+  (-> x .getName (.replace \. \/) (.replace \$ \.) (.concat ".html")))
+
 ; Namespace Information:
 (defn meta-info
   "Convert the meta data of the given Var into a map with the

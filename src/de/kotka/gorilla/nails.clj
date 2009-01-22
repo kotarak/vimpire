@@ -58,6 +58,16 @@
   (print (doc-lookup namespace symbols))
   (flush))
 
+(defnail JavadocPath
+  "Usage: ng de.kotka.gorilla.nails.JavadocPath [options] [--] class ..."
+  [[namespace n "Lookup the symbols in the given namespace." "user"]
+   classes]
+  (let [namespace      (symbol namespace)
+        our-ns-resolve #(ns-resolve namespace %)]
+    (doseq [path (map #(-> % symbol our-ns-resolve javadoc-path-for-class)
+                      classes)]
+      (println path))))
+
 (defnail NamespaceInfo
   "Usage: ng de.kotka.gorilla.nails.NamespaceInfo [--] namespace ..."
   [namespaces]

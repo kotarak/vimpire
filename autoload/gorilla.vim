@@ -20,6 +20,9 @@
 " OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 " THE SOFTWARE.
 
+let s:save_cpo = &cpo
+set cpo&vim
+
 function! gorilla#MakePlug(mode, plug, f)
 	execute a:mode . "noremap <Plug>ClojureChimp" . a:plug
 				\ . " :call " . a:f . "<CR>"
@@ -70,3 +73,5 @@ function! gorilla#TransientBuffer.showText(text) dict
 	call append(line("$"), split(a:text, '\n'))
 	call self.resize()
 endfunction
+
+let &cpo = s:save_cpo

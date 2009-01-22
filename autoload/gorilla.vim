@@ -89,4 +89,10 @@ function! gorilla#ExecuteNail(nail, ...)
 	return result
 endfunction
 
+function! gorilla#DocLookup(word)
+	let transientBuffer = g:gorilla#TransientBuffer.New()
+	let docs = gorilla#ExecuteNail("DocLookup", a:word)
+	call transientBuffer.showText(docs)
+endfunction
+
 let &cpo = s:save_cpo

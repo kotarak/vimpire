@@ -27,33 +27,38 @@
   (:import
      com.martiansoftware.nailgun.NGContext))
 
-(gen-class
-  :name    de.kotka.gorilla.nails.DocLookup
-  :prefix  DocLookup-
-  :methods [#^{:static true}
-            [nailMain [com.martiansoftware.nailgun.NGContext] void]]
-  :main    false)
+(defmacro defnail
+  "Define a new Nail of the given name. A suitable class with the
+  .nailMain method is generated. The arguments is a command line
+  arguments specification vector suitable for with-command-line.
+  The body will be installed as the body .nailMain method with the
+  command-line arguments available according to the specification
+  and the nailgun context as 'nailContext'."
+  [nail usage arguments & body]
+  `(do
+     (gen-class
+       :name    ~(symbol (str "de.kotka.gorilla.nails." (name nail)))
+       :prefix  ~(symbol (str (name nail) "-"))
+       :methods [#^{:static true}
+                 [~'nailMain [com.martiansoftware.nailgun.NGContext] ~'void]]
+       :main    false)
 
-(defn DocLookup-nailMain
-  [#^NGContext context]
-  (with-command-line (.getArgs context)
-    "Usage: ng de.kotka.gorilla.nails.DocString [options] [--] symbol ..."
-    [[namespace n "Lookup the symbols in the given namespace." "user"]
-     symbols]
-    (binding [*out* (-> context .out java.io.OutputStreamWriter.)]
-      (print (doc-lookup namespace symbols))
-      (flush))))
+     (defn ~(symbol (str (name nail) "-nailMain"))
+       ~usage
+       [~(with-meta 'nailContext {:tag 'NGContext})]
+       (with-command-line (.getArgs ~'nailContext)
+         ~usage
+         ~arguments
+         ~@body))))
 
-(gen-class
-  :name    de.kotka.gorilla.nails.NamespaceInfo
-  :prefix  NamespaceInfo-
-  :methods [#^{:static true}
-            [nailMain [com.martiansoftware.nailgun.NGContext] void]]
-  :main    false)
+(defnail DocLookup
+  "Usage: ng de.kotka.gorilla.nails.DocString [options] [--] symbol ..."
+  [[namespace n "Lookup the symbols in the given namespace." "user"]
+   symbols]
+  (print (doc-lookup namespace symbols))
+  (flush))
 
-(defn NamespaceInfo-nailMain
-  [#^NGContext context]
-  (with-command-line (.getArgs context)
-    "Usage: ng de.kotka.gorilla.nails.NamespaceInfo namespace ..."
-    [namespaces]
-    (println (clj->vim (map #(-> % symbol find-ns ns-info) namespaces)))))
+(defnail NamespaceInfo
+  "Usage: ng de.kotka.gorilla.nails.NamespaceInfo [--] namespace ..."
+  [namespaces]
+  (println (clj->vim (map #(-> % symbol find-ns ns-info) namespaces))))

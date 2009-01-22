@@ -74,4 +74,19 @@ function! gorilla#TransientBuffer.showText(text) dict
 	call self.resize()
 endfunction
 
+" Nails
+if !exists("gorilla#NailgunClient")
+	let gorilla#NailgunClient = "ng"
+endif
+
+function! gorilla#ExecuteNail(nail, ...)
+	let cmd = join([g:gorilla#NailgunClient,
+				\ "de.kotka.gorilla.nails." . a:nail] + a:000, " ")
+	let result = system(cmd)
+	if v:shell_error
+		throw "Couldn't execute Nail! " . cmd
+	endif
+	return result
+endfunction
+
 let &cpo = s:save_cpo

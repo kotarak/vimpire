@@ -25,7 +25,9 @@
      (de.kotka.gorilla [util :only (with-command-line clj->vim)]
                        backend))
   (:import
-     com.martiansoftware.nailgun.NGContext))
+     com.martiansoftware.nailgun.NGContext
+     clojure.lang.LineNumberingPushbackReader
+     (java.io InputStreamReader OutputStreamWriter PrintWriter)))
 
 (defmacro defnail
   "Define a new Nail of the given name. A suitable class with the
@@ -46,10 +48,16 @@
      (defn ~(symbol (str (name nail) "-nailMain"))
        ~usage
        [~(with-meta 'nailContext {:tag 'NGContext})]
-       (with-command-line (.getArgs ~'nailContext)
-         ~usage
-         ~arguments
-         ~@body))))
+       (binding [~'*in*  (-> ~'nailContext
+                           .in
+                           InputStreamReader.
+                           LineNumberingPushbackReader.)
+                 ~'*out* (-> ~'nailContext .out OutputStreamWriter.)
+                 ~'*err* (-> ~'nailContext .err PrintWriter.)]
+         (with-command-line (.getArgs ~'nailContext)
+           ~usage
+           ~arguments
+           ~@body)))))
 
 (defnail DocLookup
   "Usage: ng de.kotka.gorilla.nails.DocString [options] [--] symbol ..."

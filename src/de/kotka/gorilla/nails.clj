@@ -91,20 +91,19 @@
                  *in*)
         eof    (Object.)
         of-interest '#{in-ns ns clojure.core/in-ns clojure.core/ns}
-        in-seq (repeatedly #(read in false eof))]
-    (let [candidate
-          (drop-while #(and (not= % eof)
-                            (or (not (instance? clojure.lang.ISeq %))
-                                (not (contains? of-interest (first %)))))
-                      in-seq)]
-      (when (not= candidate eof)
-        (let [candidate (first candidate)]
-          (cond
-            ('#{ns clojure.core/ns} (first candidate))
-            (println (second candidate))
-
-            ('#{in-ns clojure.core/in-ns} (first candidate))
-            (println (second (second candidate)))))))))
+        in-seq (repeatedly #(read in false eof))
+        candidate (first
+                    (drop-while #(and (not= % eof)
+                                      (or (not (instance? clojure.lang.ISeq %))
+                                          (not (contains? of-interest
+                                                          (first %)))))
+                                in-seq))]
+    (println
+      (cond
+        (= candidate eof)                                "user"
+        ('#{ns clojure.core/ns} (first candidate))       (second candidate)
+        ('#{in-ns clojure.core/in-ns} (first candidate)) (second (second candidate))
+        :else                                            (println "user")))))
 
 (defnail NamespaceInfo
   "Usage: ng de.kotka.gorilla.nails.NamespaceInfo [--] namespace ..."

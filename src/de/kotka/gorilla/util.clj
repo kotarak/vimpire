@@ -82,16 +82,11 @@
         (reduce (fn [[opts sopts] spec]
                   (let [lopt  (name (first spec))
                         sopt  (second spec)
+                        sopt  (if (symbol? sopt) (name sopt) nil)
                         [lopt sopt type]
                         (if (.endsWith lopt "?")
-                          [(str-cut lopt 1)
-                           (if (symbol? (second spec))
-                             (-> sopt name (str-cut 1))
-                             nil)
-                           :flag]
-                          [lopt
-                           (if (symbol? sopt) (name sopt) nil)
-                           :option])]
+                          [(str-cut lopt 1) sopt :flag]
+                          [lopt             sopt :option])]
                     (vector (assoc opts lopt type)
                             (assoc sopts sopt lopt))))
                 [{} {}]

@@ -98,7 +98,7 @@ function! gorilla#DocLookup(word)
 endfunction
 
 let s:DefaultJavadocPaths = {
-			\ "java/lang" : "http://java.sun.com/javase/6/docs/api/",
+			\ "java" : "http://java.sun.com/javase/6/docs/api/",
 			\ "org/apache/commons/beanutils" : "http://commons.apache.org/beanutils/api/",
 			\ "org/apache/commons/chain" : "http://commons.apache.org/chain/api-release/",
 			\ "org/apache/commons/cli" : "http://commons.apache.org/cli/api-release/",

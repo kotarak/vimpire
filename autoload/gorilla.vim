@@ -169,4 +169,19 @@ function! gorilla#JavadocLookup(word)
 	call system(join([g:gorilla#Browser, url], " "))
 endfunction
 
+" Evaluators
+function! gorilla#MacroExpand(firstOnly)
+	let sexp = gorilla#ExtractSexpr(0)
+	let cmd = ["MacroExpand",
+				\ "--expression", shellescape(sexp),
+				\ "--namespace", b:gorilla_namespace]
+	let cmd = a:firstOnly ? cmd + ["--first"] : cmd
+
+	let expansion = call(function("gorilla#ExecuteNail"), cmd)
+
+	let resultBuffer = g:gorilla#TransientBuffer.New()
+	call resultBuffer.showText(expansion)
+endfunction
+
+" Epilog
 let &cpo = s:save_cpo

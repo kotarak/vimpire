@@ -34,6 +34,12 @@ call gorilla#MakePlug("n", "JavadocLookupWord", 'gorilla#JavadocLookup(expand("<
 call gorilla#MapPlug("n", "lw", "DocLookupWord")
 call gorilla#MapPlug("n", "jw", "JavadocLookupWord")
 
+call gorilla#MakePlug("n", "MacroExpand",  'gorilla#MacroExpand(0)')
+call gorilla#MakePlug("n", "MacroExpand1", 'gorilla#MacroExpand(1)')
+
+call gorilla#MapPlug("n", "me", "MacroExpand")
+call gorilla#MapPlug("n", "m1", "MacroExpand1")
+
 if expand("%") != ""
 	let b:gorilla_namespace = gorilla#ExecuteNail("NamespaceOfFile", "--file",
 				\ expand("%:p"))

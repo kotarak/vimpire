@@ -22,7 +22,9 @@
 
 (clojure.core/ns de.kotka.gorilla.nails
   (:use
-     (de.kotka.gorilla [util :only (with-command-line clj->vim)]
+     (de.kotka.gorilla [util :only (with-command-line
+                                     clj->vim
+                                     resolve-and-load-namespace)]
                        backend))
   (:import
      com.martiansoftware.nailgun.NGContext
@@ -63,14 +65,16 @@
   "Usage: ng de.kotka.gorilla.nails.DocString [options] [--] symbol ..."
   [[namespace n "Lookup the symbols in the given namespace." "user"]
    symbols]
-  (print (doc-lookup namespace symbols))
-  (flush))
+  (let [namespace (resolve-and-load-namespace namespace)
+        symbols   (map symbol symbols)]
+    (print (doc-lookup namespace symbols))
+    (flush)))
 
 (defnail JavadocPath
   "Usage: ng de.kotka.gorilla.nails.JavadocPath [options] [--] class ..."
   [[namespace n "Lookup the symbols in the given namespace." "user"]
    classes]
-  (let [namespace      (symbol namespace)
+  (let [namespace      (resolve-and-load-namespace namespace)
         our-ns-resolve #(ns-resolve namespace %)]
     (doseq [path (map #(-> % symbol our-ns-resolve javadoc-path-for-class)
                       classes)]

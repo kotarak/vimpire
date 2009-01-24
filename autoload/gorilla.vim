@@ -95,4 +95,54 @@ function! gorilla#DocLookup(word)
 	call transientBuffer.showText(docs)
 endfunction
 
+let s:DefaultJavadocPaths = {
+			\ "java/lang" : "http://java.sun.com/javase/6/docs/api/",
+			\ "org/apache/commons/beanutils" : "http://commons.apache.org/beanutils/api/",
+			\ "org/apache/commons/chain" : "http://commons.apache.org/chain/api-release/",
+			\ "org/apache/commons/cli" : "http://commons.apache.org/cli/api-release/",
+			\ "org/apache/commons/codec" : "http://commons.apache.org/codec/api-release/",
+			\ "org/apache/commons/collections" : "http://commons.apache.org/collections/api-release/",
+			\ "org/apache/commons/logging" : "http://commons.apache.org/logging/apidocs/",
+			\ "org/apache/commons/mail" : "http://commons.apache.org/email/api-release/",
+			\ "org/apache/commons/io" : "http://commons.apache.org/io/api-release/"
+			\ }
+
+if !exists("gorilla#JavadocPathMap")
+	let gorilla#JavadocPathMap = {}
+endif
+
+for k in keys(s:DefaultJavadocPaths)
+	if !has_key(gorilla#JavadocPathMap, k)
+		let gorilla#JavadocPathMap[k] = s:DefaultJavadocPaths[k]
+	endif
+endfor
+
+if !exists("gorilla#Browser")
+	if has("win32") || has("win64")
+		let gorilla#Browser = "start"
+	elseif has("mac")
+		let gorilla#Browser = "open"
+	else
+		let gorilla#Browser = "firefox -new-window"
+	endif
+endif
+
+function! gorilla#JavadocLookup(word)
+	let path = gorilla#ExecuteNail("JavadocPath", a:word)
+
+	let match = ""
+	for pattern in keys(g:gorilla#JavadocPathMap)
+		if path =~ "^" . pattern && len(match) < len(pattern)
+			let match = pattern
+		endif
+	endfor
+
+	if match == ""
+		throw "No matching Javadoc URL found for " . path
+	endif
+
+	let url = g:gorilla#JavadocPathMap[match] . path
+	call system(join([g:gorilla#Browser, url], " "))
+endfunction
+
 let &cpo = s:save_cpo

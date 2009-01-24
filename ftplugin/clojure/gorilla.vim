@@ -29,6 +29,9 @@ let s:save_cpo = &cpo
 set cpo&vim
 
 call gorilla#MakePlug("n", "DocLookupWord", 'gorilla#DocLookup(expand("<cword>"))')
+call gorilla#MakePlug("n", "JavadocLookupWord", 'gorilla#JavadocLookup(expand("<cword>"))')
+
 call gorilla#MapPlug("n", "lw", "DocLookupWord")
+call gorilla#MapPlug("n", "jw", "JavadocLookupWord")
 
 let &cpo = s:save_cpo

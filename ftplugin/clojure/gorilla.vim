@@ -34,4 +34,11 @@ call gorilla#MakePlug("n", "JavadocLookupWord", 'gorilla#JavadocLookup(expand("<
 call gorilla#MapPlug("n", "lw", "DocLookupWord")
 call gorilla#MapPlug("n", "jw", "JavadocLookupWord")
 
+if expand("%") != ""
+	let b:gorilla_namespace = gorilla#ExecuteNail("NamespaceOfFile", "--file",
+				\ expand("%:p"))
+else
+	let b:gorilla_namespace = "user"
+endif
+
 let &cpo = s:save_cpo

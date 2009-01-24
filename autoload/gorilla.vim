@@ -90,8 +90,10 @@ function! gorilla#ExecuteNail(nail, ...)
 endfunction
 
 function! gorilla#DocLookup(word)
+	let docs = gorilla#ExecuteNail("DocLookup",
+				\ "--namespace", b:gorilla_namespace,
+				\ "--", a:word)
 	let transientBuffer = g:gorilla#TransientBuffer.New()
-	let docs = gorilla#ExecuteNail("DocLookup", a:word)
 	call transientBuffer.showText(docs)
 endfunction
 
@@ -128,7 +130,9 @@ if !exists("gorilla#Browser")
 endif
 
 function! gorilla#JavadocLookup(word)
-	let path = gorilla#ExecuteNail("JavadocPath", a:word)
+	let path = gorilla#ExecuteNail("JavadocPath",
+				\ "--namespace", b:gorilla_namespace,
+				\ "--", a:word)
 
 	let match = ""
 	for pattern in keys(g:gorilla#JavadocPathMap)

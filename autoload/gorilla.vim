@@ -23,6 +23,26 @@
 let s:save_cpo = &cpo
 set cpo&vim
 
+" Helpers
+function! gorilla#SynItem()
+	return synIDattr(synID(line("."), col("."), 0), "name")
+endfunction
+
+function! gorilla#ExtractSexpr(toplevel)
+	let closure = { "flag" : (a:toplevel ? "r" : "") }
+
+	function closure.f() dict
+		if searchpairpos('(', '', ')', 'bW' . self.flag,
+					\ 'gorilla#SynItem() !~ "clojureParen\\d"') != [0, 0]
+			return vimclojure#Yank('l', 'normal "ly%')
+		end
+		return ""
+	endfunction
+
+	return vimclojure#WithSavedPosition(closure)
+endfunction
+
+" Key mappings and Plugs
 function! gorilla#MakePlug(mode, plug, f)
 	execute a:mode . "noremap <Plug>ClojureChimp" . a:plug
 				\ . " :call " . a:f . "<CR>"

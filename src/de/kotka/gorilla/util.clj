@@ -214,3 +214,11 @@
 (defmethod clj->vim Number
   [thing]
   (str thing))
+
+; Namespace helpers
+(defn resolve-and-load-namespace
+  "Loads and returns the namespace named by the given string or symbol."
+  [namespace]
+  (let [namespace (if (symbol? namespace) namespace (symbol namespace))]
+    (require namespace)
+    (the-ns namespace)))

@@ -215,5 +215,8 @@
   "Loads and returns the namespace named by the given string or symbol."
   [namespace]
   (let [namespace (if (symbol? namespace) namespace (symbol namespace))]
-    (require namespace)
-    (the-ns namespace)))
+    (try
+      (the-ns namespace)
+      (catch Exception _
+        (require namespace)
+        (the-ns namespace)))))

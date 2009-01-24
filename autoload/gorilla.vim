@@ -86,7 +86,7 @@ function! gorilla#ExecuteNail(nail, ...)
 	if v:shell_error
 		throw "Couldn't execute Nail! " . cmd
 	endif
-	return result
+	return substitute(result, '\n$', '', '')
 endfunction
 
 function! gorilla#DocLookup(word)

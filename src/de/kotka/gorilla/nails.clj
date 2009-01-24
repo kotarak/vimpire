@@ -109,3 +109,20 @@
   "Usage: ng de.kotka.gorilla.nails.NamespaceInfo [--] namespace ..."
   [namespaces]
   (println (clj->vim (map #(-> % symbol find-ns ns-info) namespaces))))
+
+(defnail MacroExpand
+  "Usage: ng de.kotka.gorilla.nails.MacroExpand [options]"
+  [[namespace  n "Lookup the symbols in the given namespace." "user"]
+   [first?     f "Expand only the first most macro."]
+   [expression e "The expression to expand. Use '-' for stdin." "-"]]
+  (let [namespace  (resolve-and-load-namespace namespace)
+        in         (if (not= expression "-")
+                     (-> expression
+                       java.io.StringReader.
+                       LineNumberingPushbackReader.)
+                     *in*)
+        expression (read in)]
+    (binding [*ns* namespace]
+      (prn (if first
+             (macroexpand-1 expression)
+             (macroexpand   expression))))))

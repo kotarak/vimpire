@@ -55,8 +55,30 @@ function! gorilla#MapPlug(mode, keys, plug)
 	endif
 endfunction
 
+" A Buffer...
+let gorilla#Buffer = {}
+
+function! gorilla#Buffer.goHere() dict
+	execute "buffer! " . self._buffer
+endfunction
+
+function! gorilla#Buffer.resize() dict
+	call self.goHere()
+	let size = line("$")
+	if size < 3
+		let size = 3
+	endif
+	execute "resize " . size
+endfunction
+
+function! gorilla#Buffer.showText(text) dict
+	call self.goHere()
+	call append(line("$"), split(a:text, '\n'))
+	call self.resize()
+endfunction
+
 " The transient buffer, used to display results.
-let gorilla#TransientBuffer = {}
+let gorilla#TransientBuffer = copy(gorilla#Buffer)
 
 function! gorilla#TransientBuffer.New() dict
 	let instance = copy(self)
@@ -73,25 +95,6 @@ function! gorilla#TransientBuffer.New() dict
 	call append(0, "; Press q to close this buffer!")
 
 	return instance
-endfunction
-
-function! gorilla#TransientBuffer.goHere() dict
-	execute "buffer! " . self._buffer
-endfunction
-
-function! gorilla#TransientBuffer.resize() dict
-	call self.goHere()
-	let size = line("$")
-	if size < 3
-		let size = 3
-	endif
-	execute "resize " . size
-endfunction
-
-function! gorilla#TransientBuffer.showText(text) dict
-	call self.goHere()
-	call append(line("$"), split(a:text, '\n'))
-	call self.resize()
 endfunction
 
 " Nails

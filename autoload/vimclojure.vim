@@ -26,7 +26,7 @@ function! vimclojure#Yank(r, how)
 	let closure = {'tosafe': a:r, 'yank': a:how}
 
 	function closure.f() dict
-		execute self.yank
+		silent execute self.yank
 		return getreg(self.tosafe)
 	endfunction
 

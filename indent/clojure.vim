@@ -23,10 +23,6 @@ setlocal indentkeys=!,o,O
 
 if exists("*searchpairpos")
 
-function! s:SynItem()
-	return synIDattr(synID(line("."), col("."), 0), "name")
-endfunction
-
 function! s:MatchPairs(open, close, stopat)
 	let closure = { 'open': a:open, 'close': a:close, 'stopat': a:stopat }
 
@@ -34,7 +30,7 @@ function! s:MatchPairs(open, close, stopat)
 		" Stop only on vector and map [ resp. {. Ignore the ones in strings and
 		" comments.
 		return searchpairpos(self.open, '', self.close, 'bW',
-				\ 'synIDattr(synID(line("."), col("."), 0), "name") !~ "clojureParen\\d"',
+				\ 'vimclojure#SynIdName() !~ "clojureParen\\d"',
 				\ self.stopat)
 	endfunction
 
@@ -55,14 +51,14 @@ function! VimClojureCheckForStringWorker()
 
 	call cursor(nb, 0)
 	call cursor(0, col("$") - 1)
-	if s:SynItem() != "clojureString"
+	if vimclojure#SynIdName() != "clojureString"
 		return -1
 	endif
 
 	" This will not work for a " in the first column...
 	if vimclojure#Yank('l', 'normal! "lyl') == '"'
 		call cursor(0, col("$") - 2)
-		if s:SynItem() != "clojureString"
+		if vimclojure#SynIdName() != "clojureString"
 			return -1
 		endif
 		if vimclojure#Yank('l', 'normal "lyl') != '\\'

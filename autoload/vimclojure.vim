@@ -2,6 +2,10 @@
 " Language:     Clojure
 " Maintainer:   Meikel Brandmeyer <mb@kotka.de>
 
+function! vimclojure#SynIdName()
+	return synIDattr(synID(line("."), col("."), 0), "name")
+endfunction
+
 function! vimclojure#WithSaved(closure)
 	let v = a:closure.get(a:closure.tosafe)
 	let r = a:closure.f()

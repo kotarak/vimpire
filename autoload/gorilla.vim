@@ -112,6 +112,14 @@ function! gorilla#ExecuteNail(nail, ...)
 	return substitute(result, '\n$', '', '')
 endfunction
 
+function! gorilla#FilterNail(nail, rngStart, rngEnd, ...)
+	let cmd = join([a:rngStart . "," . a:rngEnd . "!",
+				\ g:gorilla#NailgunClient,
+				\ "de.kotka.gorilla.nails." . a:nail] + a:000, " ")
+
+	silent execute cmd
+endfunction
+
 function! gorilla#DocLookup(word)
 	let docs = gorilla#ExecuteNail("DocLookup",
 				\ "--namespace", b:gorilla_namespace,

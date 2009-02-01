@@ -53,4 +53,30 @@ for ns in ['clojure.core', 'clojure.set', 'clojure.xml', 'clojure.zip']
 	call vimclojure#AddCompletions(ns)
 endfor
 
+" Define toplevel folding if desired.
+function! ClojureGetFoldingLevel(lineno)
+	let closure = { 'lineno' : a:lineno }
+
+	function closure.f() dict
+		execute self.lineno
+
+		if vimclojure#SynIdName() =~ 'clojureParen\d' && vimclojure#Yank('l', 'normal "lyl') == '('
+			return 1
+		endif
+
+		if searchpairpos('(', '', ')', 'bWr', 'vimclojure#SynIdName() !~ "clojureParen\\d"') != [0, 0]
+			return 1
+		endif
+
+		return 0
+	endfunction
+
+	return vimclojure#WithSavedPosition(closure)
+endfunction
+
+if exists("g:clj_want_folding") && g:clj_want_folding == 1
+	setlocal foldexpr=ClojureGetFoldingLevel(v:lnum)
+	setlocal foldmethod=expr
+endif
+
 let &cpo = s:cpo_save

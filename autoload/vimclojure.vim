@@ -37,14 +37,22 @@ function! vimclojure#Yank(r, how)
 	return vimclojure#WithSavedRegister(closure)
 endfunction
 
-function! vimclojure#AddPathToOption(path, option)
-		if exists("*fnameescape")
-			let path = fnameescape(a:path)
-		else
-			let path = escape(a:path, '\ ')
-		endif
+function! vimclojure#EscapePathForOption(path)
+	if exists("*fnameescape")
+		let path = fnameescape(a:path)
+	else
+		let path = escape(a:path, '\ ')
+	endif
 
-		execute "setlocal " . a:option . "+=" . path
+	" Hardcore escapeing of whitespace...
+	let path = substitute(path, '\ ', '\\\\ ', 'g')
+
+	return path
+endfunction
+
+function! vimclojure#AddPathToOption(path, option)
+	let path = vimclojure#EscapePathForOption(a:path)
+	execute "setlocal " . a:option . "+=" . path
 endfunction
 
 function! vimclojure#AddCompletions(ns)

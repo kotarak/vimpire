@@ -183,15 +183,21 @@ endfunction
 " Evaluators
 function! gorilla#MacroExpand(firstOnly)
 	let sexp = gorilla#ExtractSexpr(0)
-	let cmd = ["MacroExpand",
-				\ "--expression", shellescape(sexp),
-				\ "--namespace", b:gorilla_namespace]
-	let cmd = a:firstOnly ? cmd + ["--first"] : cmd
-
-	let expansion = call(function("gorilla#ExecuteNail"), cmd)
+	let ns = b:gorilla_namespace
 
 	let resultBuffer = g:gorilla#TransientBuffer.New()
-	call resultBuffer.showText(expansion)
+	setfiletype clojure
+
+	let firstLine = line("$")
+	call resultBuffer.showText(sexp)
+	let lastLine = line("$")
+
+	let cmd = ["MacroExpand", firstLine, lastLine, "-n", ns]
+	if a:firstOnly
+		let cmd = args + [ "-o" ]
+	endif
+
+	call call(function("gorilla#FilterNail"), cmd)
 endfunction
 
 " Epilog

@@ -115,20 +115,17 @@
 
 (defnail MacroExpand
   "Usage: ng de.kotka.gorilla.nails.MacroExpand [options]"
-  [[namespace  n "Lookup the symbols in the given namespace." "user"]
-   [first?     f "Expand only the first most macro."]
-   [expression e "The expression to expand. Use '-' for stdin." "-"]]
-  (let [namespace  (resolve-and-load-namespace namespace)
-        in         (if (not= expression "-")
-                     (-> expression
-                       java.io.StringReader.
-                       LineNumberingPushbackReader.)
-                     *in*)
-        expression (read in)]
+  [[namespace n "Lookup the symbols in the given namespace." "user"]
+   [one?      o "Expand only the first macro."]]
+  (let [namespace (resolve-and-load-namespace namespace)
+        expand    (if one
+                    #(macroexpand-1 %)
+                    #(macroexpand %))
+        eof       (Object.)]
     (binding [*ns* namespace]
-      (prn (if first
-             (macroexpand-1 expression)
-             (macroexpand   expression))))))
+      (doseq [expr (take-while #(not= % eof)
+                               (repeatedly #(read *in* false eof)))]
+        (-> expr expand prn)))))
 
 ; The Repl
 (defvar *repls*

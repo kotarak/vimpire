@@ -189,7 +189,7 @@ function! gorilla#MacroExpand(firstOnly)
 
 	let cmd = ["MacroExpand", firstLine, lastLine, "-n", ns]
 	if a:firstOnly
-		let cmd = args + [ "-o" ]
+		let cmd = cmd + [ "-o" ]
 	endif
 
 	call call(function("gorilla#FilterNail"), cmd)

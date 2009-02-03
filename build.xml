@@ -29,6 +29,7 @@
 			<sysproperty key="clojure.compile.path" value="${build}"/>
 			<arg value="de.kotka.gorilla"/>
 			<arg value="de.kotka.gorilla.util"/>
+			<arg value="de.kotka.gorilla.repl"/>
 			<arg value="de.kotka.gorilla.backend"/>
 			<arg value="de.kotka.gorilla.nails"/>
 		</java>

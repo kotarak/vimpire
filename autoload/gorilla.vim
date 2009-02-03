@@ -70,7 +70,6 @@ endfunction
 function! gorilla#Buffer.showText(text) dict
 	call self.goHere()
 	call append(line("$"), split(a:text, '\n'))
-	call self.resize()
 endfunction
 
 " The transient buffer, used to display results.
@@ -194,6 +193,148 @@ function! gorilla#MacroExpand(firstOnly)
 	endif
 
 	call call(function("gorilla#FilterNail"), cmd)
+endfunction
+
+" The Repl
+let gorilla#Repl = copy(gorilla#Buffer)
+
+let gorilla#Repl._prompt = "Gorilla=>"
+let gorilla#Repl._history = []
+let gorilla#Repl._historyDepth = 0
+let gorilla#Repl._replCommands = [ ",close" ]
+
+function! gorilla#Repl.New() dict
+	let instance = copy(self)
+
+	new
+	setlocal buftype=nofile
+	setlocal noswapfile
+
+	inoremap <buffer> <silent> <CR>     <Esc>:call b:gorilla_repl.enterHook()<CR>
+	inoremap <buffer> <silent> <C-Up>   <C-O>:call b:gorilla_repl.upHistory()<CR>
+	inoremap <buffer> <silent> <C-Down> <C-O>:call b:gorilla_repl.downHistory()<CR>
+
+	call append(line("$"), ["Clojure", self._prompt . " "])
+
+	let instance._id = gorilla#ExecuteNail("Repl", "-s")
+	let instance._buffer = bufnr("%")
+
+	let b:gorilla_repl = instance
+
+	setfiletype clojurerepl
+
+	normal G
+	startinsert!
+endfunction
+
+function! gorilla#Repl.isReplCommand(cmd) dict
+	for candidate in self._replCommands
+		if candidate == a:cmd
+			return 1
+		endif
+	endfor
+	return 0
+endfunction
+
+function! gorilla#Repl.doReplCommand(cmd) dict
+	if a:cmd == ",close"
+		call gorilla#ExecuteNail("Repl", "-S", "-i", self._id)
+		execute "bdelete! " . self._buffer
+		stopinsert
+	endif
+endfunction
+
+function! gorilla#Repl.getCommand() dict
+	let ln = line("$")
+
+	while getline(ln) !~ "^" . self._prompt
+		let ln = ln - 1
+	endwhile
+
+	let cmd = vimclojure#Yank("l", ln . "," . line("$") . "yank l")
+
+	let cmd = substitute(cmd, "^" . self._prompt . "\\s*", "", "")
+	let cmd = substitute(cmd, "\n$", "", "")
+	return cmd
+endfunction
+
+function! gorilla#Repl.enterHook() dict
+	let cmd = self.getCommand()
+
+	if self.isReplCommand(cmd)
+		call self.doReplCommand(cmd)
+		return
+	endif
+
+	let rangeStart = line("$") + 1
+	call self.showText(cmd)
+	let rangeEnd = line("$")
+
+	call gorilla#FilterNail("CheckSyntax", rangeStart, rangeEnd)
+	let result = getline("$")
+	if result == "false"
+		normal G0Dix
+		normal ==x
+	else
+		normal Gdd
+		let rangeStart = line("$") + 1
+		call self.showText(cmd)
+		let rangeEnd = line("$")
+
+		call gorilla#FilterNail("Repl", rangeStart, rangeEnd,
+					\ "-r", "-i", self._id)
+
+		let self._historyDepth = 0
+		let self._history = [cmd] + self._history
+		call self.showText(self._prompt . " ")
+		normal G
+	endif
+	startinsert!
+endfunction
+
+function! gorilla#Repl.upHistory() dict
+	let histLen = len(self._history)
+	let histDepth = self._historyDepth
+
+	if histLen > 0 && histLen > histDepth
+		let cmd = self._history[histDepth]
+		let self._historyDepth = histDepth + 1
+
+		call self.deleteLast()
+
+		call self.showText(self._prompt . " " . cmd)
+	endif
+
+	normal G$
+endfunction
+
+function! gorilla#Repl.downHistory() dict
+	let histLen = len(self._history)
+	let histDepth = self._historyDepth
+
+	if histDepth > 0 && histLen > 0
+		let self._historyDepth = histDepth - 1
+		let cmd = self._history[self._historyDepth]
+
+		call self.deleteLast()
+
+		call self.showText(self._prompt . " " . cmd)
+	elseif histDepth == 0
+		call self.deleteLast()
+		call self.showText(self._prompt . " ")
+	endif
+
+	normal G$
+endfunction
+
+function! gorilla#Repl.deleteLast() dict
+	normal G
+
+	while getline("$") !~ self._prompt
+		normal dd
+	endwhile
+
+	normal dd
 endfunction
 
 " Epilog

@@ -20,9 +20,7 @@
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 ; THE SOFTWARE.
 
-(clojure.core/ns de.kotka.gorilla.util
-  (:import
-     clojure.lang.LineNumberingPushbackReader))
+(clojure.core/ns de.kotka.gorilla.util)
 
 ; Common helpers
 (defn str-cut
@@ -222,15 +220,3 @@
       (catch Exception _
         (require namespace)
         (the-ns namespace)))))
-
-; A reader with setable line number.
-(defn make-reader
-  "Create a proxy for a LineNumberingsPushbackReader, which delegates
-  everything, but allows to specify an offset as initial line."
-  [reader offset]
-  (proxy [LineNumberingPushbackReader] [reader]
-    (getLineNumber []  (+ offset (proxy-super getLineNumber)))
-    (read          []  (proxy-super read))
-    (unread        [i] (proxy-super unread i))
-    (readLine      []  (proxy-super readLine))
-    (atLineStart   []  (proxy-super atLineStart))))

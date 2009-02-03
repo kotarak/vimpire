@@ -24,10 +24,11 @@
   (:use
      (de.kotka.gorilla [util :only (with-command-line
                                      clj->vim
-                                     resolve-and-load-namespace
-                                     make-reader)]
+                                     resolve-and-load-namespace)]
                        backend)
      [clojure.contrib.def :only (defvar)])
+  (:require
+     [de.kotka.gorilla.repl :as repl])
   (:import
      com.martiansoftware.nailgun.NGContext
      clojure.lang.LineNumberingPushbackReader
@@ -127,137 +128,26 @@
                                (repeatedly #(read *in* false eof)))]
         (-> expr expand prn)))))
 
-; The Repl
-(defvar *repls*
-  (ref {})
-  "A map holding the references to all running repls indexed by their repl id.")
+(defnail Repl
+  "Usage: ng de.kotka.gorilla.nails.Repl [options]"
+  [[start? s "Start a new Repl."]
+   [stop?  S "Stop the Repl of the given id."]
+   [run?   r "Run the input in the Repl context of the given id."]
+   [id     i "The id of the repl to act on." "-1"]
+   [file   f "The filename to be set." "REPL"]
+   [line   l "The initial line to be set." "0"]]
+  (let [id   (Integer/parseInt id)
+        line (Integer/parseInt line)]
+    (cond
+      start (println (repl/start))
+      stop  (repl/stop id)
+      run   (repl/run id file line))))
 
-(let [id (ref 0)]
-  (defn repl-id
-    "Get a new Repl id."
-    []
-    (dosync (alter id inc))))
-
-(defstruct
-  #^{:doc
-  "The structure for the Repl interface. Holds the state of a Repl between
-  invokations. The members correspond to the Vars as bound be with-binding."}
-  repl
-  :id :ns :warn-on-reflection :print-meta :print-length :print-level
-  :compile-path :command-line-args :expr1 :expr2 :expr3 :exception)
-
-(defn make-repl
-  [id args]
-  ; Make sure user namespace exists.
-  (binding [*ns* *ns*]
-    (in-ns 'user))
-  (struct-map repl
-              :id                 id
-              :ns                 (the-ns 'user)
-              :warn-on-reflection *warn-on-reflection*
-              :print-meta         *print-meta*
-              :print-length       *print-length*
-              :print-level        *print-level*
-              :compile-path       (System/getProperty
-                                    "clojure.compile.path"
-                                    "classes")
-              :command-line-args  args
-              :expr1              nil
-              :expr2              nil
-              :expr3              nil
-              :exception          nil
-              :line               0))
-
-(defn root-cause
-  [cause]
-  (if-let [cause (.getCause cause)]
-    (recur cause)
-    cause))
-
-(defnail ReplStart
-  "Usage: ng de.kotka.gorilla.nails.ReplStart"
+(defnail CheckSyntax
+  "Usage: ng de.kotka.gorilla.nails.CheckSyntax"
   []
-  (let [id       (repl-id)
-        the-repl (make-repl id (.getArgs nailContext))]
-    (dosync (commute *repls* assoc id the-repl))
-    (println id)))
-
-(defnail ReplSend
-  "Usage: ng de.kotka.gorilla.nails.ReplSend [options]"
-  [[id   i "The id of the Repl to which the expression is sent.
-                    -1 for one-shot." "-1"]
-   [file f "Set the source name to the given file." "REPL"]
-   [line l "Set the initial line number." "0"]]
-  (let [id       (Integer/parseInt id)
-        the-repl (if (= id -1)
-                   (make-repl nil (.getArgs nailContext))
-                   (*repls* id))]
-    (if the-repl
-      (try
-        (Var/pushThreadBindings
-          {Compiler/SOURCE file
-           Compiler/LINE   (var-get Compiler/LINE)})
-        (binding [*in*                 (-> nailContext
-                                         .in
-                                         InputStreamReader.
-                                         (make-reader (if (= line "0")
-                                                        (the-repl :line)
-                                                        (Integer/parseInt 0))))
-                  *ns*                 (the-repl :ns)
-                  *warn-on-reflection* (the-repl :warn-on-reflection)
-                  *print-meta*         (the-repl :print-meta)
-                  *print-length*       (the-repl :print-length)
-                  *print-level*        (the-repl :print-level)
-                  *compile-path*       (the-repl :compile-path)
-                  *command-line-args*  (the-repl :command-line-args)
-                  *1                   (the-repl :expr1)
-                  *2                   (the-repl :expr2)
-                  *3                   (the-repl :expr3)
-                  *e                   (the-repl :exception)]
-          (try
-            (let [eof   (Object.)
-                  exprs (take-while #(not= % eof)
-                                    (repeatedly #(read *in* false eof)))]
-              (dorun exprs)
-              (doseq [expr exprs]
-                (let [value (eval expr)]
-                  (prn value)
-                  (when-not (= *1 value)
-                    (set! *3 *2)
-                    (set! *2 *1)
-                    (set! *1 value)))))
-            (catch Throwable e
-              (-> (if (instance? clojure.lang.Compiler$CompilerException e)
-                    e
-                    (root-cause e))
-                .toString
-                println)
-              (set! *e e)))
-          (when-not (= id -1)
-            (let [new-repl
-                  (struct-map repl
-                              :id                 id
-                              :ns                 *ns*
-                              :warn-on-reflection *warn-on-reflection*
-                              :print-meta         *print-meta*
-                              :print-length       *print-length*
-                              :print-level        *print-level*
-                              :compile-path       *compile-path*
-                              :command-line-args  *command-line-args*
-                              :expr1              *1
-                              :expr2              *2
-                              :expr3              *3
-                              :exception          *e
-                              :line               (dec (.getLineNumber *in*)))]
-              (dosync (commute *repls* assoc id new-repl)))))
-        (finally
-          (Var/popThreadBindings)))
-    (println "ERROR: no repl of that id"))))
-
-(defnail ReplStop
-  "Usage: ng de.kotka.gorilla.nails.ReplStop [options]"
-  [[id   i "The id of the Repl to stop." ""]
-   [all?   "Stop all Repls."]]
-  (if all
-    (dosync (ref-set *repls* {}))
-    (dosync (alter *repls* dissoc (Integer/parseInt id)))))
+  (try
+    (dorun (repl/stream->seq *in*))
+    (println true)
+    (catch Exception e
+      (println false))))

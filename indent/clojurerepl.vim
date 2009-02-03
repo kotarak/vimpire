@@ -20,34 +20,4 @@
 " OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 " THE SOFTWARE.
 
-if exists("b:gorilla_loaded")
-	finish
-endif
-let b:gorilla_loaded = "2.0.0"
-
-let s:save_cpo = &cpo
-set cpo&vim
-
-call gorilla#MakePlug("n", "DocLookupWord", 'gorilla#DocLookup(expand("<cword>"))')
-call gorilla#MakePlug("n", "JavadocLookupWord", 'gorilla#JavadocLookup(expand("<cword>"))')
-
-call gorilla#MapPlug("n", "lw", "DocLookupWord")
-call gorilla#MapPlug("n", "jw", "JavadocLookupWord")
-
-call gorilla#MakePlug("n", "MacroExpand",  'gorilla#MacroExpand(0)')
-call gorilla#MakePlug("n", "MacroExpand1", 'gorilla#MacroExpand(1)')
-
-call gorilla#MapPlug("n", "me", "MacroExpand")
-call gorilla#MapPlug("n", "m1", "MacroExpand1")
-
-call gorilla#MakePlug("n", "StartRepl", 'gorilla#Repl.New()')
-call gorilla#MapPlug("n", "sr", "StartRepl")
-
-if expand("%") != ""
-	let b:gorilla_namespace = gorilla#ExecuteNail("NamespaceOfFile", "--file",
-				\ expand("%:p"))
-else
-	let b:gorilla_namespace = "user"
-endif
-
-let &cpo = s:save_cpo
+runtime indent/clojure.vim

@@ -24,7 +24,8 @@
   (:use
      (de.kotka.gorilla [util :only (with-command-line
                                      clj->vim
-                                     resolve-and-load-namespace)]
+                                     resolve-and-load-namespace
+                                     stream->seq)]
                        backend)
      [clojure.contrib.def :only (defvar)])
   (:require
@@ -120,11 +121,9 @@
   (let [namespace (resolve-and-load-namespace namespace)
         expand    (if one
                     #(macroexpand-1 %)
-                    #(macroexpand %))
-        eof       (Object.)]
+                    #(macroexpand %))]
     (binding [*ns* namespace]
-      (doseq [expr (take-while #(not= % eof)
-                               (repeatedly #(read *in* false eof)))]
+      (doseq [expr (stream->seq *in*)]
         (-> expr expand prn)))))
 
 (defnail Repl
@@ -146,7 +145,7 @@
   "Usage: ng de.kotka.gorilla.nails.CheckSyntax"
   []
   (try
-    (dorun (repl/stream->seq *in*))
+    (dorun (stream->seq *in*))
     (println true)
     (catch Exception e
       (println false))))

@@ -22,7 +22,8 @@
 
 (clojure.core/ns de.kotka.gorilla.repl
   (:use
-     [clojure.contrib.def :only (defvar)])
+     [clojure.contrib.def :only (defvar)]
+     [de.kotka.gorilla.util :only (stream->seq)])
   (:import
      (clojure.lang Var Compiler LineNumberingPushbackReader)))
 
@@ -96,13 +97,6 @@
   [reader offset]
   (proxy [LineNumberingPushbackReader] [reader]
     (getLineNumber []  (+ offset (proxy-super getLineNumber)))))
-
-(defn stream->seq
-  "Turns a given stream into a seq of Clojure forms read from the stream."
-  [stream]
-  (let [eof (Object.)
-        rdr (fn [] (read stream false eof))]
-    (take-while #(not= % eof) (repeatedly rdr))))
 
 (defn with-repl*
   "Calls thunk in the context of the Repl with the given id. id may be -1

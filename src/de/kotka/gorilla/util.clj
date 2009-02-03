@@ -220,3 +220,11 @@
       (catch Exception _
         (require namespace)
         (the-ns namespace)))))
+
+(defn stream->seq
+  "Turns a given stream into a seq of Clojure forms read from the stream."
+  [stream]
+  (let [eof (Object.)
+        rdr (fn [] (read stream false eof))]
+    (take-while #(not= % eof) (repeatedly rdr))))
+

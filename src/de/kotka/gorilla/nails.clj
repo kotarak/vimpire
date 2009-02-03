@@ -32,7 +32,6 @@
   (:import
      com.martiansoftware.nailgun.NGContext
      clojure.lang.LineNumberingPushbackReader
-     (clojure.lang Var Compiler)
      (java.io InputStreamReader OutputStreamWriter PrintWriter)))
 
 (defmacro defnail

@@ -72,6 +72,10 @@ function! gorilla#Buffer.showText(text) dict
 	call append(line("$"), split(a:text, '\n'))
 endfunction
 
+function! gorilla#Buffer.close() dict
+	execute "bdelete! " . self._buffer
+endfunction
+
 " The transient buffer, used to display results.
 let gorilla#TransientBuffer = copy(gorilla#Buffer)
 
@@ -239,7 +243,7 @@ endfunction
 function! gorilla#Repl.doReplCommand(cmd) dict
 	if a:cmd == ",close"
 		call gorilla#ExecuteNail("Repl", "-S", "-i", self._id)
-		execute "bdelete! " . self._buffer
+		call self.close()
 		stopinsert
 	endif
 endfunction

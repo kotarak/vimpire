@@ -85,29 +85,21 @@
       (println path))))
 
 (defnail NamespaceOfFile
-  "Usage: ng de.kotka.gorilla.nails.NamespaceOfFile [options]"
-  [[file f "Read the named file. Use '-' for stdin." "-"]]
-  (let [in     (if (not= file "-")
-                 (-> file
-                   java.io.FileInputStream.
-                   java.io.InputStreamReader.
-                   LineNumberingPushbackReader.)
-                 *in*)
-        eof    (Object.)
-        of-interest '#{in-ns ns clojure.core/in-ns clojure.core/ns}
-        in-seq (repeatedly #(read in false eof))
-        candidate (first
-                    (drop-while #(and (not= % eof)
-                                      (or (not (instance? clojure.lang.ISeq %))
-                                          (not (contains? of-interest
-                                                          (first %)))))
-                                in-seq))]
+  "Usage: ng de.kotka.gorilla.nails.NamespaceOfFile"
+  []
+  (let [of-interest '#{in-ns ns clojure.core/in-ns clojure.core/ns}
+        in-seq      (stream->seq *in*)
+        candidate   (first
+                      (drop-while #(or (not (instance? clojure.lang.ISeq %))
+                                       (not (contains? of-interest (first %))))
+                                  in-seq))]
     (println
       (cond
-        (= candidate eof)                                "user"
+        (not (instance? clojure.lang.ISeq candidate))    "user"
         ('#{ns clojure.core/ns} (first candidate))       (second candidate)
-        ('#{in-ns clojure.core/in-ns} (first candidate)) (second (second candidate))
-        :else                                            (println "user")))))
+        ('#{in-ns clojure.core/in-ns} (first candidate)) (-> candidate
+                                                           second
+                                                           second)))))
 
 (defnail NamespaceInfo
   "Usage: ng de.kotka.gorilla.nails.NamespaceInfo [--] namespace ..."

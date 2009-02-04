@@ -43,11 +43,20 @@ call gorilla#MapPlug("n", "m1", "MacroExpand1")
 call gorilla#MakePlug("n", "StartRepl", 'gorilla#Repl.New()')
 call gorilla#MapPlug("n", "sr", "StartRepl")
 
-if expand("%") != ""
-	let b:gorilla_namespace = gorilla#ExecuteNail("NamespaceOfFile", "--file",
-				\ expand("%:p"))
-else
-	let b:gorilla_namespace = "user"
-endif
+" Get the namespace of the buffer.
+let s:here = bufnr("%")
+let s:content = getbufline(s:here, 1, line("$"))
+let s:tmpBuf = gorilla#TransientBuffer.New()
+
+call s:tmpBuf.showText(join(s:content, "\n"))
+let s:endLine = line("$")
+
+call gorilla#FilterNail("NamespaceOfFile", 1, s:endLine)
+let s:ns = getline(line("$"))
+
+call s:tmpBuf.close()
+let b:gorilla_namespace = s:ns
+
+unlet s:content s:tmpBuf s:endLine s:ns
 
 let &cpo = s:save_cpo

@@ -38,6 +38,14 @@ function! gorilla#ExtractSexpr(toplevel)
 	return vimclojure#WithSavedPosition(closure)
 endfunction
 
+function! gorilla#BufferName()
+	let file = expand("%")
+	if file == ""
+		let file = "UNNAMED"
+	endif
+	return file
+endfunction
+
 " Key mappings and Plugs
 function! gorilla#MakePlug(mode, plug, f)
 	execute a:mode . "noremap <Plug>ClojureChimp" . a:plug

@@ -124,14 +124,17 @@
    [stop?  S "Stop the Repl of the given id."]
    [run?   r "Run the input in the Repl context of the given id."]
    [id     i "The id of the repl to act on." "-1"]
+   [nspace n "Change to namespace before executing the input." ""]
    [file   f "The filename to be set." "REPL"]
    [line   l "The initial line to be set." "0"]]
-  (let [id   (Integer/parseInt id)
-        line (Integer/parseInt line)]
+  (let [id     (Integer/parseInt id)
+        line   (Integer/parseInt line)
+        nspace (when (not= nspace "")
+                 (resolve-and-load-namespace nspace))]
     (cond
       start (println (repl/start))
       stop  (repl/stop id)
-      run   (repl/run id file line))))
+      run   (repl/run id nspace file line))))
 
 (defnail CheckSyntax
   "Usage: ng de.kotka.gorilla.nails.CheckSyntax"

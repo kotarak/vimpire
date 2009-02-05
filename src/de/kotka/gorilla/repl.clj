@@ -101,7 +101,7 @@
 (defn with-repl*
   "Calls thunk in the context of the Repl with the given id. id may be -1
   to use a one-shot context. Sets the file line accordingly."
-  [id file line thunk]
+  [id nspace file line thunk]
   (let [the-repl (if (not= id -1)
                    (dosync
                      (let [the-repls (deref *repls*)
@@ -119,7 +119,7 @@
         {Compiler/SOURCE        file
          Compiler/LINE          line
          #'*in*                 (make-reader *in* line)
-         #'*ns*                 (the-repl :ns)
+         #'*ns*                 (if nspace nspace (the-repl :ns))
          #'*warn-on-reflection* (the-repl :warn-on-reflection)
          #'*print-meta*         (the-repl :print-meta)
          #'*print-length*       (the-repl :print-length)
@@ -154,15 +154,15 @@
 (defmacro with-repl
   "Executes body in the context of the Repl with the given id. id may be -1
   to use a one-shot context. Sets the file line accordingly."
-  [id file line & body]
-  `(with-repl* ~id ~file ~line (fn [] ~@body)))
+  [id nspace file line & body]
+  `(with-repl* ~id ~nspace ~file ~line (fn [] ~@body)))
 
 (defn run
   "Reads from *in* and evaluates the found expressions. The state of the
   Repl is retrieved using the given id. Output goes to *out* and *err*.
   The initial input line and the file are set to the supplied values."
-  [id file line]
-  (with-repl id file line
+  [id nspace file line]
+  (with-repl id nspace file line
     (try
       (doseq [form (stream->seq *in*)]
         (let [result (eval form)]

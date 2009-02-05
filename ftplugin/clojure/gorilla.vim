@@ -40,6 +40,18 @@ call gorilla#MakePlug("n", "MacroExpand1", 'gorilla#MacroExpand(1)')
 call gorilla#MapPlug("n", "me", "MacroExpand")
 call gorilla#MapPlug("n", "m1", "MacroExpand1")
 
+call gorilla#MakePlug("n", "EvalFile",      'gorilla#EvalFile()')
+call gorilla#MakePlug("n", "EvalLine",      'gorilla#EvalLine()')
+call gorilla#MakePlug("v", "EvalBlock",     'gorilla#EvalBlock()')
+call gorilla#MakePlug("n", "EvalToplevel",  'gorilla#EvalToplevel()')
+call gorilla#MakePlug("n", "EvalParagraph", 'gorilla#EvalParagraph()')
+
+call gorilla#MapPlug("n", "ef", "EvalFile")
+call gorilla#MapPlug("n", "el", "EvalLine")
+call gorilla#MapPlug("v", "eb", "EvalBlock")
+call gorilla#MapPlug("n", "et", "EvalToplevel")
+call gorilla#MapPlug("n", "ep", "EvalParagraph")
+
 call gorilla#MakePlug("n", "StartRepl", 'gorilla#Repl.New()')
 call gorilla#MapPlug("n", "sr", "StartRepl")
 

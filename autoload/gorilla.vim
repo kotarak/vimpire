@@ -212,6 +212,101 @@ function! gorilla#MacroExpand(firstOnly)
 	call call(function("gorilla#FilterNail"), cmd)
 endfunction
 
+function! gorilla#EvalFile()
+	let content = getbufline(bufnr("%"), 1, line("$"))
+	let file = gorilla#BufferName()
+	let ns = b:gorilla_namespace
+	let resultBuffer = g:gorilla#TransientBuffer.New()
+
+	let startLine = line("$") + 1
+	call resultBuffer.showText(content)
+	let endLine = line("$")
+
+	call gorilla#FilterNail("Repl", startLine, endLine,
+				\ "-r", "-n", ns, "-f", file)
+endfunction
+
+function! gorilla#EvalLine()
+	let theLine = line(".")
+	let content = getline(theLine)
+	let file = gorilla#BufferName()
+	let ns = b:gorilla_namespace
+	let resultBuffer = g:gorilla#TransientBuffer.New()
+
+	call resultBuffer.showText(content)
+	let region = line("$")
+
+	call gorilla#FilterNail("Repl", region, region,
+				\ "-r", "-n", ns, "-f", file, "-l", theLine)
+endfunction
+
+function! gorilla#EvalBlock() range
+	let file = gorilla#BufferName()
+	let ns = b:gorilla_namespace
+
+	let content = getbufline(bufnr("%"), a:firstline, a:lastline)
+	let resultBuffer = g:gorilla#TransientBuffer.New()
+
+	let startLine = line("$") + 1
+	call resultBuffer.showText(content)
+	let endLine = line("$")
+
+	call gorilla#FilterNail("Repl", startLine, endLine,
+				\ "-r", "-n", ns, "-f", file, "-l", a:firstline)
+endfunction
+
+function! gorilla#EvalToplevel()
+	let file = gorilla#BufferName()
+	let ns = b:gorilla_namespace
+
+	let startPosition = searchpairpos('(', '', ')', 'bWnr',
+				\ 'vimclojure#SynIdName() !~ "clojureParen\\d"')
+	if startPosition == [0, 0]
+		throw "Not in a toplevel expression"
+	endif
+
+	let endPosition = searchpairpos('(', '', ')', 'Wnr',
+				\ 'vimclojure#SynIdName() !~ "clojureParen\\d"')
+	if endPosition == [0, 0]
+		throw "Toplevel expression not terminated"
+	endif
+
+	let expr = getbufline(bufnr("%"), startPosition[0], endPosition[0])
+	let resultBuffer = g:gorilla#TransientBuffer.New()
+
+	let startLine = line("$") + 1
+	call resultBuffer.showText(expr)
+	let endLine = line("$")
+
+	call gorilla#FilterNail("Repl", startLine, endLine,
+				\ "-r", "-n", ns, "-f", file, "-l", startPosition[0])
+endfunction
+
+function! gorilla#EvalParagraph()
+	let file = gorilla#BufferName()
+	let ns = b:gorilla_namespace
+	let startPosition = line(".")
+
+	let closure = {}
+
+	function! closure.f() dict
+		normal }
+		return line(".")
+	endfunction
+
+	let endPosition = vimclojure#WithSavedPosition(closure)
+
+	let content = getbufline(bufnr("%"), startPosition, endPosition)
+	let resultBuffer = g:gorilla#TransientBuffer.New()
+
+	let startLine = line("$") + 1
+	call resultBuffer.showText(content)
+	let endLine = line("$")
+
+	call gorilla#FilterNail("Repl", startLine, endLine,
+				\ "-r", "-n", ns, "-f", file, "-l", startPosition)
+endfunction
+
 " The Repl
 let gorilla#Repl = copy(gorilla#Buffer)
 

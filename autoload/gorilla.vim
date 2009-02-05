@@ -140,6 +140,16 @@ function! gorilla#DocLookup(word)
 	call transientBuffer.showText(docs)
 endfunction
 
+function! gorilla#FindDoc()
+	let pattern = input("Pattern to look for: ")
+
+	let resultBuffer = g:gorilla#TransientBuffer.New()
+
+	call resultBuffer.showText(pattern)
+
+	call gorilla#FilterNail("FindDoc", line("$"), line("$"))
+endfunction
+
 let s:DefaultJavadocPaths = {
 			\ "java" : "http://java.sun.com/javase/6/docs/api/",
 			\ "org/apache/commons/beanutils" : "http://commons.apache.org/beanutils/api/",

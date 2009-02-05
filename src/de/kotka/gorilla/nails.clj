@@ -74,6 +74,13 @@
     (print (doc-lookup namespace symbols))
     (flush)))
 
+(defnail FindDoc
+  "Usage: ng de.kotka.gorilla.nails.FindDoc"
+  []
+  (let [patterns (line-seq (java.io.BufferedReader. *in*))]
+    (doseq [pattern patterns]
+      (find-doc pattern))))
+
 (defnail JavadocPath
   "Usage: ng de.kotka.gorilla.nails.JavadocPath [options] [--] class ..."
   [[namespace n "Lookup the symbols in the given namespace." "user"]

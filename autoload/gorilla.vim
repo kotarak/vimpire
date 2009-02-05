@@ -77,7 +77,12 @@ endfunction
 
 function! gorilla#Buffer.showText(text) dict
 	call self.goHere()
-	call append(line("$"), split(a:text, '\n'))
+	if type(a:text) == type("")
+		let text = split(a:text, '\n')
+	else
+		let text = a:text
+	endif
+	call append(line("$"), text)
 endfunction
 
 function! gorilla#Buffer.close() dict

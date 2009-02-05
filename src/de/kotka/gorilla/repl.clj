@@ -110,7 +110,7 @@
                          (throw (Exception. (str "No Repl of that id: " id))))
                        (alter *repls* dissoc id)
                        the-repl))
-                   (make-repl))
+                   (make-repl -1))
         line     (if (= line 0)
                    (the-repl :line)
                    line)]

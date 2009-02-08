@@ -114,14 +114,18 @@ if !exists("gorilla#NailgunClient")
 	let gorilla#NailgunClient = "ng"
 endif
 
-function! gorilla#ExecuteNail(nail, ...)
+function! gorilla#ExecuteNailWithInput(nail, input, ...)
 	let cmd = join([g:gorilla#NailgunClient,
 				\ "de.kotka.gorilla.nails." . a:nail] + a:000, " ")
-	let result = system(cmd)
+	let result = system(cmd, a:input)
 	if v:shell_error
 		throw "Couldn't execute Nail! " . cmd
 	endif
 	return substitute(result, '\n$', '', '')
+endfunction
+
+function! gorilla#ExecuteNail(nail, ...)
+	return call(gorilla#ExecuteNailWithInput, [nail, ""] + a:000)
 endfunction
 
 function! gorilla#FilterNail(nail, rngStart, rngEnd, ...)

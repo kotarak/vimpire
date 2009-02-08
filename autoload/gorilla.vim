@@ -125,7 +125,7 @@ function! gorilla#ExecuteNailWithInput(nail, input, ...)
 endfunction
 
 function! gorilla#ExecuteNail(nail, ...)
-	return call(gorilla#ExecuteNailWithInput, [nail, ""] + a:000)
+	return call(function("gorilla#ExecuteNailWithInput"), [a:nail, ""] + a:000)
 endfunction
 
 function! gorilla#FilterNail(nail, rngStart, rngEnd, ...)

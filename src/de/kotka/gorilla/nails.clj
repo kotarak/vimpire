@@ -151,3 +151,13 @@
     (println true)
     (catch Exception e
       (println false))))
+
+(defnail Complete
+  "Usage: ng de.kotka.gorilla.nails.Complete"
+  [[nspace n "Start completion in this namespace." "user"]]
+  (let [_      (resolve-and-load-namespace nspace)
+        sym    (read)
+        symnam (name sym)
+        symspc (namespace sym)]
+    (println
+      (clj->vim (complete-in-namespace symnam (if symspc symspc nspace))))))

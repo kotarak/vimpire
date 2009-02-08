@@ -57,6 +57,8 @@ call gorilla#MapPlug("n", "ep", "EvalParagraph")
 call gorilla#MakePlug("n", "StartRepl", 'gorilla#Repl.New()')
 call gorilla#MapPlug("n", "sr", "StartRepl")
 
+setlocal omnifunc=gorilla#OmniCompletion
+
 " Get the namespace of the buffer.
 let s:here = bufnr("%")
 let s:content = getbufline(s:here, 1, line("$"))

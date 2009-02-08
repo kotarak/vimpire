@@ -68,3 +68,36 @@
   [the-namespace]
   {:name (-> the-namespace ns-name name) :type "namespace"
    :children (map #(-> % second var-info) (ns-interns the-namespace))})
+
+; Omni Completion
+(defn type-of-var
+  [the-var]
+  (let [the-val (var-get the-var)]
+    (cond
+      (:macro (meta the-var)) "m"
+      (fn? the-val)           "f"
+      (instance? clojure.lang.MultiFn the-val) "f"
+      :else                   "v")))
+
+(defn complete-in-namespace
+  "Complete the given symbol name in the given namespace."
+  [the-name the-space]
+  (let [publics (-> the-space symbol the-ns ns-map keys)
+        publics (map name publics)]
+    (reduce (fn [completions sym]
+              (if (.startsWith sym the-name)
+                (let [sym-var  (ns-resolve (symbol the-space) (symbol sym))
+                      sym-meta (meta sym-var)
+                      sym-type (type-of-var sym-var)
+                      arglists (:arglists sym-meta)
+                      info     (map #(prn-str (cons (symbol sym) %)) arglists)
+                      info     (str sym \newline
+                                    (when info
+                                      (apply str \newline info))
+                                    \newline "  "
+                                    (:doc sym-meta))]
+                  (conj completions
+                        {"word" sym      "menu" (pr-str arglists)
+                         "kind" sym-type "info" info}))
+                completions))
+            [] publics)))

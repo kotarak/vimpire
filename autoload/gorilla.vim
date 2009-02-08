@@ -463,5 +463,24 @@ function! gorilla#Repl.deleteLast() dict
 	normal dd
 endfunction
 
+" Omni Completion
+function! gorilla#OmniCompletion(findstart, base)
+	if a:findstart == 1
+		let closure = {}
+
+		function! closure.f() dict
+			normal b
+			return col(".") - 1
+		endfunction
+
+		return vimclojure#WithSavedPosition(closure)
+	else
+		let completions = gorilla#ExecuteNailWithInput("Complete", a:base,
+					\ "-n", b:gorilla_namespace)
+		execute "let result = " . completions
+		return result
+	endif
+endfunction
+
 " Epilog
 let &cpo = s:save_cpo

@@ -70,14 +70,16 @@
    :children (map #(-> % second var-info) (ns-interns the-namespace))})
 
 ; Omni Completion
-(defn type-of-var
-  [the-var]
-  (let [the-val (var-get the-var)]
-    (cond
-      (:macro (meta the-var)) "m"
-      (fn? the-val)           "f"
-      (instance? clojure.lang.MultiFn the-val) "f"
-      :else                   "v")))
+(defn type-of
+  [thing]
+  (cond
+    (class? thing)        "c"
+    (:macro (meta thing)) "m"
+    :else                 (let [value (var-get thing)]
+                            (cond
+                              (instance? clojure.lang.MultiFn value) "f"
+                              (fn? value) "f"
+                              :else       "v"))))
 
 (defn complete-in-namespace
   "Complete the given symbol name in the given namespace."
@@ -91,8 +93,8 @@
                          (every? identity (map #(.startsWith %1 %2)
                                                sym-parts name-parts)))
                   (let [sym-var  (ns-resolve (symbol the-space) (symbol sym))
-                        sym-meta (meta sym-var)
-                        sym-type (type-of-var sym-var)
+                        sym-meta (when (var? sym-var) (meta sym-var))
+                        sym-type (type-of sym-var)
                         arglists (:arglists sym-meta)
                         info     (map #(str "  "
                                             (prn-str (cons (symbol sym) %)))

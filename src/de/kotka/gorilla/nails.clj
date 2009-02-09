@@ -63,7 +63,9 @@
          (with-command-line (.getArgs ~'nailContext)
            ~usage
            ~arguments
-           ~@body)))))
+           ~@body)
+         (.flush *out*)
+         (.flush *err*)))))
 
 (defnail DocLookup
   "Usage: ng de.kotka.gorilla.nails.DocString [options] [--] symbol ..."

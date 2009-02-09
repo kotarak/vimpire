@@ -82,13 +82,12 @@
       (find-doc pattern))))
 
 (defnail JavadocPath
-  "Usage: ng de.kotka.gorilla.nails.JavadocPath [options] [--] class ..."
-  [[namespace n "Lookup the symbols in the given namespace." "user"]
-   classes]
+  "Usage: ng de.kotka.gorilla.nails.JavadocPath [options]"
+  [[namespace n "Lookup the symbols in the given namespace." "user"]]
   (let [namespace      (resolve-and-load-namespace namespace)
         our-ns-resolve #(ns-resolve namespace %)]
     (doseq [path (map #(-> % symbol our-ns-resolve javadoc-path-for-class)
-                      classes)]
+                      (stream->seq *in*))]
       (println path))))
 
 (defnail NamespaceOfFile

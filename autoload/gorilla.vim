@@ -187,9 +187,8 @@ if !exists("gorilla#Browser")
 endif
 
 function! gorilla#JavadocLookup(word)
-	let path = gorilla#ExecuteNail("JavadocPath",
-				\ "--namespace", b:gorilla_namespace,
-				\ "--", a:word)
+	let path = gorilla#ExecuteNailWithInput("JavadocPath", a:word,
+				\ "-n", b:gorilla_namespace)
 
 	let match = ""
 	for pattern in keys(g:gorilla#JavadocPathMap)

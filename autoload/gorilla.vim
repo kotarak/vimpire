@@ -187,7 +187,8 @@ if !exists("gorilla#Browser")
 endif
 
 function! gorilla#JavadocLookup(word)
-	let path = gorilla#ExecuteNailWithInput("JavadocPath", a:word,
+	let word = substitute(a:word, "\\.$", "", "")
+	let path = gorilla#ExecuteNailWithInput("JavadocPath", word,
 				\ "-n", b:gorilla_namespace)
 
 	let match = ""

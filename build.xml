@@ -88,6 +88,7 @@
 			<fileset dir="${build}" includes="de/kotka/**"/>
 			<fileset dir="${build}" includes="org/apache/**"/>
 			<fileset dir="${build}" includes="com/martiansoftware/**"/>
+			<fileset dir="${build}" includes="clojure/proxy/**"/>
 			<manifest>
 				<attribute name="Class-Path" value="."/>
 			</manifest>

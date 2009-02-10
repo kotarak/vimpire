@@ -60,19 +60,10 @@ call gorilla#MapPlug("n", "sr", "StartRepl")
 setlocal omnifunc=gorilla#OmniCompletion
 
 " Get the namespace of the buffer.
-let s:here = bufnr("%")
-let s:content = getbufline(s:here, 1, line("$"))
-let s:tmpBuf = gorilla#TransientBuffer.New()
+let s:content = getbufline(bufnr("%"), 1, line("$"))
+let b:gorilla_namespace = gorilla#ExecuteNailWithInput("NamespaceOfFile",
+			\ join(s:content, "\n"))
 
-call s:tmpBuf.showText(join(s:content, "\n"))
-let s:endLine = line("$")
-
-call gorilla#FilterNail("NamespaceOfFile", 1, s:endLine)
-let s:ns = getline(line("$"))
-
-call s:tmpBuf.close()
-let b:gorilla_namespace = s:ns
-
-unlet s:content s:tmpBuf s:endLine s:ns
+unlet s:content
 
 let &cpo = s:save_cpo

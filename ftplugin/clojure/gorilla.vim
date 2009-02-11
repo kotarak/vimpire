@@ -63,9 +63,7 @@ setlocal omnifunc=gorilla#OmniCompletion
 
 " Get the namespace of the buffer.
 let s:content = getbufline(bufnr("%"), 1, line("$"))
-let b:gorilla_namespace = gorilla#ExecuteNailWithInput("NamespaceOfFile",
-			\ join(s:content, "\n"))
-
+let b:gorilla_namespace = gorilla#ExecuteNailWithInput("NamespaceOfFile", s:content)
 unlet s:content
 
 let &cpo = s:save_cpo

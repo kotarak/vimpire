@@ -33,7 +33,7 @@
   (:import
      com.martiansoftware.nailgun.NGContext
      clojure.lang.LineNumberingPushbackReader
-     (java.io InputStreamReader OutputStreamWriter PrintWriter)))
+     (java.io BufferedReader InputStreamReader OutputStreamWriter PrintWriter)))
 
 (defmacro defnail
   "Define a new Nail of the given name. A suitable class with the
@@ -68,26 +68,25 @@
          (.flush *err*)))))
 
 (defnail DocLookup
-  "Usage: ng de.kotka.gorilla.nails.DocString [options] [--] symbol ..."
-  [[namespace n "Lookup the symbols in the given namespace." "user"]
-   symbols]
-  (let [namespace (resolve-and-load-namespace namespace)
-        symbols   (map symbol symbols)]
-    (print (doc-lookup namespace symbols))
+  "Usage: ng de.kotka.gorilla.nails.DocString [options]"
+  [[nspace n "Lookup the symbols in the given namespace." "user"]]
+  (let [nspace  (resolve-and-load-namespace nspace)
+        symbols (map symbol (line-seq (BufferedReader. *in*)))]
+    (print (doc-lookup nspace symbols))
     (flush)))
 
 (defnail FindDoc
   "Usage: ng de.kotka.gorilla.nails.FindDoc"
   []
-  (let [patterns (line-seq (java.io.BufferedReader. *in*))]
+  (let [patterns (line-seq (BufferedReader. *in*))]
     (doseq [pattern patterns]
       (find-doc pattern))))
 
 (defnail JavadocPath
   "Usage: ng de.kotka.gorilla.nails.JavadocPath [options]"
-  [[namespace n "Lookup the symbols in the given namespace." "user"]]
-  (let [namespace      (resolve-and-load-namespace namespace)
-        our-ns-resolve #(ns-resolve namespace %)]
+  [[nspace n "Lookup the symbols in the given namespace." "user"]]
+  (let [nspace         (resolve-and-load-namespace nspace)
+        our-ns-resolve #(ns-resolve nspace %)]
     (doseq [path (map #(-> % symbol our-ns-resolve javadoc-path-for-class)
                       (stream->seq *in*))]
       (println path))))
@@ -110,19 +109,20 @@
                                                            second)))))
 
 (defnail NamespaceInfo
-  "Usage: ng de.kotka.gorilla.nails.NamespaceInfo [--] namespace ..."
-  [namespaces]
-  (println (clj->vim (map #(-> % symbol find-ns ns-info) namespaces))))
+  "Usage: ng de.kotka.gorilla.nails.NamespaceInfo"
+  []
+  (println (clj->vim (map #(-> % symbol find-ns ns-info)
+                          (line-seq (BufferedRader. *in*))))))
 
 (defnail MacroExpand
   "Usage: ng de.kotka.gorilla.nails.MacroExpand [options]"
-  [[namespace n "Lookup the symbols in the given namespace." "user"]
-   [one?      o "Expand only the first macro."]]
-  (let [namespace (resolve-and-load-namespace namespace)
-        expand    (if one
-                    #(macroexpand-1 %)
-                    #(macroexpand %))]
-    (binding [*ns* namespace]
+  [[nspace n "Lookup the symbols in the given namespace." "user"]
+   [one?   o "Expand only the first macro."]]
+  (let [nspace (resolve-and-load-namespace nspace)
+        expand (if one
+                 #(macroexpand-1 %)
+                 #(macroexpand %))]
+    (binding [*ns* nspace]
       (doseq [expr (stream->seq *in*)]
         (-> expr expand prn)))))
 

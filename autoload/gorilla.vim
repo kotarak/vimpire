@@ -167,9 +167,8 @@ function! gorilla#FilterNail(nail, rngStart, rngEnd, ...)
 endfunction
 
 function! gorilla#DocLookup(word)
-	let docs = gorilla#ExecuteNail("DocLookup",
-				\ "--namespace", b:gorilla_namespace,
-				\ "--", a:word)
+	let docs = gorilla#ExecuteNailWithInput("DocLookup", a:word,
+				\ "-n", b:gorilla_namespace)
 	let transientBuffer = g:gorilla#PreviewWindow.New()
 	call transientBuffer.showText(docs)
 	wincmd p

@@ -90,23 +90,30 @@ function! gorilla#Buffer.close() dict
 endfunction
 
 " The transient buffer, used to display results.
-let gorilla#TransientBuffer = copy(gorilla#Buffer)
+let gorilla#PreviewWindow = copy(gorilla#Buffer)
 
-function! gorilla#TransientBuffer.New() dict
-	let instance = copy(self)
+function! gorilla#PreviewWindow.New() dict
+	pclose!
 
-	new
-	let instance._buffer = bufnr("%")
+	execute &previewheight . "new"
+	set previewwindow
+	set winfixheight
 
 	setlocal noswapfile
 	setlocal buftype=nofile
-	setlocal bufhidden=delete
+	setlocal bufhidden=wipe
 
-	nnoremap <buffer> <silent> q :hide<CR>
+	call append(0, "; Use \\p to close this buffer!")
 
-	call append(0, "; Press q to close this buffer!")
+	return copy(self)
+endfunction
 
-	return instance
+function! gorilla#PreviewWindow.goHere() dict
+	wincmd P
+endfunction
+
+function! gorilla#PreviewWindow.close() dict
+	pclose
 endfunction
 
 " Nails
@@ -114,13 +121,35 @@ if !exists("gorilla#NailgunClient")
 	let gorilla#NailgunClient = "ng"
 endif
 
+augroup Gorilla
+	autocmd CursorMovedI *.clj if pumvisible() == 0 | pclose | endif
+augroup END
+
 function! gorilla#ExecuteNailWithInput(nail, input, ...)
-	let cmd = join([g:gorilla#NailgunClient,
-				\ "de.kotka.gorilla.nails." . a:nail] + a:000, " ")
-	let result = system(cmd, a:input)
-	if v:shell_error
-		throw "Couldn't execute Nail! " . cmd
-	endif
+	let inputfile = tempname()
+	try
+		new
+		call append(1, a:input)
+		1
+		delete
+		silent execute "write " . inputfile
+		bdelete
+
+		let cmdline = map([g:gorilla#NailgunClient,
+					\ "de.kotka.gorilla.nails." . a:nail]
+					\ + a:000,
+					\ 'shellescape(v:val)')
+		let cmd = join(cmdline, " ") . " <" . inputfile
+
+		let result = system(cmd)
+
+		if v:shell_error
+			throw "Couldn't execute Nail! " . cmd
+		endif
+	finally
+		call delete(inputfile)
+	endtry
+
 	return substitute(result, '\n$', '', '')
 endfunction
 
@@ -140,18 +169,21 @@ function! gorilla#DocLookup(word)
 	let docs = gorilla#ExecuteNail("DocLookup",
 				\ "--namespace", b:gorilla_namespace,
 				\ "--", a:word)
-	let transientBuffer = g:gorilla#TransientBuffer.New()
+	let transientBuffer = g:gorilla#PreviewWindow.New()
 	call transientBuffer.showText(docs)
+	wincmd p
 endfunction
 
 function! gorilla#FindDoc()
 	let pattern = input("Pattern to look for: ")
 
-	let resultBuffer = g:gorilla#TransientBuffer.New()
+	let resultBuffer = g:gorilla#PreviewWindow.New()
 
 	call resultBuffer.showText(pattern)
 
 	call gorilla#FilterNail("FindDoc", line("$"), line("$"))
+
+	wincmd p
 endfunction
 
 let s:DefaultJavadocPaths = {
@@ -211,7 +243,7 @@ function! gorilla#MacroExpand(firstOnly)
 	let sexp = gorilla#ExtractSexpr(0)
 	let ns = b:gorilla_namespace
 
-	let resultBuffer = g:gorilla#TransientBuffer.New()
+	let resultBuffer = g:gorilla#PreviewWindow.New()
 	setfiletype clojure
 
 	let firstLine = line("$")
@@ -224,13 +256,15 @@ function! gorilla#MacroExpand(firstOnly)
 	endif
 
 	call call(function("gorilla#FilterNail"), cmd)
+
+	wincmd p
 endfunction
 
 function! gorilla#EvalFile()
 	let content = getbufline(bufnr("%"), 1, line("$"))
 	let file = gorilla#BufferName()
 	let ns = b:gorilla_namespace
-	let resultBuffer = g:gorilla#TransientBuffer.New()
+	let resultBuffer = g:gorilla#PreviewWindow.New()
 
 	let startLine = line("$") + 1
 	call resultBuffer.showText(content)
@@ -238,6 +272,7 @@ function! gorilla#EvalFile()
 
 	call gorilla#FilterNail("Repl", startLine, endLine,
 				\ "-r", "-n", ns, "-f", file)
+	wincmd p
 endfunction
 
 function! gorilla#EvalLine()
@@ -245,13 +280,14 @@ function! gorilla#EvalLine()
 	let content = getline(theLine)
 	let file = gorilla#BufferName()
 	let ns = b:gorilla_namespace
-	let resultBuffer = g:gorilla#TransientBuffer.New()
+	let resultBuffer = g:gorilla#PreviewWindow.New()
 
 	call resultBuffer.showText(content)
 	let region = line("$")
 
 	call gorilla#FilterNail("Repl", region, region,
 				\ "-r", "-n", ns, "-f", file, "-l", theLine)
+	wincmd p
 endfunction
 
 function! gorilla#EvalBlock() range
@@ -259,7 +295,7 @@ function! gorilla#EvalBlock() range
 	let ns = b:gorilla_namespace
 
 	let content = getbufline(bufnr("%"), a:firstline, a:lastline)
-	let resultBuffer = g:gorilla#TransientBuffer.New()
+	let resultBuffer = g:gorilla#PreviewWindow.New()
 
 	let startLine = line("$") + 1
 	call resultBuffer.showText(content)
@@ -267,6 +303,7 @@ function! gorilla#EvalBlock() range
 
 	call gorilla#FilterNail("Repl", startLine, endLine,
 				\ "-r", "-n", ns, "-f", file, "-l", a:firstline)
+	wincmd p
 endfunction
 
 function! gorilla#EvalToplevel()
@@ -286,7 +323,7 @@ function! gorilla#EvalToplevel()
 	endif
 
 	let expr = getbufline(bufnr("%"), startPosition[0], endPosition[0])
-	let resultBuffer = g:gorilla#TransientBuffer.New()
+	let resultBuffer = g:gorilla#PreviewWindow.New()
 
 	let startLine = line("$") + 1
 	call resultBuffer.showText(expr)
@@ -294,6 +331,7 @@ function! gorilla#EvalToplevel()
 
 	call gorilla#FilterNail("Repl", startLine, endLine,
 				\ "-r", "-n", ns, "-f", file, "-l", startPosition[0])
+	wincmd p
 endfunction
 
 function! gorilla#EvalParagraph()
@@ -311,7 +349,7 @@ function! gorilla#EvalParagraph()
 	let endPosition = vimclojure#WithSavedPosition(closure)
 
 	let content = getbufline(bufnr("%"), startPosition, endPosition)
-	let resultBuffer = g:gorilla#TransientBuffer.New()
+	let resultBuffer = g:gorilla#PreviewWindow.New()
 
 	let startLine = line("$") + 1
 	call resultBuffer.showText(content)
@@ -319,6 +357,7 @@ function! gorilla#EvalParagraph()
 
 	call gorilla#FilterNail("Repl", startLine, endLine,
 				\ "-r", "-n", ns, "-f", file, "-l", startPosition)
+	wincmd p
 endfunction
 
 " The Repl

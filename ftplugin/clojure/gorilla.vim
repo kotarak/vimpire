@@ -57,6 +57,8 @@ call gorilla#MapPlug("n", "ep", "EvalParagraph")
 call gorilla#MakePlug("n", "StartRepl", 'gorilla#Repl.New()')
 call gorilla#MapPlug("n", "sr", "StartRepl")
 
+nnoremap <buffer> <silent> <unique> <LocalLeader>p :pclose!<CR>
+
 setlocal omnifunc=gorilla#OmniCompletion
 
 " Get the namespace of the buffer.

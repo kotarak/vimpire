@@ -158,9 +158,10 @@ function! gorilla#ExecuteNail(nail, ...)
 endfunction
 
 function! gorilla#FilterNail(nail, rngStart, rngEnd, ...)
-	let cmd = join([a:rngStart . "," . a:rngEnd . "!",
-				\ g:gorilla#NailgunClient,
-				\ "de.kotka.gorilla.nails." . a:nail] + a:000, " ")
+	let cmdline = map([g:gorilla#NailgunClient,
+				\ "de.kotka.gorilla.nails." . a:nail] + a:000,
+				\ 'shellescape(v:val)')
+	let cmd = a:rngStart . "," . a:rngEnd . "!" . join(cmdline, " ")
 
 	silent execute cmd
 endfunction

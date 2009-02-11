@@ -386,7 +386,7 @@ function! gorilla#Repl.New() dict
 
 	let b:gorilla_repl = instance
 
-	setfiletype clojurerepl
+	setfiletype clojure
 
 	normal G
 	startinsert!

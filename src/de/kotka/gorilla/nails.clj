@@ -112,7 +112,7 @@
   "Usage: ng de.kotka.gorilla.nails.NamespaceInfo"
   []
   (println (clj->vim (map #(-> % symbol find-ns ns-info)
-                          (line-seq (BufferedRader. *in*))))))
+                          (line-seq (BufferedReader. *in*))))))
 
 (defnail MacroExpand
   "Usage: ng de.kotka.gorilla.nails.MacroExpand [options]"

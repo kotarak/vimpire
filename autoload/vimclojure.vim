@@ -455,9 +455,15 @@ function! vimclojure#Repl.New() dict
 	setlocal buftype=nofile
 	setlocal noswapfile
 
-	inoremap <buffer> <silent> <CR>     <Esc>:call b:vimclojure_repl.enterHook()<CR>
-	inoremap <buffer> <silent> <C-Up>   <C-O>:call b:vimclojure_repl.upHistory()<CR>
-	inoremap <buffer> <silent> <C-Down> <C-O>:call b:vimclojure_repl.downHistory()<CR>
+	if !hasmapto("<Plug>ClojureReplEnterHook")
+		imap <buffer> <silent> <CR> <Plug>ClojureReplEnterHook
+	endif
+	if !hasmapto("<Plug>ClojureReplUpHistory")
+		imap <buffer> <silent> <C-Up> <Plug>ClojureReplUpHistory
+	endif
+	if !hasmapto("<Plug>ClojureReplDownHistory")
+		imap <buffer> <silent> <C-Down> <Plug>ClojureReplDownHistory
+	endif
 
 	call append(line("$"), ["Clojure", self._prompt . " "])
 

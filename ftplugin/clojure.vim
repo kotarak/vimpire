@@ -117,7 +117,12 @@ if exists("g:clj_want_gorilla") && g:clj_want_gorilla == 1
 	call vimclojure#MakePlug("n", "StartRepl", 'vimclojure#Repl.New()')
 	call vimclojure#MapPlug("n", "sr", "StartRepl")
 
-	nnoremap <buffer> <silent> <unique> <LocalLeader>p :pclose!<CR>
+	inoremap <Plug>ClojureReplEnterHook <Esc>:call b:vimclojure_repl.enterHook()<CR>
+	inoremap <Plug>ClojureReplUpHistory <C-O>:call b:vimclojure_repl.upHistory()<CR>
+	inoremap <Plug>ClojureReplDownHistory <C-O>:call b:vimclojure_repl.downHistory()<CR>
+
+	nnoremap <Plug>ClojureClosePreview :pclose!<CR>
+	call vimclojure#MapPlug("n", "p", "ClosePreview")
 
 	setlocal omnifunc=vimclojure#OmniCompletion
 

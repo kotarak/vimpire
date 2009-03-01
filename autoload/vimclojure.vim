@@ -219,10 +219,9 @@ function! vimclojure#ExecuteNailWithInput(nail, input, ...)
 		silent execute "write " . inputfile
 		bdelete
 
-		let cmdline = map([g:vimclojure#NailgunClient,
+		let cmdline = [g:vimclojure#NailgunClient,
 					\ "de.kotka.vimclojure.nails." . a:nail]
-					\ + a:000,
-					\ 'shellescape(v:val)')
+					\ + map(copy(a:000), 'shellescape(v:val)')
 		let cmd = join(cmdline, " ") . " <" . inputfile
 
 		let result = system(cmd)
@@ -242,9 +241,9 @@ function! vimclojure#ExecuteNail(nail, ...)
 endfunction
 
 function! vimclojure#FilterNail(nail, rngStart, rngEnd, ...)
-	let cmdline = map([g:vimclojure#NailgunClient,
-				\ "de.kotka.vimclojure.nails." . a:nail] + a:000,
-				\ 'shellescape(v:val)')
+	let cmdline = [g:vimclojure#NailgunClient,
+				\ "de.kotka.vimclojure.nails." . a:nail]
+				\ + map(copy(a:000), 'shellescape(v:val)')
 	let cmd = a:rngStart . "," . a:rngEnd . "!" . join(cmdline, " ")
 
 	silent execute cmd
@@ -253,19 +252,17 @@ endfunction
 function! vimclojure#DocLookup(word)
 	let docs = vimclojure#ExecuteNailWithInput("DocLookup", a:word,
 				\ "-n", b:vimclojure_namespace)
-	let transientBuffer = g:vimclojure#PreviewWindow.New()
-	call transientBuffer.showText(docs)
+	let resultBuffer = g:vimclojure#PreviewWindow.New()
+	call resultBuffer.showText(docs)
 	wincmd p
 endfunction
 
 function! vimclojure#FindDoc()
 	let pattern = input("Pattern to look for: ")
+	let result = vimclojure#ExecuteNailWithInput("FindDoc", pattern)
 
 	let resultBuffer = g:vimclojure#PreviewWindow.New()
-
-	call resultBuffer.showText(pattern)
-
-	call vimclojure#FilterNail("FindDoc", line("$"), line("$"))
+	call resultBuffer.showText(result)
 
 	wincmd p
 endfunction
@@ -328,18 +325,14 @@ function! vimclojure#MacroExpand(firstOnly)
 	let ns = b:vimclojure_namespace
 
 	let resultBuffer = g:vimclojure#PreviewWindow.New()
-	setfiletype clojure
 
-	let firstLine = line("$")
-	call resultBuffer.showText(sexp)
-	let lastLine = line("$")
-
-	let cmd = ["MacroExpand", firstLine, lastLine, "-n", ns]
+	let cmd = ["MacroExpand", sexp, "-n", ns]
 	if a:firstOnly
 		let cmd = cmd + [ "-o" ]
 	endif
 
-	call call(function("vimclojure#FilterNail"), cmd)
+	let result = call(function("vimclojure#ExecuteNailWithInput"), cmd)
+	call resultBuffer.showText(result)
 
 	wincmd p
 endfunction
@@ -348,14 +341,13 @@ function! vimclojure#EvalFile()
 	let content = getbufline(bufnr("%"), 1, line("$"))
 	let file = vimclojure#BufferName()
 	let ns = b:vimclojure_namespace
-	let resultBuffer = g:vimclojure#PreviewWindow.New()
 
-	let startLine = line("$") + 1
-	call resultBuffer.showText(content)
-	let endLine = line("$")
-
-	call vimclojure#FilterNail("Repl", startLine, endLine,
+	let result = vimclojure#ExecuteNailWithInput("Repl", content,
 				\ "-r", "-n", ns, "-f", file)
+
+	let resultBuffer = g:vimclojure#PreviewWindow.New()
+	call resultBuffer.showText(result)
+
 	wincmd p
 endfunction
 
@@ -364,13 +356,13 @@ function! vimclojure#EvalLine()
 	let content = getline(theLine)
 	let file = vimclojure#BufferName()
 	let ns = b:vimclojure_namespace
-	let resultBuffer = g:vimclojure#PreviewWindow.New()
 
-	call resultBuffer.showText(content)
-	let region = line("$")
-
-	call vimclojure#FilterNail("Repl", region, region,
+	let result = vimclojure#ExecuteNailWithInput("Repl", content,
 				\ "-r", "-n", ns, "-f", file, "-l", theLine)
+
+	let resultBuffer = g:vimclojure#PreviewWindow.New()
+	call resultBuffer.showText(result)
+
 	wincmd p
 endfunction
 
@@ -379,14 +371,12 @@ function! vimclojure#EvalBlock() range
 	let ns = b:vimclojure_namespace
 
 	let content = getbufline(bufnr("%"), a:firstline, a:lastline)
-	let resultBuffer = g:vimclojure#PreviewWindow.New()
-
-	let startLine = line("$") + 1
-	call resultBuffer.showText(content)
-	let endLine = line("$")
-
-	call vimclojure#FilterNail("Repl", startLine, endLine,
+	let result = vimclojure#ExecuteNailWithInput("Repl", content,
 				\ "-r", "-n", ns, "-f", file, "-l", a:firstline)
+
+	let resultBuffer = g:vimclojure#PreviewWindow.New()
+	call resultBuffer.showText(result)
+
 	wincmd p
 endfunction
 
@@ -407,14 +397,12 @@ function! vimclojure#EvalToplevel()
 	endif
 
 	let expr = getbufline(bufnr("%"), startPosition[0], endPosition[0])
-	let resultBuffer = g:vimclojure#PreviewWindow.New()
-
-	let startLine = line("$") + 1
-	call resultBuffer.showText(expr)
-	let endLine = line("$")
-
-	call vimclojure#FilterNail("Repl", startLine, endLine,
+	let result = vimclojure#ExecuteNailWithInput("Repl", expr,
 				\ "-r", "-n", ns, "-f", file, "-l", startPosition[0])
+
+	let resultBuffer = g:vimclojure#PreviewWindow.New()
+	call resultBuffer.showText(result)
+
 	wincmd p
 endfunction
 
@@ -433,14 +421,12 @@ function! vimclojure#EvalParagraph()
 	let endPosition = vimclojure#WithSavedPosition(closure)
 
 	let content = getbufline(bufnr("%"), startPosition, endPosition)
-	let resultBuffer = g:vimclojure#PreviewWindow.New()
-
-	let startLine = line("$") + 1
-	call resultBuffer.showText(content)
-	let endLine = line("$")
-
-	call vimclojure#FilterNail("Repl", startLine, endLine,
+	let result = vimclojure#ExecuteNailWithInput("Repl", content,
 				\ "-r", "-n", ns, "-f", file, "-l", startPosition)
+
+	let resultBuffer = g:vimclojure#PreviewWindow.New()
+	call resultBuffer.showText(result)
+
 	wincmd p
 endfunction
 
@@ -515,23 +501,14 @@ function! vimclojure#Repl.enterHook() dict
 		return
 	endif
 
-	let rangeStart = line("$") + 1
-	call self.showText(cmd)
-	let rangeEnd = line("$")
-
-	call vimclojure#FilterNail("CheckSyntax", rangeStart, rangeEnd)
-	let result = getline("$")
+	let result = vimclojure#ExecuteNailWithInput("CheckSyntax", cmd)
 	if result == "false"
 		normal G0Dix
 		normal ==x
 	else
-		normal Gdd
-		let rangeStart = line("$") + 1
-		call self.showText(cmd)
-		let rangeEnd = line("$")
-
-		call vimclojure#FilterNail("Repl", rangeStart, rangeEnd,
+		let result = vimclojure#ExecuteNailWithInput("Repl", cmd,
 					\ "-r", "-i", self._id)
+		call self.showText(result)
 
 		let self._historyDepth = 0
 		let self._history = [cmd] + self._history

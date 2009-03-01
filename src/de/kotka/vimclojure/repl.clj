@@ -20,10 +20,10 @@
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 ; THE SOFTWARE.
 
-(clojure.core/ns de.kotka.gorilla.repl
+(clojure.core/ns de.kotka.vimclojure.repl
   (:use
      [clojure.contrib.def :only (defvar)]
-     [de.kotka.gorilla.util :only (stream->seq)])
+     [de.kotka.vimclojure.util :only (stream->seq)])
   (:import
      (clojure.lang Var Compiler LineNumberingPushbackReader)))
 

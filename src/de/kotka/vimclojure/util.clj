@@ -20,7 +20,7 @@
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 ; THE SOFTWARE.
 
-(clojure.core/ns de.kotka.gorilla.util)
+(clojure.core/ns de.kotka.vimclojure.util)
 
 ; Common helpers
 (defn str-cut

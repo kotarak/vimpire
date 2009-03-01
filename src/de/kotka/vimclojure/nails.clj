@@ -20,16 +20,16 @@
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 ; THE SOFTWARE.
 
-(clojure.core/ns de.kotka.gorilla.nails
+(clojure.core/ns de.kotka.vimclojure.nails
   (:use
-     (de.kotka.gorilla [util :only (with-command-line
-                                     clj->vim
-                                     resolve-and-load-namespace
-                                     stream->seq)]
+     (de.kotka.vimclojure [util :only (with-command-line
+                                       clj->vim
+                                       resolve-and-load-namespace
+                                       stream->seq)]
                        backend)
      [clojure.contrib.def :only (defvar)])
   (:require
-     [de.kotka.gorilla.repl :as repl])
+     [de.kotka.vimclojure.repl :as repl])
   (:import
      com.martiansoftware.nailgun.NGContext
      clojure.lang.LineNumberingPushbackReader
@@ -45,7 +45,7 @@
   [nail usage arguments & body]
   `(do
      (gen-class
-       :name    ~(symbol (str "de.kotka.gorilla.nails." (name nail)))
+       :name    ~(symbol (str "de.kotka.vimclojure.nails." (name nail)))
        :prefix  ~(symbol (str (name nail) "-"))
        :methods [#^{:static true}
                  [~'nailMain [com.martiansoftware.nailgun.NGContext] ~'void]]
@@ -68,7 +68,7 @@
          (.flush *err*)))))
 
 (defnail DocLookup
-  "Usage: ng de.kotka.gorilla.nails.DocString [options]"
+  "Usage: ng de.kotka.vimclojure.nails.DocString [options]"
   [[nspace n "Lookup the symbols in the given namespace." "user"]]
   (let [nspace  (resolve-and-load-namespace nspace)
         symbols (map symbol (line-seq (BufferedReader. *in*)))]
@@ -76,14 +76,14 @@
     (flush)))
 
 (defnail FindDoc
-  "Usage: ng de.kotka.gorilla.nails.FindDoc"
+  "Usage: ng de.kotka.vimclojure.nails.FindDoc"
   []
   (let [patterns (line-seq (BufferedReader. *in*))]
     (doseq [pattern patterns]
       (find-doc pattern))))
 
 (defnail JavadocPath
-  "Usage: ng de.kotka.gorilla.nails.JavadocPath [options]"
+  "Usage: ng de.kotka.vimclojure.nails.JavadocPath [options]"
   [[nspace n "Lookup the symbols in the given namespace." "user"]]
   (let [nspace         (resolve-and-load-namespace nspace)
         our-ns-resolve #(ns-resolve nspace %)]
@@ -92,7 +92,7 @@
       (println path))))
 
 (defnail NamespaceOfFile
-  "Usage: ng de.kotka.gorilla.nails.NamespaceOfFile"
+  "Usage: ng de.kotka.vimclojure.nails.NamespaceOfFile"
   []
   (let [of-interest '#{in-ns ns clojure.core/in-ns clojure.core/ns}
         in-seq      (stream->seq *in*)
@@ -109,13 +109,13 @@
                                                            second)))))
 
 (defnail NamespaceInfo
-  "Usage: ng de.kotka.gorilla.nails.NamespaceInfo"
+  "Usage: ng de.kotka.vimclojure.nails.NamespaceInfo"
   []
   (println (clj->vim (map #(-> % symbol find-ns ns-info)
                           (line-seq (BufferedReader. *in*))))))
 
 (defnail MacroExpand
-  "Usage: ng de.kotka.gorilla.nails.MacroExpand [options]"
+  "Usage: ng de.kotka.vimclojure.nails.MacroExpand [options]"
   [[nspace n "Lookup the symbols in the given namespace." "user"]
    [one?   o "Expand only the first macro."]]
   (let [nspace (resolve-and-load-namespace nspace)
@@ -127,7 +127,7 @@
         (-> expr expand prn)))))
 
 (defnail Repl
-  "Usage: ng de.kotka.gorilla.nails.Repl [options]"
+  "Usage: ng de.kotka.vimclojure.nails.Repl [options]"
   [[start? s "Start a new Repl."]
    [stop?  S "Stop the Repl of the given id."]
    [run?   r "Run the input in the Repl context of the given id."]
@@ -145,7 +145,7 @@
       run   (repl/run id nspace file line))))
 
 (defnail CheckSyntax
-  "Usage: ng de.kotka.gorilla.nails.CheckSyntax"
+  "Usage: ng de.kotka.vimclojure.nails.CheckSyntax"
   []
   (try
     (dorun (stream->seq *in*))
@@ -154,7 +154,7 @@
       (println false))))
 
 (defnail Complete
-  "Usage: ng de.kotka.gorilla.nails.Complete"
+  "Usage: ng de.kotka.vimclojure.nails.Complete"
   [[nspace n "Start completion in this namespace." "user"]]
   (let [_      (resolve-and-load-namespace nspace)
         sym    (read)

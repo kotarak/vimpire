@@ -41,14 +41,11 @@ function! vimclojure#Yank(r, how)
 endfunction
 
 function! vimclojure#EscapePathForOption(path)
-	if exists("*fnameescape")
-		let path = fnameescape(a:path)
-	else
-		let path = escape(a:path, '\ ')
-	endif
+	let path = fnameescape(a:path)
 
 	" Hardcore escapeing of whitespace...
-	let path = substitute(path, '\ ', '\\\\ ', 'g')
+	let path = substitute(path, '\', '\\\\', 'g')
+	let path = substitute(path, '\ ', '\\ ', 'g')
 
 	return path
 endfunction

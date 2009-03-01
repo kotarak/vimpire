@@ -96,9 +96,10 @@
            argmap (hash-map)]
       (let [arg (first args)]
         (cond
-          (nil? args)  (if-not rest-arg
-                         (thunk argmap)
-                         (throw (Exception. "Missing command line arguments")))
+          (empty? args)  (if-not rest-arg
+                           (thunk argmap)
+                           (throw
+                             (Exception. "Missing command line arguments")))
 
           (some #{arg} ["-h" "--help" "-?"])
           (print-usage description specs)
@@ -114,7 +115,7 @@
             (condp = (options option)
               :flag   (recur (rest args) (assoc argmap option true))
               :option (if-let [value (second args)]
-                        (recur (nthrest args 2) (assoc argmap option value))
+                        (recur (nthnext args 2) (assoc argmap option value))
                         (throw (Exception.
                                  (str "Missing value for option: " arg))))
               nil     (throw (Exception. (str "Unknown option: " option)))))

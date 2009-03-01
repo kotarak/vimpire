@@ -337,6 +337,19 @@ function! vimclojure#MacroExpand(firstOnly)
 	wincmd p
 endfunction
 
+function! vimclojure#RequireFile()
+	let ns = b:vimclojure_namespace
+
+	let resultBuffer = g:vimclojure#PreviewWindow.New()
+
+	let require = "(require :reload-all :verbose '". ns. ")"
+	let result = vimclojure#ExecuteNailWithInput("Repl", require, "-r")
+
+	call resultBuffer.showText(result)
+
+	wincmd p
+endfunction
+
 function! vimclojure#EvalFile()
 	let content = getbufline(bufnr("%"), 1, line("$"))
 	let file = vimclojure#BufferName()

@@ -93,6 +93,9 @@ if exists("g:clj_want_gorilla") && g:clj_want_gorilla == 1
 	call vimclojure#MapPlug("n", "ji", "JavadocLookupInteractive")
 	call vimclojure#MapPlug("n", "fd", "FindDoc")
 
+	call vimclojure#MakePlug("n", "RequireFile", 'vimclojure#RequireFile()')
+	call vimclojure#MapPlug("n", "rf", "RequireFile")
+
 	call vimclojure#MakePlug("n", "MacroExpand",  'vimclojure#MacroExpand(0)')
 	call vimclojure#MakePlug("n", "MacroExpand1", 'vimclojure#MacroExpand(1)')
 

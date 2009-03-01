@@ -519,7 +519,7 @@ function! vimclojure#Repl.enterHook() dict
 
 	let result = vimclojure#ExecuteNailWithInput("CheckSyntax", cmd)
 	if result == "false"
-		normal G0Dix
+		execute "normal! GA\<CR>x"
 		normal ==x
 	else
 		let result = vimclojure#ExecuteNailWithInput("Repl", cmd,

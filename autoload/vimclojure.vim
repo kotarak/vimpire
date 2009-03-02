@@ -208,7 +208,7 @@ augroup END
 
 function! vimclojure#ExecuteNailWithInput(nail, input, ...)
 	if type(a:input) == type("")
-		let input = split(a:input, '\n')
+		let input = split(a:input, '\n', 1)
 	else
 		let input = a:input
 	endif

@@ -207,12 +207,17 @@ augroup VimClojure
 augroup END
 
 function! vimclojure#ExecuteNailWithInput(nail, input, ...)
+	if type(a:input) == type("")
+		let input = split(a:input, '\n')
+	else
+		let input = a:input
+	endif
+
 	let inputfile = tempname()
 	try
 		new
-		call append(1, a:input)
-		1
-		delete
+		call append(1, input)
+		1 delete
 		silent execute "write " . inputfile
 		bdelete
 

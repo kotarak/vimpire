@@ -37,7 +37,9 @@
         (print-special-doc sym "Special Form" (syntax-symbol-anchor sym))
 
         :else
-        (print-doc (ns-resolve namespace sym))))))
+        (if-let [nspace (find-ns sym)]
+          (print-namespace-doc nspace)
+          (print-doc (ns-resolve namespace sym)))))))
 
 (defn javadoc-path-for-class
   "Translate the name of a Class to the path of its javadoc file."

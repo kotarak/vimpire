@@ -41,6 +41,21 @@
   [coll sep]
   (apply str (interpose sep coll)))
 
+(defn splitted-match
+  "Splits pattern and candidate at the given delimiters and matches
+  the parts of the pattern with the parts of the candidate. Match
+  means „startsWith“ here."
+  [pattern candidate delimiters]
+  (if-let [delimiters (seq delimiters)]
+    (let [delim           (first delimiters)
+          pattern-split   (.split pattern delim)
+          candidate-split (.split candidate delim)]
+      (and (<= (count pattern-split) (count candidate-split))
+           (reduce #(and %1 %2) (map #(splitted-match %1 %2 (rest delimiters))
+                                     pattern-split
+                                     candidate-split))))
+    (.startsWith candidate pattern)))
+
 ; Command-line handling
 (defn print-usage
   "Print usage information for the given option spec."
@@ -228,4 +243,3 @@
   (let [eof (Object.)
         rdr (fn [] (read stream false eof))]
     (take-while #(not= % eof) (repeatedly rdr))))
-

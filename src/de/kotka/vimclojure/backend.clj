@@ -85,3 +85,13 @@
                   (conj completions [sym sym-var]))
                 completions))
             [] publics)))
+
+(defn complete-namespace
+  "Complete the namespace from the given partial pattern."
+  [the-name]
+  (reduce (fn [completions nspace]
+            (let [nspace-name (name (ns-name nspace))]
+              (if (util/splitted-match the-name nspace-name ["\\." "-"])
+                (conj completions [nspace-name nspace])
+                completions)))
+          [] (all-ns)))

@@ -226,6 +226,38 @@
   [thing]
   (str thing))
 
+(defn- type-of-completion
+  [thing]
+  (cond
+    (instance? clojure.lang.Namespace thing) "n"
+    (class? thing)        "c"
+    (:macro (meta thing)) "m"
+    :else                 (let [value (var-get thing)]
+                            (cond
+                              (instance? clojure.lang.MultiFn value) "f"
+                              (fn? value) "f"
+                              :else       "v"))))
+
+(defn make-completion-item
+  "Create a completion item for Vim's popup-menu."
+  [the-name the-thing]
+  (let [typ      (type-of-completion the-thing)
+        info     (str "  " the-name \newline)
+        metainfo (when (some #{\f \m \v \n} typ)
+                   (meta the-thing))
+        arglists (:arglists metainfo)
+        info     (if arglists
+                   (reduce #(str %1 "  " (prn-str (cons (symbol the-name) %2)))
+                           (str info \newline) arglists)
+                   info)
+        info     (if-let [docstring (:doc metainfo)]
+                   (str info \newline "  " docstring)
+                   info)]
+    (hash-map "word" the-name
+              "kind" typ
+              "menu" (pr-str arglists)
+              "info" info)))
+
 ; Namespace helpers
 (defn resolve-and-load-namespace
   "Loads and returns the namespace named by the given string or symbol."

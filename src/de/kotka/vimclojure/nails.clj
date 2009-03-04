@@ -24,6 +24,7 @@
   (:use
      (de.kotka.vimclojure [util :only (with-command-line
                                        clj->vim
+                                       make-completion-item
                                        resolve-and-load-namespace
                                        stream->seq)]
                        backend)
@@ -161,4 +162,7 @@
         symnam (name sym)
         symspc (namespace sym)]
     (println
-      (clj->vim (complete-in-namespace symnam (if symspc symspc nspace))))))
+      (clj->vim
+        (map (fn [[sym sym-var]]
+               (make-completion-item sym sym-var))
+             (complete-var-in-namespace symnam (if symspc symspc nspace)))))))

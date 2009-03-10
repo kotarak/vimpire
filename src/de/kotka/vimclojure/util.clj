@@ -241,25 +241,76 @@
                             (catch IllegalStateException _
                               "v"))))
 
-(defn make-completion-item
+(defmulti make-completion-item
   "Create a completion item for Vim's popup-menu."
-  [the-name the-thing]
-  (let [typ      (type-of-completion the-thing)
-        info     (str "  " the-name \newline)
-        metainfo (when (some #{\f \m \v \n} typ)
-                   (meta the-thing))
-        arglists (:arglists metainfo)
+  (fn [_ the-thing] (type-of-completion the-thing)))
+
+(defmethod make-completion-item "n"
+  [the-name the-space]
+  (let [docs (-> the-space meta :doc)
+        info (str " " the-name \newline
+                  (when docs (str \newline docs)))]
+    (hash-map "word" the-name
+              "kind" "n"
+              "menu" ""
+              "info" info)))
+
+(defmethod make-completion-item "c"
+  [the-name _]
+  (hash-map "word" the-name
+            "kind" "c"
+            "menu" ""
+            "info" ""))
+
+(defmethod make-completion-item "M"
+  [the-name the-method]
+  (let [rtype    (-> the-method .getReturnType .getSimpleName str)
+        arglist  (.getParameterTypes the-method)
+        menu     (str-cat (concat arglist [rtype]) " -> ")
+        info     (str the-name " :: " menu)]
+    (hash-map "word" the-name
+              "kind" "M"
+              "menu" menu
+              "info" info)))
+
+(defmethod make-completion-item "v"
+  [the-name the-var]
+  (let [info (str "  " the-name \newline)
+        info (if-let [docstring (-> the-var meta :doc)]
+               (str info \newline "  " docstring)
+               info)]
+    (hash-map "word" the-name
+              "kind" "v"
+              "menu" (pr-str (try
+                               (type @the-var)
+                               (catch IllegalStateException _
+                                 "<UNBOUND>")))
+              "info" info)))
+
+(defn- make-completion-item-fm
+  [the-name the-fn typ]
+  (let [info     (str "  " the-name \newline)
+        metadata (meta the-fn)
+        arglists (:arglists metadata)
         info     (if arglists
                    (reduce #(str %1 "  " (prn-str (cons (symbol the-name) %2)))
                            (str info \newline) arglists)
                    info)
-        info     (if-let [docstring (:doc metainfo)]
+        info     (if-let [docstring (:doc metadata)]
                    (str info \newline "  " docstring)
                    info)]
     (hash-map "word" the-name
               "kind" typ
               "menu" (pr-str arglists)
               "info" info)))
+
+(defmethod make-completion-item "f"
+  [the-name the-fn]
+  (make-completion-item-fm the-name the-fn "f"))
+
+(defmethod make-completion-item "m"
+  [the-name the-fn]
+  (make-completion-item-fm the-name the-fn "m"))
 
 ; Namespace helpers
 (defn resolve-and-load-namespace

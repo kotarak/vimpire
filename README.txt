@@ -23,6 +23,9 @@ Features of the interactive interface are:
 - smart omni completion
 - easy evaluation of code in a buffer
 
+To activate the interactive interface define the clj_want_gorilla variable
+in your .vimrc: let clj_want_gorilla = 1
+
 Requirements
 ============
 
@@ -59,6 +62,12 @@ To run the Nailgun server you need the clojure.jar, clojure-contrib.jar and
 vimclojure.jar in your Classpath:
 
 java -cp /path/to/clojure.jar:/path/to/clojure-contrib.jar:/path/to/vimclojure.jar com.martiansoftware.nailgun.NGServer 127.0.0.1
+
+There is also a launcher script included in the bin subdirectory based on
+Stephen C. Gilardi's clj-env-dir launcher. Set the environment variable
+CLOJURE_EXT to the name of a directory containing the jars and (possibly
+links to) subdirectories you want in your classpath. Additionally the
+CLASSPATH environment variable will be added to the classpath.
 
 Put the nailgun client somewhere into your PATH or specify the location in
 your .vimrc.

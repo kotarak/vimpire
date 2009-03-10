@@ -158,11 +158,15 @@
   "Usage: ng de.kotka.vimclojure.nails.Complete"
   [[nspace n "Start completion in this namespace." "user"]]
   (let [_      (resolve-and-load-namespace nspace)
-        sym    (read)
-        symnam (name sym)
-        symspc (namespace sym)]
-    (println
-      (clj->vim
-        (map (fn [[sym sym-var]]
-               (make-completion-item sym sym-var))
-             (complete-var-in-namespace symnam (if symspc symspc nspace)))))))
+        eof    (Object.)
+        sym    (read *in* false eof)]
+    (if (not= sym eof)
+      (let [symnam (name sym)
+            symspc (namespace sym)]
+        (when (not= sym eof)
+          (-> (map (fn [[sym sym-var]]
+                     (make-completion-item sym sym-var))
+                   (complete-var-in-namespace symnam (if symspc symspc nspace)))
+            clj->vim
+            println)))
+      (println "[]"))))

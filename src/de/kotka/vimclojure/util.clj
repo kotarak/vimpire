@@ -232,11 +232,14 @@
     (instance? clojure.lang.Namespace thing) "n"
     (class? thing)        "c"
     (:macro (meta thing)) "m"
-    :else                 (let [value (var-get thing)]
-                            (cond
-                              (instance? clojure.lang.MultiFn value) "f"
-                              (fn? value) "f"
-                              :else       "v"))))
+    :else                 (try
+                            (let [value (var-get thing)]
+                              (cond
+                                (instance? clojure.lang.MultiFn value) "f"
+                                (fn? value) "f"
+                                :else       "v"))
+                            (catch IllegalStateException _
+                              "v"))))
 
 (defn make-completion-item
   "Create a completion item for Vim's popup-menu."

@@ -194,16 +194,16 @@ setlocal lispwords+=defvar,defvar-,defunbound,let,fn,binding,proxy
 
 " Conditionals and Loops:
 setlocal lispwords+=if,if-not,if-let,when,when-not,when-let,when-first
-setlocal lispwords+=cond,condp,loop,dotimes,for
+setlocal lispwords+=cond,condp,loop,dotimes,for,while
 
 " Blocks:
 setlocal lispwords+=do,doto,try,catch,locking,with-in-str,with-out-str,with-open
-setlocal lispwords+=dosync,with-local-vars,doseq,dorun,doall,->
+setlocal lispwords+=dosync,with-local-vars,doseq,dorun,doall,->,future
 
 " Namespaces:
 setlocal lispwords+=ns,clojure.core/ns
 
 " Java Classes:
-setlocal lispwords+=gen-class
+setlocal lispwords+=gen-class,gen-interface
 
 let &cpo = s:save_cpo

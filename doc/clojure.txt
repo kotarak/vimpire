@@ -29,7 +29,7 @@ argument.
 <
 Set the clj_wants_gorilla variable in your vimrc.
 >
-        let g:clj_wants_gorilla = 1
+        let g:clj_want_gorilla = 1
 <
 
 Syntax Highlighting                 *ft-clj-syntax*

@@ -184,7 +184,7 @@ function! vimclojure#PreviewWindow.New() dict
 	setlocal buftype=nofile
 	setlocal bufhidden=wipe
 
-	call append(0, "; Use \\p to close this buffer!")
+	call append(0, "; Use " . g:maplocalleader . "p to close this buffer!")
 
 	return copy(self)
 endfunction

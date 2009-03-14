@@ -81,5 +81,38 @@
 		<delete file="${nailgun-client}"/>
 	</target>
 
+	<target name="install"
+		description="Install the vim plugin.">
+		<mkdir dir="${vimdir}/autoload"/>
+		<mkdir dir="${vimdir}/doc"/>
+		<mkdir dir="${vimdir}/indent"/>
+		<mkdir dir="${vimdir}/syntax"/>
+		<mkdir dir="${vimdir}/ftdetect"/>
+		<mkdir dir="${vimdir}/ftplugin"/>
+		<mkdir dir="${vimdir}/ftplugin/clojure"/>
+
+		<copy todir="${vimdir}/autoload">
+			<fileset dir="autoload" includes="vimclojure.vim"/>
+		</copy>
+		<copy todir="${vimdir}/doc">
+			<fileset dir="doc" includes="clojure.vim"/>
+		</copy>
+		<copy todir="${vimdir}/indent">
+			<fileset dir="indent" includes="clojure.vim"/>
+		</copy>
+		<copy todir="${vimdir}/syntax">
+			<fileset dir="syntax" includes="clojure.vim"/>
+		</copy>
+		<copy todir="${vimdir}/ftdetect">
+			<fileset dir="ftdetect" includes="clojure.vim"/>
+		</copy>
+		<copy todir="${vimdir}/ftplugin">
+			<fileset dir="ftplugin" includes="clojure.vim"/>
+		</copy>
+		<copy todir="${vimdir}/ftplugin/clojure">
+			<fileset dir="ftplugin/clojure" includes="*.txt"/>
+		</copy>
+	</target>
+
 </project>
 <!-- vim: set ts=4 sw=4 : -->

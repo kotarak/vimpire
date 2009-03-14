@@ -215,7 +215,7 @@ function! vimclojure#ExecuteNailWithInput(nail, input, ...)
 
 	let inputfile = tempname()
 	try
-		new
+		tab new
 		call append(1, input)
 		1 delete
 		silent execute "write " . inputfile

@@ -95,7 +95,7 @@
 			<fileset dir="autoload" includes="vimclojure.vim"/>
 		</copy>
 		<copy todir="${vimdir}/doc">
-			<fileset dir="doc" includes="clojure.vim"/>
+			<fileset dir="doc" includes="clojure.txt"/>
 		</copy>
 		<copy todir="${vimdir}/indent">
 			<fileset dir="indent" includes="clojure.vim"/>

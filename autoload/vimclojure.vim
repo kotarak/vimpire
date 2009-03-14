@@ -184,7 +184,9 @@ function! vimclojure#PreviewWindow.New() dict
 	setlocal buftype=nofile
 	setlocal bufhidden=wipe
 
-	call append(0, "; Use " . g:maplocalleader . "p to close this buffer!")
+	let leader = exists("g:maplocalleader") ? g:maplocalleader : "\\"
+
+	call append(0, "; Use " . leader . "p to close this buffer!")
 
 	return copy(self)
 endfunction

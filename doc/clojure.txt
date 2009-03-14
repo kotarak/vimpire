@@ -27,7 +27,7 @@ argument.
 >
         ng ng-stop
 <
-Set the clj_wants_gorilla variable in your vimrc.
+Set the clj_want_gorilla variable in your vimrc.
 >
         let g:clj_want_gorilla = 1
 <

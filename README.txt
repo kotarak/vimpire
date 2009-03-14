@@ -70,7 +70,11 @@ links to) subdirectories you want in your classpath. Additionally the
 CLASSPATH environment variable will be added to the classpath.
 
 Put the nailgun client somewhere into your PATH or specify the location in
-your .vimrc.
+your .vimrc by means of the vimclojure#NailgunClient variable.
+
+––8<––––8<––––8<––
+let vimclojure#NailgunClient = "/path/to/your/ng"
+––8<––––8<––––8<––
 
 Please refer to the online documentation in the doc folder for further
 information on how to use VimClojure, its features and its caveats.

@@ -589,14 +589,14 @@ endfunction
 " Omni Completion
 function! vimclojure#OmniCompletion(findstart, base)
 	if a:findstart == 1
-		let closure = {}
+		let line = getline(".")
+		let start = col(".") - 1
 
-		function! closure.f() dict
-			normal b
-			return col(".") - 1
-		endfunction
+		while start > 0 && line[start - 1] =~ '\w\|-\|\.\|/'
+			let start -= 1
+		endwhile
 
-		return vimclojure#WithSavedPosition(closure)
+		return start
 	else
 		let completions = vimclojure#ExecuteNailWithInput("Complete", a:base,
 					\ "-n", b:vimclojure_namespace)

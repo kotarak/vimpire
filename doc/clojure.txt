@@ -76,7 +76,6 @@ Plug name and your setting will override the default mapping.
 
 <LocalLeader>ef                                 *ef* *EvalFile*
                         Send off the current file to the Clojure Server.
-                        Note: This does not setup the namespace.
 
 <LocalLeader>eb                                 *eb* *EvalBlock*
                         Send off the the mark visual block to the
@@ -130,21 +129,6 @@ Plug name and your setting will override the default mapping.
 <LocalLeader>sr                                 *sr* *StartRepl*
                         Start a new Vim Repl in a fresh buffer. There
                         might be multiple Repls at the same time.
-
-Note: There is an important difference between |rf| and |ef|! |ef| does not
-setup the namespace. It really just evaluates the file. Doing so makes
-VimClojure to try to retrieve the necessary namespace. This might fail if
-the namespace was not set up before via a ns form. This is a feature!
-Consider a multifile namespace, where classes are imported or other libs
-are :use'd. In the secondary files, there will be only a in-ns form at the
-top. The evaluating the file will not execute the ns form and the class
-imports and the :use'd libs will be missing. Hence, the system will most
-likely generate errors.
-
-|rf| on the other hand uses require to load the namespace correctly.
-
-So the Right Way(tm), is to first setup the namespace, eg. using |rf|, and
-then using either |rf| or |ef| to reload changes.
 
 Vim Repl
 --------

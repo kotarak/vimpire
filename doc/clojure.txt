@@ -31,6 +31,9 @@ Set the clj_wants_gorilla variable in your vimrc.
 >
         let g:clj_want_gorilla = 1
 <
+Note: Should there be an error when executing an interactive command
+and the error message goes away to quickly, you can use |:messages| to
+recall the message and read it conveniently without time pressure.
 
 Syntax Highlighting                 *ft-clj-syntax*
 -------------------

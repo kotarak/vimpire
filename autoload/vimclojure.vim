@@ -229,7 +229,8 @@ function! vimclojure#ExecuteNailWithInput(nail, input, ...)
 		let result = system(cmd)
 
 		if v:shell_error
-			throw "Couldn't execute Nail! " . cmd
+			echoerr "Couldn't execute Nail! "
+						\ . substitute(result, '\n\(\t\?\)', ' ', 'g')
 		endif
 	finally
 		call delete(inputfile)

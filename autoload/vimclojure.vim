@@ -340,12 +340,13 @@ function! vimclojure#MacroExpand(firstOnly)
 	wincmd p
 endfunction
 
-function! vimclojure#RequireFile()
+function! vimclojure#RequireFile(all)
 	let ns = b:vimclojure_namespace
+	let all = a:all ? "-all" : ""
 
 	let resultBuffer = g:vimclojure#PreviewWindow.New()
 
-	let require = "(require :reload-all :verbose '". ns. ")"
+	let require = "(require :reload" . all . " :verbose '". ns. ")"
 	let result = vimclojure#ExecuteNailWithInput("Repl", require, "-r")
 
 	call resultBuffer.showText(result)

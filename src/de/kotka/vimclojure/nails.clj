@@ -24,6 +24,7 @@
   (:use
      (de.kotka.vimclojure [util :only (with-command-line
                                        clj->vim
+                                       pretty-print-code
                                        make-completion-item
                                        resolve-and-load-namespace
                                        stream->seq)]
@@ -125,7 +126,7 @@
                  #(macroexpand %))]
     (binding [*ns* nspace]
       (doseq [expr (stream->seq *in*)]
-        (-> expr expand prn)))))
+        (-> expr expand pretty-print-code)))))
 
 (defnail Repl
   "Usage: ng de.kotka.vimclojure.nails.Repl [options]"

@@ -329,3 +329,22 @@
   (let [eof (Object.)
         rdr (fn [] (read stream false eof))]
     (take-while #(not= % eof) (repeatedly rdr))))
+
+; Pretty printing.
+(defn pretty-print
+  "Print the given form in a pretty way. If Tom Faulhaber's pretty printer is
+  not installed simply defaults prn."
+  [form]
+  (prn form))
+
+(defn pretty-print-code
+  "Print the given form in a pretty way. If Tom Faulhaber's pretty printer is
+  not installed simply defaults prn. Uses the *code-dispatch* formatting."
+  [form]
+  (prn form))
+
+(try
+  (load "optional/cl-format")
+  (catch Exception exc
+    (when-not (re-find #"com/infolace/format__init" (str exc))
+      (throw exc))))

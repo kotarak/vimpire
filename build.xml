@@ -4,8 +4,6 @@
 		Build with "ant all".
 	</description>
 
-	<property environment="env"/>
-
 	<property name="src" location="src"/>
 	<property name="build" location="classes"/>
 	<property name="jarfile" location="vimclojure.jar"/>
@@ -49,7 +47,7 @@
 		</copy>
 	</target>
 
-	<target name="nailgun-client"
+	<target name="nailgun-client" if="nailgun-client"
 		description="Compile the nailgun client using make.">
 		<exec executable="make">
 			<arg value="${nailgun-client}"/>
@@ -81,7 +79,7 @@
 		<delete file="${nailgun-client}"/>
 	</target>
 
-	<target name="install"
+	<target name="install" if="vimdir"
 		description="Install the vim plugin.">
 		<mkdir dir="${vimdir}/autoload"/>
 		<mkdir dir="${vimdir}/doc"/>

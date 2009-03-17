@@ -204,10 +204,6 @@ if !exists("vimclojure#NailgunClient")
 	let vimclojure#NailgunClient = "ng"
 endif
 
-augroup VimClojure
-	autocmd CursorMovedI *.clj if pumvisible() == 0 | pclose | endif
-augroup END
-
 function! vimclojure#ExecuteNailWithInput(nail, input, ...)
 	if type(a:input) == type("")
 		let input = split(a:input, '\n', 1)

@@ -133,6 +133,10 @@ if exists("g:clj_want_gorilla") && g:clj_want_gorilla == 1
 	let s:content = getbufline(bufnr("%"), 1, line("$"))
 	let b:vimclojure_namespace = vimclojure#ExecuteNailWithInput("NamespaceOfFile", s:content)
 	unlet s:content
+
+	augroup VimClojure
+		autocmd CursorMovedI <buffer> if pumvisible() == 0 | pclose | endif
+	augroup END
 endif
 
 let &cpo = s:cpo_save

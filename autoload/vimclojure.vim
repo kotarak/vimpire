@@ -325,6 +325,7 @@ function! vimclojure#MetaLookup(word)
 				\ "-n", b:vimclojure_namespace)
 	let resultBuffer = g:vimclojure#PreviewWindow.New()
 	call resultBuffer.showText(docs)
+	setfiletype clojure
 	wincmd p
 endfunction
 
@@ -342,6 +343,7 @@ function! vimclojure#MacroExpand(firstOnly)
 
 	let result = call(function("vimclojure#ExecuteNailWithInput"), cmd)
 	call resultBuffer.showText(result)
+	setfiletype clojure
 
 	wincmd p
 endfunction
@@ -356,6 +358,7 @@ function! vimclojure#RequireFile(all)
 	let result = vimclojure#ExecuteNailWithInput("Repl", require, "-r")
 
 	call resultBuffer.showText(result)
+	setfiletype clojure
 
 	wincmd p
 endfunction
@@ -370,6 +373,7 @@ function! vimclojure#EvalFile()
 
 	let resultBuffer = g:vimclojure#PreviewWindow.New()
 	call resultBuffer.showText(result)
+	setfiletype clojure
 
 	wincmd p
 endfunction
@@ -385,6 +389,7 @@ function! vimclojure#EvalLine()
 
 	let resultBuffer = g:vimclojure#PreviewWindow.New()
 	call resultBuffer.showText(result)
+	setfiletype clojure
 
 	wincmd p
 endfunction
@@ -399,6 +404,7 @@ function! vimclojure#EvalBlock() range
 
 	let resultBuffer = g:vimclojure#PreviewWindow.New()
 	call resultBuffer.showText(result)
+	setfiletype clojure
 
 	wincmd p
 endfunction
@@ -425,6 +431,7 @@ function! vimclojure#EvalToplevel()
 
 	let resultBuffer = g:vimclojure#PreviewWindow.New()
 	call resultBuffer.showText(result)
+	setfiletype clojure
 
 	wincmd p
 endfunction
@@ -449,6 +456,7 @@ function! vimclojure#EvalParagraph()
 
 	let resultBuffer = g:vimclojure#PreviewWindow.New()
 	call resultBuffer.showText(result)
+	setfiletype clojure
 
 	wincmd p
 endfunction

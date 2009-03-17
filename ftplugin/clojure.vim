@@ -136,9 +136,13 @@ if exists("g:clj_want_gorilla") && g:clj_want_gorilla == 1
 	setlocal omnifunc=vimclojure#OmniCompletion
 
 	" Get the namespace of the buffer.
-	let s:content = getbufline(bufnr("%"), 1, line("$"))
-	let b:vimclojure_namespace = vimclojure#ExecuteNailWithInput("NamespaceOfFile", s:content)
-	unlet s:content
+	if &previewwindow
+		let b:vimclojure_namespace = "user"
+	else
+		let s:content = getbufline(bufnr("%"), 1, line("$"))
+		let b:vimclojure_namespace = vimclojure#ExecuteNailWithInput("NamespaceOfFile", s:content)
+		unlet s:content
+	endif
 
 	augroup VimClojure
 		autocmd CursorMovedI <buffer> if pumvisible() == 0 | pclose | endif

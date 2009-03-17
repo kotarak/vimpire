@@ -320,6 +320,14 @@ function! vimclojure#JavadocLookup(word)
 	call system(join([g:vimclojure#Browser, url], " "))
 endfunction
 
+function! vimclojure#MetaLookup(word)
+	let docs = vimclojure#ExecuteNailWithInput("MetaLookup", a:word,
+				\ "-n", b:vimclojure_namespace)
+	let resultBuffer = g:vimclojure#PreviewWindow.New()
+	call resultBuffer.showText(docs)
+	wincmd p
+endfunction
+
 " Evaluators
 function! vimclojure#MacroExpand(firstOnly)
 	let sexp = vimclojure#ExtractSexpr(0)

@@ -93,6 +93,12 @@ if exists("g:clj_want_gorilla") && g:clj_want_gorilla == 1
 	call vimclojure#MapPlug("n", "ji", "JavadocLookupInteractive")
 	call vimclojure#MapPlug("n", "fd", "FindDoc")
 
+	call vimclojure#MakePlug("n", "MetaLookupWord", 'vimclojure#MetaLookup(expand("<cword>"))')
+	call vimclojure#MakePlug("n", "MetaLookupInteractive", 'vimclojure#MetaLookup(input("Symbol to look up: "))')
+
+	call vimclojure#MapPlug("n", "mw", "MetaLookupWord")
+	call vimclojure#MapPlug("n", "mi", "MetaLookupInteractive")
+
 	call vimclojure#MakePlug("n", "RequireFile", 'vimclojure#RequireFile(0)')
 	call vimclojure#MakePlug("n", "RequireFileAll", 'vimclojure#RequireFile(1)')
 

@@ -24,6 +24,7 @@
   (:use
      (de.kotka.vimclojure [util :only (with-command-line
                                        clj->vim
+                                       pretty-print
                                        pretty-print-code
                                        make-completion-item
                                        resolve-and-load-namespace
@@ -92,6 +93,15 @@
     (doseq [path (map #(-> % symbol our-ns-resolve javadoc-path-for-class)
                       (stream->seq *in*))]
       (println path))))
+
+(defnail MetaLookup
+  "Usage: ng de.kotka.vimclojure.nails.MetaLookup [options]"
+  [[nspace n "Lookup the symbols in the given namespace." "user"]]
+  (let [nspace         (resolve-and-load-namespace nspace)
+        our-ns-resolve #(ns-resolve nspace %)]
+    (doseq [metainfo (map #(-> % symbol our-ns-resolve meta)
+                     (stream->seq *in*))]
+      (pretty-print metainfo))))
 
 (defnail NamespaceOfFile
   "Usage: ng de.kotka.vimclojure.nails.NamespaceOfFile"

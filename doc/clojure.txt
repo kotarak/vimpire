@@ -136,6 +136,13 @@ Plug name and your setting will override the default mapping.
                         Open the javadoc for an arbitrary word in an
                         external browser. The user is prompted for input.
 
+<LocalLeader>mw                                 *mw* *MetaLookupWord*
+                        Lookup the meta data of the word under the cursor.
+
+<LocalLeader>mi                                 *mi* *MetaLookupInteractive*
+                        Lookup the meta data of an arbitrary word. The
+                        user is prompted for input.
+
 <LocalLeader>sr                                 *sr* *StartRepl*
                         Start a new Vim Repl in a fresh buffer. There
                         might be multiple Repls at the same time.

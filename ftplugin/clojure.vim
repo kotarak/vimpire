@@ -80,6 +80,23 @@ if exists("g:clj_want_folding") && g:clj_want_folding == 1 && 0 == 1
 	setlocal foldmethod=expr
 endif
 
+" Try to setup the buffer. If no connection is possible,
+" disable gorilla for this session.
+if exists("g:clj_want_gorilla") && g:clj_want_gorilla == 1
+	" Get the namespace of the buffer.
+	if &previewwindow
+		let b:vimclojure_namespace = "user"
+	else
+		try
+			let s:content = getbufline(bufnr("%"), 1, line("$"))
+			let b:vimclojure_namespace = vimclojure#ExecuteNailWithInput("NamespaceOfFile", s:content)
+			unlet s:content
+		catch /.*/
+			unlet g:clj_want_gorilla
+		endtry
+	endif
+endif
+
 if exists("g:clj_want_gorilla") && g:clj_want_gorilla == 1
 	call vimclojure#MakePlug("n", "DocLookupWord", 'vimclojure#DocLookup(expand("<cword>"))')
 	call vimclojure#MakePlug("n", "DocLookupInteractive", 'vimclojure#DocLookup(input("Symbol to look up: "))')
@@ -134,15 +151,6 @@ if exists("g:clj_want_gorilla") && g:clj_want_gorilla == 1
 	call vimclojure#MapPlug("n", "p", "ClosePreview")
 
 	setlocal omnifunc=vimclojure#OmniCompletion
-
-	" Get the namespace of the buffer.
-	if &previewwindow
-		let b:vimclojure_namespace = "user"
-	else
-		let s:content = getbufline(bufnr("%"), 1, line("$"))
-		let b:vimclojure_namespace = vimclojure#ExecuteNailWithInput("NamespaceOfFile", s:content)
-		unlet s:content
-	endif
 
 	augroup VimClojure
 		autocmd CursorMovedI <buffer> if pumvisible() == 0 | pclose | endif

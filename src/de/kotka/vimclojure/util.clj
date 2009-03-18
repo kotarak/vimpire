@@ -235,8 +235,11 @@
 (defn- type-of-completion
   [thing]
   (cond
-    (instance? clojure.lang.Namespace thing) "n"
+    (instance? clojure.lang.Namespace thing)   "n"
+    (instance? java.lang.reflect.Field thing)  "S"
+    (instance? java.lang.reflect.Method thing) "M"
     (class? thing)        "c"
+    (coll? thing)         (recur (first thing))
     (:macro (meta thing)) "m"
     :else                 (try
                             (let [value (var-get thing)]
@@ -269,13 +272,31 @@
             "info" ""))
 
 (defmethod make-completion-item "M"
-  [the-name the-method]
-  (let [rtype    (-> the-method .getReturnType .getSimpleName str)
-        arglist  (.getParameterTypes the-method)
-        menu     (str-cat (concat arglist [rtype]) " -> ")
-        info     (str the-name " :: " menu)]
+  [the-name the-methods]
+  (let [nam      (name (read-string the-name))
+        rtypes   (map #(-> % .getReturnType .getSimpleName) the-methods)
+        arglists (map (fn [m]
+                        (let [types (.getParameterTypes m)]
+                          (vec (map #(.getSimpleName %) types))))
+                      the-methods)
+        info     (apply str "  " the-name \newline \newline
+                        (map #(str "  " %1 " " nam
+                                   (str-wrap (str-cat %2 ", ") \( \))
+                                   \; \newline)
+                             rtypes arglists))]
     (hash-map "word" the-name
               "kind" "M"
+              "menu" (print-str arglists)
+              "info" info)))
+
+(defmethod make-completion-item "S"
+  [the-name [the-field]]
+  (let [nam  (name (read-string the-name))
+        menu (-> the-field .getType .getSimpleName)
+        info (str "  " the-name \newline \newline
+                  "  " menu " " the-name \newline)]
+    (hash-map "word" the-name
+              "kind" "S"
               "menu" menu
               "info" info)))
 

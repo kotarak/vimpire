@@ -612,8 +612,18 @@ function! vimclojure#OmniCompletion(findstart, base)
 
 		return start
 	else
-		let completions = vimclojure#ExecuteNailWithInput("Complete", a:base,
-					\ "-n", b:vimclojure_namespace)
+		let slash = stridx(a:base, '/')
+		if slash > -1
+			let prefix = strpart(a:base, 0, slash)
+			let base = strpart(a:base, slash + 1)
+		else
+			let prefix = ""
+			let base = a:base
+		endif
+
+		let completions = vimclojure#ExecuteNail("Complete",
+					\ "-n", b:vimclojure_namespace,
+					\ "-p", prefix, "-b", base)
 		execute "let result = " . completions
 		return result
 	endif

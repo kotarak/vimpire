@@ -180,7 +180,29 @@ Omni Completion
 
 VimClojure supports omni completion for Clojure code. Hitting <C-X><C-O> in
 insert mode will try to provide completions for the item in front of the
-cursor. The match is fuzzy at dash boundaries, eg. r-s => read-string.
+cursor.
+
+The completion tries to be somewhat intelligent in what it completes.
+
+ - a word starting with an upper case letter will be completed to an
+   imported class.
+     Str<C-x><C-o> => String, StringBuilder, ...
+
+ - a word containing dots will be completed to a namespace.
+     c.c<C-x><C-o> => clojure.core, clojure.contrib.repl-utils, ...
+
+ - everything else will be completed to a Var, an alias or namespace.
+
+ - a word containing a slash will be handled differently
+   - if the word starts with an upper case letter, will complete
+     static fields of the given class
+       String/va<C-x><C-o> => String/valueOf
+
+   - otherwise it is treated as a namespace or alias
+       clojure.core/re<C-x><C-o> => clojure.core/read, ...
+
+The completion uses certain characters to split the matching. This are
+hyphens and (for namespaces) dots. So r-s<C-x><C-o> matches read-string.
 
 Note: Completion of symbols and keywords is also provided via the <C-N>
 functionality of Vim.

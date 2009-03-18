@@ -74,24 +74,77 @@
    :children (map #(-> % second var-info) (ns-interns the-namespace))})
 
 ; Omni Completion
-(defn complete-var-in-namespace
-  "Complete the given symbol name in the given namespace."
-  [the-name the-space]
-  (let [publics (-> the-space symbol the-ns ns-map keys)
-        publics (map name publics)]
-    (reduce (fn [completions sym]
-              (if (util/splitted-match the-name sym ["-"])
-                (let [sym-var (ns-resolve (symbol the-space) (symbol sym))]
-                  (conj completions [sym sym-var]))
-                completions))
-            [] publics)))
+(defmulti complete
+  "Complete the given base according to the given prefix and completion-type
+  in the context of the given namespace."
+  {:arglists '([completion-type nspace prefix base])}
+  (fn [completion-type _ _ _] completion-type))
 
-(defn complete-namespace
-  "Complete the namespace from the given partial pattern."
-  [the-name]
+(defmethod complete :full-var
+  [_ the-space _ the-name]
+  (let [publics (-> the-space symbol the-ns ns-map)]
+    (reduce (fn [completions sym]
+              (if (util/splitted-match the-name (name sym) ["-"])
+                (conj completions [sym (publics sym)])
+                completions))
+            [] (keys publics))))
+
+(defmethod complete :local-var
+  [_ the-context the-space the-name]
+  (let [the-context (the-ns (symbol the-context))
+        publics     (if-let [the-real-space (get (ns-aliases the-context)
+                                                 (symbol the-space))]
+                      (ns-publics the-real-space)
+                      (-> the-space symbol the-ns ns-publics))]
+    (reduce (fn [completions sym]
+              (if (util/splitted-match the-name (name sym) ["-"])
+                (let [sym-var (publics sym)]
+                  (conj completions [(str the-space "/" (name sym)) sym-var]))
+                completions))
+            [] (keys publics))))
+
+(defmethod complete :alias
+  [_ the-space _ the-name]
+  (let [aliases (-> the-space symbol the-ns ns-aliases)]
+    (reduce (fn [completions aliass]
+              (let [alias-name (name aliass)]
+                (if (util/splitted-match the-name alias-name ["-"])
+                  (conj completions [alias-name (aliases aliass)])
+                  completions)))
+            [] (keys aliases))))
+
+(defmethod complete :import
+  [_ the-space _ the-name]
+  (let [imports (-> the-space symbol the-ns ns-imports)]
+    (reduce (fn [completions klass]
+              (let [klass-name (name klass)]
+                (if (util/splitted-match the-name klass-name ["-"])
+                  (conj completions [klass-name (imports klass)])
+                  completions)))
+            [] (keys imports))))
+
+(defmethod complete :namespace
+  [_ _ _ the-name]
   (reduce (fn [completions nspace]
             (let [nspace-name (name (ns-name nspace))]
               (if (util/splitted-match the-name nspace-name ["\\." "-"])
                 (conj completions [nspace-name nspace])
                 completions)))
           [] (all-ns)))
+
+(defmethod complete :static-field
+  [_ the-space the-class the-name]
+  (let [static? #(-> % .getModifiers java.lang.reflect.Modifier/isStatic)
+        klass   (ns-resolve (the-ns (symbol the-space)) (symbol the-class))]
+    (loop [completions  {}
+           fields       (seq (filter static? (concat (.getFields klass)
+                                                     (.getMethods klass))))]
+      (if fields
+        (let [member      (first fields)
+              member-name (.getName member)]
+          (if (.startsWith member-name the-name)
+            (recur (update-in completions [(str the-class "/" member-name)]
+                              conj member)
+                   (next fields))
+            (recur completions (next fields))))
+        (vec completions)))))

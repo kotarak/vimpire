@@ -29,7 +29,7 @@
                                        make-completion-item
                                        resolve-and-load-namespace
                                        stream->seq)]
-                       backend)
+                          backend)
      [clojure.contrib.def :only (defvar)])
   (:require
      [de.kotka.vimclojure.repl :as repl])
@@ -165,19 +165,26 @@
     (catch Exception e
       (println false))))
 
+(defn- decide-completion
+  [prefix base]
+  (if (pos? (count prefix))
+    (cond
+      (Character/isUpperCase (char (first prefix))) [:static-field]
+      :else [:local-var])
+    (cond
+      (Character/isUpperCase (char (first base))) [:import]
+      (< -1 (.indexOf base (int \.)))             [:namespace]
+      :else [:full-var :alias :namespace])))
+
 (defnail Complete
   "Usage: ng de.kotka.vimclojure.nails.Complete"
-  [[nspace n "Start completion in this namespace." "user"]]
-  (let [_      (resolve-and-load-namespace nspace)
-        eof    (Object.)
-        sym    (read *in* false eof)]
-    (if (not= sym eof)
-      (let [symnam (name sym)
-            symspc (namespace sym)]
-        (when (not= sym eof)
-          (-> (map (fn [[sym sym-var]]
-                     (make-completion-item sym sym-var))
-                   (complete-var-in-namespace symnam (if symspc symspc nspace)))
-            clj->vim
-            println)))
+  [[nspace n "Start completion in this namespace." "user"]
+   [prefix p "Prefix used for the match, ie. the part before /." ""]
+   [base   b "Base pattern to be matched."]]
+  (let [_ (resolve-and-load-namespace nspace)]
+    (if-not (and (= base "") (= prefix ""))
+      (let [to-complete (decide-completion prefix base)
+            completions (mapcat #(complete % nspace prefix base) to-complete)
+            completions (map #(apply make-completion-item %) completions)]
+        (println (clj->vim completions)))
       (println "[]"))))

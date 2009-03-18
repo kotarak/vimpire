@@ -24,13 +24,11 @@
 
 (require '[com.infolace.format :as cl-format])
 
-(let [docstring (:doc (meta (var pretty-print)))]
-  (defn pretty-print [form] (cl-format/pprint form))
-  (alter-meta! (var pretty-print) assoc :doc docstring))
+(defoptional pretty-print
+  [form]
+  (cl-format/pprint form))
 
-(let [docstring (:doc (meta (var pretty-print)))]
-  (defn pretty-print-code
-    [form]
-    (cl-format/with-pprint-dispatch cl-format/*code-dispatch*
-      (cl-format/pprint form)))
-  (alter-meta! (var pretty-print) assoc :doc docstring))
+(defoptional pretty-print-code
+   [form]
+   (cl-format/with-pprint-dispatch cl-format/*code-dispatch*
+     (cl-format/pprint form)))

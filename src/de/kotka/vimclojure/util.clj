@@ -22,6 +22,12 @@
 
 (clojure.core/ns de.kotka.vimclojure.util)
 
+(defmacro defoptional
+  [sym args & body]
+  `(let [docstring# (:doc (meta (var ~sym)))]
+     (defn ~sym ~args ~@body)
+     (alter-meta! (var ~sym) assoc :doc docstring#)))
+
 ; Common helpers
 (defn str-cut
   "Cut n characters of the end of the string s."

@@ -226,7 +226,9 @@
 
 (defmethod clj->vim clojure.lang.Named
   [thing]
-  (str-wrap (name thing) \"))
+  (if-let [prefix (namespace thing)]
+    (str-wrap (str prefix "/" (name thing)) \")
+    (str-wrap (name thing) \")))
 
 (defmethod clj->vim Number
   [thing]

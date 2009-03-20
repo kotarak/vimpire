@@ -367,21 +367,16 @@ function! vimclojure#EvalToplevel()
 	let file = vimclojure#BufferName()
 	let ns = b:vimclojure_namespace
 
-	let startPosition = searchpairpos('(', '', ')', 'bWnr',
-				\ 'vimclojure#SynIdName() !~ "clojureParen\\d"')
-	if startPosition == [0, 0]
-		throw "Not in a toplevel expression"
+	let pos = searchpairpos('(', '', ')', 'bWnr',
+					\ 'vimclojure#SynIdName() !~ "clojureParen\\d"')
+
+	if pos == [0, 0]
+		throw "Error: Not in toplevel expression!"
 	endif
 
-	let endPosition = searchpairpos('(', '', ')', 'Wnr',
-				\ 'vimclojure#SynIdName() !~ "clojureParen\\d"')
-	if endPosition == [0, 0]
-		throw "Toplevel expression not terminated"
-	endif
-
-	let expr = getbufline(bufnr("%"), startPosition[0], endPosition[0])
+	let expr = vimclojure#ExtractSexpr(1)
 	let result = vimclojure#ExecuteNailWithInput("Repl", expr,
-				\ "-r", "-n", ns, "-f", file, "-l", startPosition[0])
+				\ "-r", "-n", ns, "-f", file, "-l", pos[0])
 
 	let resultBuffer = g:vimclojure#PreviewWindow.New()
 	call resultBuffer.showText(result)

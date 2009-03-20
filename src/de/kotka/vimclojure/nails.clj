@@ -24,6 +24,7 @@
   (:use
      (de.kotka.vimclojure [util :only (with-command-line
                                        clj->vim
+                                       safe-var-get
                                        pretty-print
                                        pretty-print-code
                                        make-completion-item
@@ -102,6 +103,40 @@
     (doseq [metainfo (map #(-> % symbol our-ns-resolve meta)
                      (stream->seq *in*))]
       (pretty-print metainfo))))
+
+(defnail DynamicHighlighting
+  "Usage: ng de.kotka.vimclojure.nails.DynamicHighlighting"
+  []
+  (let [nspace    (read)
+        c-c       (the-ns 'clojure.core)
+        the-space (resolve-and-load-namespace nspace)
+        refers    (remove #(= c-c (-> % second meta :ns)) (ns-refers the-space))
+        aliases   (mapcat (fn [[the-alias the-alias-space]]
+                            (map #(vector (symbol (name the-alias)
+                                                  (name (first %)))
+                                          (second %))
+                                 (ns-publics the-alias-space)))
+                          (ns-aliases the-space))
+        namespaces (mapcat (fn [the-namespace]
+                             (map #(vector (symbol
+                                             (name (ns-name the-namespace))
+                                             (name (first %)))
+                                           (second %))
+                                  (ns-publics the-namespace)))
+                           (remove #(= c-c %) (all-ns)))
+        vars      (set (concat refers aliases namespaces))
+        macros    (set (filter #(-> % second meta :macro) vars))
+        vars      (clojure.set/difference vars macros)
+        fns       (set (filter #(let [v (safe-var-get (second %))]
+                                  (or (fn? v)
+                                      (instance? clojure.lang.MultiFn v)))
+                               vars))
+        vars      (clojure.set/difference vars fns)]
+    (-> (hash-map "Func"     (map first fns)
+                  "Macro"    (map first macros)
+                  "Variable" (map first vars))
+      clj->vim
+      println)))
 
 (defnail NamespaceOfFile
   "Usage: ng de.kotka.vimclojure.nails.NamespaceOfFile"

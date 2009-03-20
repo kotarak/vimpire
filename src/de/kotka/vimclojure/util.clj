@@ -234,6 +234,12 @@
   [thing]
   (str thing))
 
+(defn safe-var-get
+  [the-var]
+  (try
+    (var-get the-var)
+    (catch IllegalStateException _ nil)))
+
 (defn- type-of-completion
   [thing]
   (cond
@@ -243,14 +249,11 @@
     (class? thing)        "c"
     (coll? thing)         (recur (first thing))
     (:macro (meta thing)) "m"
-    :else                 (try
-                            (let [value (var-get thing)]
-                              (cond
-                                (instance? clojure.lang.MultiFn value) "f"
-                                (fn? value) "f"
-                                :else       "v"))
-                            (catch IllegalStateException _
-                              "v"))))
+    :else                 (let [value (safe-var-get thing)]
+                            (cond
+                              (instance? clojure.lang.MultiFn value) "f"
+                              (fn? value) "f"
+                              :else       "v"))))
 
 (defmulti make-completion-item
   "Create a completion item for Vim's popup-menu."

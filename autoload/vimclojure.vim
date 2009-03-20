@@ -62,48 +62,6 @@ function! vimclojure#AddCompletions(ns)
 	endif
 endfunction
 
-function! vimclojure#CheckUsage() dict
-	while search('^.*\M' . self.ns . '\m.*$', "W") != 0
-		let line = getline(".")
-		let mod = substitute(line, self.mod, '\1', '')
-
-		if line != mod
-			return mod
-		endif
-
-		let l = search('^\s*(\(:use\|:require\)', 'Wnb')
-		if l == 0
-			return 0
-		endif
-
-		if getline(l) =~ self.lookfor
-			return 1
-		endif
-	endwhile
-endfunction
-
-function! vimclojure#IsRequired(ns)
-	let closure = {
-				\ 'f': function("vimclojure#CheckUsage"),
-				\ 'ns': a:ns,
-				\ 'lookfor': ':require',
-				\ 'mod':
-				\ '^.*\[\M' . a:ns . '\m\s\+:as\s\+\([a-zA-Z0-9.-]\+\)\].*$'
-				\ }
-	return vimclojure#WithSavedPosition(closure)
-endfunction
-
-function! vimclojure#IsUsed(ns)
-	let closure = {
-				\ 'f': function("vimclojure#CheckUsage"),
-				\ 'ns': a:ns,
-				\ 'lookfor': ':use',
-				\ 'mod':
-				\ '^.*\[\M' . a:ns . '\m\s\+:only\s\+(\([ a-zA-Z0-9-]\+\))\].*$',
-				\ }
-	return vimclojure#WithSavedPosition(closure)
-endfunction
-
 " Nailgun part:
 function! vimclojure#ExtractSexpr(toplevel)
 	let closure = { "flag" : (a:toplevel ? "r" : "") }
@@ -598,6 +556,15 @@ function! vimclojure#Repl.deleteLast() dict
 	endwhile
 
 	normal dd
+endfunction
+
+" Highlighting
+function! vimclojure#ColorNamespace(highlights)
+	for [category, words] in items(a:highlights)
+		if words != []
+			execute "syntax keyword clojure" . category . " " . join(words, " ")
+		endif
+	endfor
 endfunction
 
 " Omni Completion

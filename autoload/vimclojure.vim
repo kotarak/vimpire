@@ -171,11 +171,7 @@ function! vimclojure#ExecuteNailWithInput(nail, input, ...)
 
 	let inputfile = tempname()
 	try
-		tab new
-		call append(1, input)
-		1 delete
-		silent execute "write " . inputfile
-		bdelete
+		call writefile(input, inputfile)
 
 		let cmdline = [g:vimclojure#NailgunClient,
 					\ "de.kotka.vimclojure.nails." . a:nail]

@@ -83,18 +83,7 @@ endif
 " Try to setup the buffer. If no connection is possible,
 " disable gorilla for this session.
 if exists("g:clj_want_gorilla") && g:clj_want_gorilla == 1
-	" Get the namespace of the buffer.
-	if &previewwindow
-		let b:vimclojure_namespace = "user"
-	else
-		try
-			let s:content = getbufline(bufnr("%"), 1, line("$"))
-			let b:vimclojure_namespace = vimclojure#ExecuteNailWithInput("NamespaceOfFile", s:content)
-			unlet s:content
-		catch /.*/
-			unlet g:clj_want_gorilla
-		endtry
-	endif
+	call vimclojure#InitBuffer()
 endif
 
 if exists("g:clj_want_gorilla") && g:clj_want_gorilla == 1

@@ -592,5 +592,24 @@ function! vimclojure#OmniCompletion(findstart, base)
 	endif
 endfunction
 
+function! vimclojure#InitBuffer()
+	if !exists("b:vimclojure_namespace")
+		" Get the namespace of the buffer.
+		if &previewwindow
+			let b:vimclojure_namespace = "user"
+		else
+			try
+				let s:content = getbufline(bufnr("%"), 1, line("$"))
+				let b:vimclojure_namespace =
+							\ vimclojure#ExecuteNailWithInput("NamespaceOfFile",
+							\     s:content)
+				unlet s:content
+			catch /.*/
+				unlet g:clj_want_gorilla
+			endtry
+		endif
+	endif
+endfunction
+
 " Epilog
 let &cpo = s:save_cpo

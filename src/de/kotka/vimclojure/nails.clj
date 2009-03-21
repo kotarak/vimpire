@@ -202,16 +202,20 @@
 
 (defn- decide-completion-in
   [nspace prefix base]
-  (let [prefixs (symbol prefix)]
-    (if (pos? (count prefix))
+  (let [nom (name prefix)]
+    (if (pos? (count nom))
       (cond
-        (or (Character/isUpperCase (char (first prefix)))
+        (or (contains? (set (map ns-name (all-ns))) prefix)
+            (contains? (ns-aliases nspace) prefix))
+        [:local-var]
+
+        (or (Character/isUpperCase (char (first nom)))
             (try
-              (ns-resolve nspace prefixs)
-              true
-              (catch ClassNotFoundException _ false))) [:static-field]
-        (or (contains? (all-ns) prefixs)
-            (contains? (ns-aliases nspace) prefixs))   [:local-var])
+              (instance? Class (ns-resolve nspace prefix))
+              (catch ClassNotFoundException _ false)))
+        [:static-field]
+
+        :else (throw (Exception. "Cannot determine type of prefix")))
       (cond
         (Character/isUpperCase (char (first base))) [:import]
         (< -1 (.indexOf base (int \.)))             [:namespace]
@@ -222,9 +226,10 @@
   [[nspace n "Start completion in this namespace." "user"]
    [prefix p "Prefix used for the match, ie. the part before /." ""]
    [base   b "Base pattern to be matched."]]
-  (let [the-space (resolve-and-load-namespace nspace)]
+  (let [nspace (resolve-and-load-namespace nspace)
+        prefix (symbol prefix)]
     (if-not (and (= base "") (= prefix ""))
-      (let [to-complete (decide-completion-in the-space prefix base)
+      (let [to-complete (decide-completion-in nspace prefix base)
             completions (mapcat #(complete % nspace prefix base) to-complete)
             completions (map #(apply make-completion-item %) completions)]
         (println (clj->vim completions)))

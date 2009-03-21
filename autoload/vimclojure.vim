@@ -564,7 +564,7 @@ function! vimclojure#OmniCompletion(findstart, base)
 		let line = getline(".")
 		let start = col(".") - 1
 
-		while start > 0 && line[start - 1] =~ '\w\|-\|\.\|/'
+		while start > 0 && line[start - 1] =~ '\w\|-\|\.\|+\|*\|/'
 			let start -= 1
 		endwhile
 

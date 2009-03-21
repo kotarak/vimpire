@@ -82,7 +82,7 @@
 
 (defmethod complete :full-var
   [_ the-space _ the-name]
-  (let [publics (-> the-space symbol the-ns ns-map)]
+  (let [publics (ns-map the-space)]
     (reduce (fn [completions sym]
               (if (util/splitted-match the-name (name sym) ["-"])
                 (conj completions [sym (publics sym)])
@@ -91,21 +91,21 @@
 
 (defmethod complete :local-var
   [_ the-context the-space the-name]
-  (let [the-context (the-ns (symbol the-context))
-        publics     (if-let [the-real-space (get (ns-aliases the-context)
-                                                 (symbol the-space))]
-                      (ns-publics the-real-space)
-                      (-> the-space symbol the-ns ns-publics))]
+  (let [publics (if-let [the-real-space (get (ns-aliases the-context)
+                                             the-space)]
+                  (ns-publics the-real-space)
+                  (-> the-space the-ns ns-publics))]
     (reduce (fn [completions sym]
               (if (util/splitted-match the-name (name sym) ["-"])
                 (let [sym-var (publics sym)]
-                  (conj completions [(str the-space "/" (name sym)) sym-var]))
+                  (conj completions [(str (name the-space) "/" (name sym))
+                                     sym-var]))
                 completions))
             [] (keys publics))))
 
 (defmethod complete :alias
   [_ the-space _ the-name]
-  (let [aliases (-> the-space symbol the-ns ns-aliases)]
+  (let [aliases (ns-aliases the-space)]
     (reduce (fn [completions aliass]
               (let [alias-name (name aliass)]
                 (if (util/splitted-match the-name alias-name ["-"])
@@ -115,7 +115,7 @@
 
 (defmethod complete :import
   [_ the-space _ the-name]
-  (let [imports (-> the-space symbol the-ns ns-imports)]
+  (let [imports (ns-imports the-space)]
     (reduce (fn [completions klass]
               (let [klass-name (name klass)]
                 (if (util/splitted-match the-name klass-name ["-"])
@@ -135,7 +135,7 @@
 (defmethod complete :static-field
   [_ the-space the-class the-name]
   (let [static? #(-> % .getModifiers java.lang.reflect.Modifier/isStatic)
-        klass   (ns-resolve (the-ns (symbol the-space)) (symbol the-class))]
+        klass   (ns-resolve the-space the-class)]
     (loop [completions  {}
            fields       (seq (filter static? (concat (.getFields klass)
                                                      (.getMethods klass))))]

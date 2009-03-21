@@ -200,25 +200,31 @@
     (catch Exception e
       (println false))))
 
-(defn- decide-completion
-  [prefix base]
-  (if (pos? (count prefix))
-    (cond
-      (Character/isUpperCase (char (first prefix))) [:static-field]
-      :else [:local-var])
-    (cond
-      (Character/isUpperCase (char (first base))) [:import]
-      (< -1 (.indexOf base (int \.)))             [:namespace]
-      :else [:full-var :alias :namespace])))
+(defn- decide-completion-in
+  [nspace prefix base]
+  (let [prefixs (symbol prefix)]
+    (if (pos? (count prefix))
+      (cond
+        (or (Character/isUpperCase (char (first prefix)))
+            (try
+              (ns-resolve nspace prefixs)
+              true
+              (catch ClassNotFoundException _ false))) [:static-field]
+        (or (contains? (all-ns) prefixs)
+            (contains? (ns-aliases nspace) prefixs))   [:local-var])
+      (cond
+        (Character/isUpperCase (char (first base))) [:import]
+        (< -1 (.indexOf base (int \.)))             [:namespace]
+        :else [:full-var :alias :namespace]))))
 
 (defnail Complete
   "Usage: ng de.kotka.vimclojure.nails.Complete"
   [[nspace n "Start completion in this namespace." "user"]
    [prefix p "Prefix used for the match, ie. the part before /." ""]
    [base   b "Base pattern to be matched."]]
-  (let [_ (resolve-and-load-namespace nspace)]
+  (let [the-space (resolve-and-load-namespace nspace)]
     (if-not (and (= base "") (= prefix ""))
-      (let [to-complete (decide-completion prefix base)
+      (let [to-complete (decide-completion-in the-space prefix base)
             completions (mapcat #(complete % nspace prefix base) to-complete)
             completions (map #(apply make-completion-item %) completions)]
         (println (clj->vim completions)))

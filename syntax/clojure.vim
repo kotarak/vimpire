@@ -14,7 +14,7 @@ endif
 syn match clojureError "]\|}\|)"
 
 if (exists("g:clj_highlight_builtins") && g:clj_highlight_builtins != 0)
-			\ || (exists("g:clj_want_gorilla") && g:clj_want_goriall != 0)
+			\ || (exists("g:clj_want_gorilla") && g:clj_want_gorilla != 0)
 	" Special case for Windows.
 	call vimclojure#InitBuffer()
 

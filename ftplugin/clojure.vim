@@ -80,11 +80,7 @@ if exists("g:clj_want_folding") && g:clj_want_folding == 1 && 0 == 1
 	setlocal foldmethod=expr
 endif
 
-" Try to setup the buffer. If no connection is possible,
-" disable gorilla for this session.
-if exists("g:clj_want_gorilla") && g:clj_want_gorilla == 1
-	call vimclojure#InitBuffer()
-endif
+call vimclojure#InitBuffer()
 
 if exists("g:clj_want_gorilla") && g:clj_want_gorilla == 1
 	call vimclojure#MakePlug("n", "DocLookupWord", 'vimclojure#DocLookup(expand("<cword>"))')

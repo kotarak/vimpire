@@ -607,7 +607,7 @@ function! vimclojure#InitBuffer()
 			endif
 		endif
 	else
-		let b:vimclojure_namespace == "user"
+		let b:vimclojure_namespace = "user"
 	endif
 endfunction
 

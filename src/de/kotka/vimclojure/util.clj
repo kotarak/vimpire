@@ -239,6 +239,27 @@
   (when (.isBound the-var)
     (var-get the-var)))
 
+(defn decide-completion-in
+  [nspace prefix base]
+  (let [nom (name prefix)]
+    (if (pos? (count nom))
+      (cond
+        (or (contains? (set (map ns-name (all-ns))) prefix)
+            (contains? (ns-aliases nspace) prefix))
+        [:local-var]
+
+        (or (Character/isUpperCase (char (first nom)))
+            (try
+              (instance? Class (ns-resolve nspace prefix))
+              (catch ClassNotFoundException _ false)))
+        [:static-field]
+
+        :else (throw (Exception. "Cannot determine type of prefix")))
+      (cond
+        (Character/isUpperCase (char (first base))) [:import]
+        (< -1 (.indexOf base (int \.)))             [:namespace]
+        :else [:full-var :alias :namespace]))))
+
 (defn- type-of-completion
   [thing]
   (cond

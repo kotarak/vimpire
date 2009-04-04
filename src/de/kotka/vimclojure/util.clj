@@ -236,9 +236,8 @@
 
 (defn safe-var-get
   [the-var]
-  (try
-    (var-get the-var)
-    (catch IllegalStateException _ nil)))
+  (when (.isBound the-var)
+    (var-get the-var)))
 
 (defn- type-of-completion
   [thing]

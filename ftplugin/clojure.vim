@@ -82,7 +82,7 @@ endif
 
 call vimclojure#InitBuffer()
 
-if exists("g:clj_want_gorilla") && g:clj_want_gorilla == 1
+if exists("b:vimclojure_namespace")
 	call vimclojure#MakePlug("n", "DocLookupWord", 'vimclojure#DocLookup(expand("<cword>"))')
 	call vimclojure#MakePlug("n", "DocLookupInteractive", 'vimclojure#DocLookup(input("Symbol to look up: "))')
 	call vimclojure#MakePlug("n", "JavadocLookupWord", 'vimclojure#JavadocLookup(expand("<cword>"))')

@@ -595,19 +595,14 @@ function! vimclojure#InitBuffer()
 				let b:vimclojure_namespace = "user"
 			else
 				try
-					let s:content = getbufline(bufnr("%"), 1, line("$"))
+					let content = getbufline(bufnr("%"), 1, line("$"))
 					let b:vimclojure_namespace =
-								\ vimclojure#ExecuteNailWithInput("NamespaceOfFile",
-								\     s:content)
-					unlet s:content
+								\ vimclojure#ExecuteNailWithInput(
+								\   "NamespaceOfFile", content)
 				catch /.*/
-					unlet g:clj_want_gorilla
-					let b:vimclojure_namespace = "user"
 				endtry
 			endif
 		endif
-	else
-		let b:vimclojure_namespace = "user"
 	endif
 endfunction
 

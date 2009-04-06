@@ -101,7 +101,7 @@
   everything, but allows to specify an offset as initial line."
   [reader offset]
   (proxy [LineNumberingPushbackReader] [reader]
-    (getLineNumber [] (+ offset (proxy-super getLineNumber) -1))))
+    (getLineNumber [] (+ offset (proxy-super getLineNumber)))))
 
 (defn with-repl*
   "Calls thunk in the context of the Repl with the given id. id may be -1

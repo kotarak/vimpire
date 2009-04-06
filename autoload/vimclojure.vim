@@ -334,7 +334,7 @@ endfunction
 
 function! vimclojure#EvalLine()
 	let theLine = line(".")
-	let content = getline(theLine)
+	let content = getline(theLine) - 1
 	let file = vimclojure#BufferName()
 	let ns = b:vimclojure_namespace
 
@@ -354,7 +354,7 @@ function! vimclojure#EvalBlock() range
 
 	let content = getbufline(bufnr("%"), a:firstline, a:lastline)
 	let result = vimclojure#ExecuteNailWithInput("Repl", content,
-				\ "-r", "-n", ns, "-f", file, "-l", a:firstline)
+				\ "-r", "-n", ns, "-f", file, "-l", a:firstline - 1)
 
 	let resultBuffer = g:vimclojure#PreviewWindow.New()
 	call resultBuffer.showText(result)
@@ -376,7 +376,7 @@ function! vimclojure#EvalToplevel()
 
 	let expr = vimclojure#ExtractSexpr(1)
 	let result = vimclojure#ExecuteNailWithInput("Repl", expr,
-				\ "-r", "-n", ns, "-f", file, "-l", pos[0])
+				\ "-r", "-n", ns, "-f", file, "-l", pos[0] - 1)
 
 	let resultBuffer = g:vimclojure#PreviewWindow.New()
 	call resultBuffer.showText(result)
@@ -401,7 +401,7 @@ function! vimclojure#EvalParagraph()
 
 	let content = getbufline(bufnr("%"), startPosition, endPosition)
 	let result = vimclojure#ExecuteNailWithInput("Repl", content,
-				\ "-r", "-n", ns, "-f", file, "-l", startPosition)
+				\ "-r", "-n", ns, "-f", file, "-l", startPosition - 1)
 
 	let resultBuffer = g:vimclojure#PreviewWindow.New()
 	call resultBuffer.showText(result)

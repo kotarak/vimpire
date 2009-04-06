@@ -416,7 +416,7 @@ let vimclojure#Repl = copy(vimclojure#Buffer)
 let vimclojure#Repl._prompt = "Clojure=>"
 let vimclojure#Repl._history = []
 let vimclojure#Repl._historyDepth = 0
-let vimclojure#Repl._replCommands = [ ",close" ]
+let vimclojure#Repl._replCommands = [ ",close", ",st" ]
 
 function! vimclojure#Repl.New() dict
 	let instance = copy(self)
@@ -462,6 +462,13 @@ function! vimclojure#Repl.doReplCommand(cmd) dict
 		call vimclojure#ExecuteNail("Repl", "-S", "-i", self._id)
 		call self.close()
 		stopinsert
+	elseif a:cmd == ",st"
+		let result = vimclojure#ExecuteNailWithInput("Repl",
+					\ "(.printStackTrace *e)", "-r", "-i", self._id)
+		call self.showText(result)
+		call self.showText(self._prompt . " ")
+		normal G
+		startinsert!
 	endif
 endfunction
 

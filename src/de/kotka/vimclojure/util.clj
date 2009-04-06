@@ -20,13 +20,9 @@
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 ; THE SOFTWARE.
 
-(clojure.core/ns de.kotka.vimclojure.util)
-
-(defmacro defoptional
-  [sym args & body]
-  `(let [docstring# (:doc (meta (var ~sym)))]
-     (defn ~sym ~args ~@body)
-     (alter-meta! (var ~sym) assoc :doc docstring#)))
+(clojure.core/ns de.kotka.vimclojure.util
+  (:require
+     [clojure.contrib.pprint :as pprint]))
 
 ; Common helpers
 (defn str-cut
@@ -387,16 +383,11 @@
   "Print the given form in a pretty way. If Tom Faulhaber's pretty printer is
   not installed simply defaults prn."
   [form]
-  (prn form))
+  (pprint/pprint form))
 
 (defn pretty-print-code
   "Print the given form in a pretty way. If Tom Faulhaber's pretty printer is
   not installed simply defaults prn. Uses the *code-dispatch* formatting."
   [form]
-  (prn form))
-
-(try
-  (load "optional/cl-format")
-  (catch Exception exc
-    (when-not (re-find #"com/infolace/format__init" (str exc))
-      (throw exc))))
+  (pprint/with-pprint-dispatch pprint/*code-dispatch*
+    (pprint/pprint form)))

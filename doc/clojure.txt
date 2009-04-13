@@ -148,6 +148,20 @@ Plug name and your setting will override the default mapping.
                         in the Classpath or as a file (depending on how the
                         source was loaded).
 
+<LocalLeader>gw                                 *gw* *GotoSourceWord*
+                        Goto the source of the word under the cursor. For this
+                        to work, the source must be available in a directory
+                        of the |'path'| option. The directories in the
+                        CLOJURE_SOURCE_DIRS environment variable will be added
+                        to the |'path'| setting.
+
+<LocalLeader>gi                                 *gi* *GotoSourceInteractive*
+                        Goto the source of an arbitrary word. For this to work,
+                        the source must be available in a directory of the
+                        |'path'| option. The directories in the
+                        CLOJURE_SOURCE_DIRS environment variable will be added
+                        to the |'path'| setting.
+
 <LocalLeader>mw                                 *mw* *MetaLookupWord*
                         Lookup the meta data of the word under the cursor.
 

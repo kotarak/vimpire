@@ -112,6 +112,18 @@
                      (util/stream->seq *in*))]
       (util/pretty-print metainfo))))
 
+(defnail SourceLocation
+  "Usage: ng de.kotka.vimclojure.nails.SourceLocation [options]"
+  [[nspace n "Lookup the symbols in the given namespace." "user"]]
+  (let [nspace         (util/resolve-and-load-namespace nspace)
+        our-ns-resolve #(ns-resolve nspace %)]
+    (doseq [positions (map #(-> %
+                              symbol
+                              our-ns-resolve
+                              backend/source-position)
+                           (util/stream->seq *in*))]
+      (println (util/clj->vim positions)))))
+
 (defnail DynamicHighlighting
   "Usage: ng de.kotka.vimclojure.nails.DynamicHighlighting"
   []

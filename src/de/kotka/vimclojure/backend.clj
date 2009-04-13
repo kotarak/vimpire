@@ -25,7 +25,8 @@
      [de.kotka.vimclojure.util :as util])
   (:import
      clojure.lang.RT
-     (java.io InputStreamReader LineNumberReader PushbackReader)))
+     (java.io File FileInputStream InputStreamReader
+              LineNumberReader PushbackReader)))
 
 ; Documentation:
 (defn doc-lookup
@@ -159,15 +160,15 @@
   find it. This requires that the Var is defined in a namespace for
   which the .clj is in the classpath. Returns nil if it can't find
   the source."
-  [v]
-  (let [fname (:file (meta v))
-        file  (java.io.File. fname)
+  [the-var]
+  (let [fname (:file (meta the-var))
+        file  (File. fname)
         strm  (if (.isAbsolute file)
-                (java.io.FileInputStream. file)
+                (FileInputStream. file)
                 (.getResourceAsStream (RT/baseLoader) fname))]
     (when strm
       (with-open [rdr (LineNumberReader. (InputStreamReader. strm))]
-        (dotimes [_ (dec (:line ^v))] (.readLine rdr))
+        (dotimes [_ (dec (:line ^the-var))] (.readLine rdr))
         (let [text (StringBuilder.)
               pbr (proxy [PushbackReader] [rdr]
                     (read [] (let [i (proxy-super read)]
@@ -175,3 +176,12 @@
                                i)))]
           (read (PushbackReader. pbr))
           (str text))))))
+
+; Source position
+(defn source-position
+  "Extract the position of the Var's source from its metadata."
+  [the-var]
+  (let [meta-info (meta the-var)
+        file      (:file meta-info)
+        line      (:line meta-info)]
+    {:file file :line line}))

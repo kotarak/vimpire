@@ -107,6 +107,12 @@ if exists("b:vimclojure_namespace")
 	call vimclojure#MapPlug("n", "sw", "SourceLookupWord")
 	call vimclojure#MapPlug("n", "si", "SourceLookupInteractive")
 
+	call vimclojure#MakePlug("n", "GotoSourceWord", 'vimclojure#GotoSource(expand("<cword>"))')
+	call vimclojure#MakePlug("n", "GotoSourceInteractive", 'vimclojure#GotoSource(input("Symbol to go to: "))')
+
+	call vimclojure#MapPlug("n", "gw", "GotoSourceWord")
+	call vimclojure#MapPlug("n", "gi", "GotoSourceInteractive")
+
 	call vimclojure#MakePlug("n", "RequireFile", 'vimclojure#RequireFile(0)')
 	call vimclojure#MakePlug("n", "RequireFileAll", 'vimclojure#RequireFile(1)')
 

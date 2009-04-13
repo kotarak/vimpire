@@ -292,6 +292,24 @@ function! vimclojure#SourceLookup(word)
 	wincmd p
 endfunction
 
+function! vimclojure#GotoSource(word)
+	let result = vimclojure#ExecuteNailWithInput("SourceLocation", a:word,
+				\ "-n", b:vimclojure_namespace)
+	execute "let pos = " . result
+
+	if !filereadable(pos.file)
+		let file = findfile(pos.file)
+		if file == ""
+			echoerr pos.file . " not found in 'path'"
+			return
+		endif
+		let pos.file = file
+	endif
+
+	execute "edit " . pos.file
+	execute pos.line
+endfunction
+
 " Evaluators
 function! vimclojure#MacroExpand(firstOnly)
 	let sexp = vimclojure#ExtractSexpr(0)

@@ -5,6 +5,7 @@
     <configurations>
         <conf name="default"/>
         <conf name="dev" extends="default"/>
+        <conf name="build" visibility="private"/>
     </configurations>
 
     <publications>
@@ -14,9 +15,9 @@
 
     <dependencies>
         <dependency org="org.clojure" name="clojure-lang" rev="1349"
-            conf="*->default"/>
+            conf="build->dev; default"/>
         <dependency org="org.clojure" name="clojure-contrib"
-            rev="666" conf="*->def,pprint"/>
+            rev="666" conf="build->source; default->def,pprint"/>
     </dependencies>
 
 </ivy-module>

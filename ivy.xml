@@ -13,10 +13,10 @@
     </publications>
 
     <dependencies>
-        <dependency org="org.clojure" name="clojure-lang" rev="1.0.0"
+        <dependency org="org.clojure" name="clojure-lang" rev="1349"
             conf="*->default"/>
         <dependency org="org.clojure" name="clojure-contrib"
-            rev="1.0.0" conf="*->def,pprint"/>
+            rev="666" conf="*->def,pprint"/>
     </dependencies>
 
 </ivy-module>

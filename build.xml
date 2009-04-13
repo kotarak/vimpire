@@ -22,13 +22,13 @@
 
     <target name="resolve" depends="init"
         description="--> resolve dependencies with Ivy">
-        <ivy:retrieve />
         <ivy:resolve />
+        <ivy:retrieve />
     </target>
 
     <target name="aot" depends="nailgun-server,resolve,init"
         description="--> AOT compile clojure sources">
-        <java classname="clojure.lang.Compile">
+        <java classname="clojure.lang.Compile" failonerror="true">
             <classpath>
                 <path location="${classes.dir}"/>
                 <path location="${src.dir}"/>

@@ -101,6 +101,12 @@ if exists("b:vimclojure_namespace")
 	call vimclojure#MapPlug("n", "mw", "MetaLookupWord")
 	call vimclojure#MapPlug("n", "mi", "MetaLookupInteractive")
 
+	call vimclojure#MakePlug("n", "SourceLookupWord", 'vimclojure#SourceLookup(expand("<cword>"))')
+	call vimclojure#MakePlug("n", "SourceLookupInteractive", 'vimclojure#SourceLookup(input("Symbol to look up: "))')
+
+	call vimclojure#MapPlug("n", "sw", "SourceLookupWord")
+	call vimclojure#MapPlug("n", "si", "SourceLookupInteractive")
+
 	call vimclojure#MakePlug("n", "RequireFile", 'vimclojure#RequireFile(0)')
 	call vimclojure#MakePlug("n", "RequireFileAll", 'vimclojure#RequireFile(1)')
 

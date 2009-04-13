@@ -91,6 +91,18 @@
                       (util/stream->seq *in*))]
       (println path))))
 
+(defnail SourceLookup
+  "Usage: ng de.kotka.vimclojure.nails.SourceLookup [options]"
+  [[nspace n "Lookup the symbols in the given namespace." "user"]]
+  (let [nspace         (util/resolve-and-load-namespace nspace)
+        our-ns-resolve #(ns-resolve nspace %)]
+    (doseq [src (map #(-> %
+                        symbol
+                        our-ns-resolve
+                        backend/get-source)
+                     (util/stream->seq *in*))]
+      (println src))))
+
 (defnail MetaLookup
   "Usage: ng de.kotka.vimclojure.nails.MetaLookup [options]"
   [[nspace n "Lookup the symbols in the given namespace." "user"]]

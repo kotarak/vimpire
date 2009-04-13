@@ -22,7 +22,10 @@
 
 (clojure.core/ns de.kotka.vimclojure.backend
   (:require
-     [de.kotka.vimclojure.util :as util]))
+     [de.kotka.vimclojure.util :as util])
+  (:import
+     clojure.lang.RT
+     (java.io InputStreamReader LineNumberReader PushbackReader)))
 
 ; Documentation:
 (defn doc-lookup
@@ -148,3 +151,27 @@
                    (next fields))
             (recur completions (next fields))))
         (vec completions)))))
+
+; Source lookup. Taken from clojure.contrib.repl-utils and modified to
+; take a Var instead of a symbol.
+(defn get-source
+  "Returns a string of the source code for the given Var, if it can
+  find it. This requires that the Var is defined in a namespace for
+  which the .clj is in the classpath. Returns nil if it can't find
+  the source."
+  [v]
+  (let [fname (:file (meta v))
+        file  (java.io.File. fname)
+        strm  (if (.isAbsolute file)
+                (java.io.FileInputStream. file)
+                (.getResourceAsStream (RT/baseLoader) fname))]
+    (when strm
+      (with-open [rdr (LineNumberReader. (InputStreamReader. strm))]
+        (dotimes [_ (dec (:line ^v))] (.readLine rdr))
+        (let [text (StringBuilder.)
+              pbr (proxy [PushbackReader] [rdr]
+                    (read [] (let [i (proxy-super read)]
+                               (.append text (char i))
+                               i)))]
+          (read (PushbackReader. pbr))
+          (str text))))))

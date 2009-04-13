@@ -283,6 +283,15 @@ function! vimclojure#MetaLookup(word)
 	wincmd p
 endfunction
 
+function! vimclojure#SourceLookup(word)
+	let source = vimclojure#ExecuteNailWithInput("SourceLookup", a:word,
+				\ "-n", b:vimclojure_namespace)
+	let resultBuffer = g:vimclojure#PreviewWindow.New()
+	call resultBuffer.showText(source)
+	setfiletype clojure
+	wincmd p
+endfunction
+
 " Evaluators
 function! vimclojure#MacroExpand(firstOnly)
 	let sexp = vimclojure#ExtractSexpr(0)

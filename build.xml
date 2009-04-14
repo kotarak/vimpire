@@ -9,7 +9,10 @@
     <property name="jar.file" location="${build.dir}/vimclojure.jar"/>
     <property name="srcjar.file" location="${build.dir}/vimclojure-source.jar"/>
 
-    <property name="current.version" value="2.0"/>
+    <property name="current.version" value="2.1"/>
+
+    <property name="ivy.install.version" value="2.1.0-rc1"/>
+    <property name="ivy.jar.file" value="${lib.dir}/ivy.jar"/>
 
     <property file="local.properties"/>
 
@@ -20,20 +23,29 @@
         <mkdir dir="${lib.dir}"/>
     </target>
 
-    <property name="ivy.install.version" value="2.1.0-rc1"/>
-    <property name="ivy.jar.file" value="${lib.dir}/ivy.jar"/>
+    <condition property="ivy.available">
+        <available resource="org/apache/ivy/ant/antlib.xml"/>
+    </condition>
 
-    <available property="ivy.available"
-        resource="org/apache/ivy/ant/antlib.xml"/>
+    <condition property="ivy.disabled">
+        <isset property="clojure.jar"/>
+    </condition>
 
-    <target name="download-ivy" depends="init" unless="ivy.available"
+    <condition property="ivy.needed">
+        <and>
+            <not><istrue value="${ivy.available}"/></not>
+            <not><istrue value="${ivy.disabled}"/></not>
+        </and>
+    </condition>
+
+    <target name="download-ivy" depends="init" if="ivy.needed"
         description="--> download Ivy if necessary">
         <get src="http://repo1.maven.org/maven2/org/apache/ivy/ivy/${ivy.install.version}/ivy-${ivy.install.version}.jar"
             dest="${ivy.jar.file}"
             usetimestamp="true"/>
     </target>
 
-    <target name="install-ivy" depends="download-ivy" unless="ivy.available"
+    <target name="install-ivy" depends="download-ivy" if="ivy.needed"
         description="--> install Ivy if necessary">
         <path id="ivy.lib.path">
             <fileset dir="${lib.dir}" includes="*.jar"/>
@@ -43,7 +55,7 @@
             classpathref="ivy.lib.path"/>
     </target>
 
-    <target name="resolve" depends="install-ivy,init"
+    <target name="resolve" depends="install-ivy,init" unless="ivy.disabled"
         description="--> resolve dependencies with Ivy">
         <ivy:resolve />
         <ivy:retrieve />
@@ -55,6 +67,8 @@
             <classpath>
                 <path location="${classes.dir}"/>
                 <path location="${src.dir}"/>
+                <path location="${clojure.jar}"/>
+                <path location="${clojure-contrib.jar}"/>
                 <fileset dir="${lib.dir}" includes="**/*.jar"/>
             </classpath>
             <sysproperty key="clojure.compile.path" value="${classes.dir}"/>
@@ -118,7 +132,7 @@
         <delete dir="${lib.dir}"/>
     </target>
 
-    <target name="clean-local" depends="install-ivy"
+    <target name="clean-local" depends="install-ivy" unless="ivy.disabled"
         description="--> clean local repository files">
         <ivy:info />
         <delete dir="${ivy.local.default.root}/${ivy.organisation}/${ivy.module}"/>
@@ -171,6 +185,7 @@
             resolver="shared"
             artifactspattern="${build.dir}/[artifact].[ext]"
             pubrevision="${ivy.new.revision}"
+            update="true"
             status="release"/>
     </target>
 

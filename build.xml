@@ -20,7 +20,30 @@
         <mkdir dir="${lib.dir}"/>
     </target>
 
-    <target name="resolve" depends="init"
+    <property name="ivy.install.version" value="2.1.0-rc1"/>
+    <property name="ivy.jar.file" value="${lib.dir}/ivy.jar"/>
+
+    <available property="ivy.available"
+        resource="org/apache/ivy/ant/antlib.xml"/>
+
+    <target name="download-ivy" depends="init" unless="ivy.available"
+        description="--> download Ivy if necessary">
+        <get src="http://repo1.maven.org/maven2/org/apache/ivy/ivy/${ivy.install.version}/ivy-${ivy.install.version}.jar"
+            dest="${ivy.jar.file}"
+            usetimestamp="true"/>
+    </target>
+
+    <target name="install-ivy" depends="download-ivy" unless="ivy.available"
+        description="--> install Ivy if necessary">
+        <path id="ivy.lib.path">
+            <fileset dir="${lib.dir}" includes="*.jar"/>
+        </path>
+        <taskdef resource="org/apache/ivy/ant/antlib.xml"
+            uri="antlib:org.apache.ivy.ant"
+            classpathref="ivy.lib.path"/>
+    </target>
+
+    <target name="resolve" depends="install-ivy,init"
         description="--> resolve dependencies with Ivy">
         <ivy:resolve />
         <ivy:retrieve />
@@ -95,12 +118,13 @@
         <delete dir="${lib.dir}"/>
     </target>
 
-    <target name="clean-local" description="--> clean local repository files">
+    <target name="clean-local" depends="install-ivy"
+        description="--> clean local repository files">
         <ivy:info />
         <delete dir="${ivy.local.default.root}/${ivy.organisation}/${ivy.module}"/>
     </target>
 
-    <target name="clean-all" depends="clean,clean-lib,clean-local"
+    <target name="clean-all" depends="clean-lib,clean"
         description="--> clean all project files"/>
 
     <target name="install" if="vimdir"

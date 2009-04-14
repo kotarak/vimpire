@@ -17,7 +17,7 @@
         <dependency org="org.clojure" name="clojure-lang" rev="1349"
             conf="build->dev; default"/>
         <dependency org="org.clojure" name="clojure-contrib"
-            rev="666" conf="build->source; default->def,pprint"/>
+            rev="666" conf="build->source; default->def,pprint,stacktrace"/>
     </dependencies>
 
 </ivy-module>

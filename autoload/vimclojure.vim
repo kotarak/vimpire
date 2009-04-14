@@ -443,7 +443,7 @@ let vimclojure#Repl = copy(vimclojure#Buffer)
 let vimclojure#Repl._prompt = "Clojure=>"
 let vimclojure#Repl._history = []
 let vimclojure#Repl._historyDepth = 0
-let vimclojure#Repl._replCommands = [ ",close", ",st" ]
+let vimclojure#Repl._replCommands = [ ",close", ",st", ",ct" ]
 
 function! vimclojure#Repl.New() dict
 	let instance = copy(self)
@@ -465,6 +465,9 @@ function! vimclojure#Repl.New() dict
 	call append(line("$"), ["Clojure", self._prompt . " "])
 
 	let instance._id = vimclojure#ExecuteNail("Repl", "-s")
+	call vimclojure#ExecuteNailWithInput("Repl",
+				\ "(require 'clojure.contrib.stacktrace)", "-r",
+				\ "-i", instance._id)
 	let instance._buffer = bufnr("%")
 
 	let b:vimclojure_repl = instance
@@ -491,7 +494,16 @@ function! vimclojure#Repl.doReplCommand(cmd) dict
 		stopinsert
 	elseif a:cmd == ",st"
 		let result = vimclojure#ExecuteNailWithInput("Repl",
-					\ "(.printStackTrace *e)", "-r", "-i", self._id)
+					\ "(clojure.contrib.stacktrace/print-stack-trace *e)", "-r",
+					\ "-i", self._id)
+		call self.showText(result)
+		call self.showText(self._prompt . " ")
+		normal G
+		startinsert!
+	elseif a:cmd == ",ct"
+		let result = vimclojure#ExecuteNailWithInput("Repl",
+					\ "(clojure.contrib.stacktrace/print-cause-trace *e)", "-r",
+					\ "-i", self._id)
 		call self.showText(result)
 		call self.showText(self._prompt . " ")
 		normal G

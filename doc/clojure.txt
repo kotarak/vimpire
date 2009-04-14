@@ -191,6 +191,12 @@ The Plugs are:
  - <Plug>ClojureReplUpHistory for going backwards in history (<C-Up>)
  - <Plug>ClojureReplDownHistory for going forwards in history (<C-Down>)
 
+The following convenience commands are provided:
+
+ - ,close - close the Repl and free the Repl resources in the server process
+ - ,st - print a stack trace of *e as with clojure.contrib.stacktrace
+ - ,ct - print a cause trace of *e as with clojure.contrib.stacktrace
+
 Pretty Printing
 ---------------
 

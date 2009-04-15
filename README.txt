@@ -82,5 +82,22 @@ let vimclojure#NailgunClient = "/path/to/your/ng"
 Please refer to the online documentation in the doc folder for further
 information on how to use VimClojure, its features and its caveats.
 
+Using Ivy
+=========
+
+Alternatively you may use Ivy to resolve the dependencies. Simply omit the
+first two lines in the local.properties file and ant will automatically
+download any missing dependencies. In case you don't have Ivy installed,
+this will be fetched also.
+
+VimClojure is available as Ivy dependency also. Run "ant publish-local"
+after building the VimClojure and use
+
+    <dependency org="de.kokta" name="vimclojure" rev="2.1.0"/>
+
+to include the VimClojure jar in your projects classpath. But mapping
+the dependency to a private configuration the dependency is only for
+development. Users of your project won't be bothered with the dependency.
+
 Meikel Branmdeyer <mb@kotka.de>
 Frankfurt am Main, 2009

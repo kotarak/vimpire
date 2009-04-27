@@ -99,7 +99,33 @@ function! vimclojure#MapPlug(mode, keys, plug)
 endfunction
 
 " A Buffer...
+if !exists("vimclojure#SplitPos")
+	let vimclojure#SplitPos = "top"
+endif
+
 let vimclojure#Buffer = {}
+
+function! vimclojure#Buffer.New() dict
+	if g:vimclojure#SplitPos == "left" || g:vimclojure#SplitPos == "right"
+		let o_sr = &splitright
+		if g:vimclojure#SplitPos == "left"
+			set nosplitright
+		else
+			set splitright
+		end
+		vnew
+		let &splitright = o_sr
+	else
+		let o_sb = &splitbelow
+		if g:vimclojure#SplitPos == "bottom"
+			set splitbelow
+		else
+			set nosplitbelow
+		end
+		new
+		let &splitbelow = o_sb
+	endif
+endfunction
 
 function! vimclojure#Buffer.goHere() dict
 	execute "buffer! " . self._buffer
@@ -131,32 +157,10 @@ endfunction
 " The transient buffer, used to display results.
 let vimclojure#PreviewWindow = copy(vimclojure#Buffer)
 
-if !exists("vimclojure#PreviewPos")
-	let vimclojure#PreviewPos = "top"
-endif
-
 function! vimclojure#PreviewWindow.New() dict
 	pclose!
 
-	if g:vimclojure#PreviewPos == "left" || g:vimclojure#PreviewPos == "right"
-		let o_sr = &splitright
-		if g:vimclojure#PreviewPos == "left"
-			set nosplitright
-		else
-			set splitright
-		end
-		vnew
-		let &splitright = o_sr
-	else
-		let o_sb = &splitbelow
-		if g:vimclojure#PreviewPos == "bottom"
-			set splitbelow
-		else
-			set nosplitbelow
-		end
-		execute &previewheight . "new"
-		let &splitbelow = o_sb
-	endif
+	call g:vimclojure#Buffer.New()
 
 	set previewwindow
 	set winfixheight
@@ -471,7 +475,8 @@ let vimclojure#Repl._replCommands = [ ",close", ",st", ",ct" ]
 function! vimclojure#Repl.New() dict
 	let instance = copy(self)
 
-	new
+	call g:vimclojure#Buffer.New()
+
 	setlocal buftype=nofile
 	setlocal noswapfile
 

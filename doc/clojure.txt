@@ -35,6 +35,16 @@ Note: Should there be an error when executing an interactive command
 and the error message goes away to quickly, you can use |:messages| to
 recall the message and read it conveniently without time pressure.
 
+VimClojure might pop up windows, like the preview window or the Repl.
+The place where this is done may be controlled with the SplitPos variable.
+Possible values are "left", "right", "top" and "bottom". Thedefault is
+"top".
+
+Example:
+>
+        let vimclojure#SplitPos = "left"
+<
+
 Syntax Highlighting                 *ft-clj-syntax*
 -------------------
 
@@ -65,14 +75,12 @@ Preview Window
 
 Many of the below mentioned commands open the so called preview window.
 It displays information obtained from the lookup functions and the omni
-completion. You may specify how the window is split using the PreviewPos
-variable. Possible values are "left", "right", "top" and "bottom". The
-default is "top".
+completion. You may close the preview window with <LocalLeader>p.
 
-Example:
->
-        let vimclojure#PreviewPos = "left"
-<
+Note: The preview window sometimes doesn't not adhere to the SplitPos
+variable. This is the case, eg. for omni completion. It happens when
+the preview window is created by Vim and not by VimClojure itself. At
+the moment, I don't know how to fix this.
 
 Keybindings
 -----------

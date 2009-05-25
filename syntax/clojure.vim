@@ -140,7 +140,7 @@ syn match   clojureComment contains=clojureTodo ";.*$"
 
 syn match   clojureKeyword ":\{1,2}\a[a-zA-Z0-9?!\-_+*\./=<>]*"
 
-syn region  clojureString start=/"/ end=/"/ skip=/\\"/
+syn region  clojureString start=/L\="/ skip=/\\\\\|\\"/ end=/"/
 
 syn match   clojureCharacter "\\."
 syn match   clojureCharacter "\\[0-7]\{3\}"

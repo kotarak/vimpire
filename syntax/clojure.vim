@@ -34,7 +34,8 @@ if (exists("g:clj_highlight_builtins") && g:clj_highlight_builtins != 0)
 		\            . "*compile-path* *file* *flush-on-newline* "
 		\            . "*macro-meta* *math-context* *print-dup* "
 		\            . "*print-level* *use-context-classloader* "
-		\            . "*source-path*",
+		\            . "*source-path* *clojure-version* *read-eval*"
+		\            . "*1 *2 *3 *e",
 		\ "Define":    "def- defn defn- defmacro defmulti defmethod "
 		\            . "defstruct defonce declare definline ",
 		\ "Macro":     "and or -> assert with-out-str with-in-str with-open "
@@ -112,7 +113,7 @@ if (exists("g:clj_highlight_builtins") && g:clj_highlight_builtins != 0)
 		\            . "future-call methods mod pcalls prefers pvalues "
 		\            . "print-namespace-doc remove-watcher reset! "
 		\            . "reset-meta! type vary-meta unquote-splicing "
-		\            . "sequence"
+		\            . "sequence clojure-version counted? stream?"
 		\ }
 
 	for category in keys(s:builtins_map)

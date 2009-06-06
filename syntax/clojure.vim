@@ -152,6 +152,13 @@ syn match   clojureCharacter "\\return"
 syn match   clojureCharacter "\\backspace"
 syn match   clojureCharacter "\\formfeed"
 
+let radixChars = "0123456789abcdefghijklmnopqrstuvwxyz"
+for radix in range(2, 36)
+	execute 'syn match clojureNumber "\c\<-\?' . radix . 'r['
+				\ . strpart(radixChars, 0, radix)
+				\ . ']\+\>"'
+endfor
+
 syn match   clojureNumber "\<-\?[0-9]\+M\?\>"
 syn match   clojureRational "\<-\?[0-9]\+/[0-9]\+\>"
 syn match   clojureFloat "\<-\?[0-9]\+\.[0-9]\+\([eE][-+]\=[0-9]\+\)\=\>"

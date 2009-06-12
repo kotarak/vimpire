@@ -371,6 +371,26 @@ function! vimclojure#RequireFile(all)
 	wincmd p
 endfunction
 
+function! vimclojure#RunTests(all)
+	let ns = b:vimclojure_namespace
+	let all = a:all ? "-all" : ""
+
+	let resultBuffer = g:vimclojure#PreviewWindow.New()
+
+	let cmd = ""
+	if ns != "user"
+		let cmd .= "(require :reload" . all . " '" . ns . ")"
+	endif
+	let cmd .= "(require 'clojure.contrib.test-is)"
+	let cmd .= "(clojure.contrib.test-is/run-tests (find-ns '" . ns ."))"
+	let result = vimclojure#ExecuteNailWithInput("Repl", cmd, "-r")
+
+	call resultBuffer.showText(result)
+	setfiletype clojure
+
+	wincmd p
+endfunction
+
 function! vimclojure#EvalFile()
 	let content = getbufline(bufnr("%"), 1, line("$"))
 	let file = vimclojure#BufferName()

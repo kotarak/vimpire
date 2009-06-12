@@ -130,6 +130,14 @@ Plug name and your setting will override the default mapping.
                         place before issueing the command, eg. via scp
                         or NFS.
 
+<LocalLeader>rt                                 *rt* *RunTests*
+                        Require the namespace of the filename with the
+                        :reload flag. Then use clojure.contrib.test-is
+                        to run the tests of the namespace via run-tests.
+                        Note: For this to work with a remote Clojure
+                        server, the files have to put in place before
+                        issueing the command, eg. via scp or NFS.
+
 <LocalLeader>me                                 *me* *MacroExpand*
                         Expand the innermost sexpression currently
                         containing the cursor using macroexpand.

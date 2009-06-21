@@ -535,6 +535,12 @@ function! vimclojure#Repl.isReplCommand(cmd) dict
 	return 0
 endfunction
 
+function! vimclojure#Repl.showPrompt() dict
+	call self.showText(self._prompt . " ")
+	normal G
+	startinsert!
+endfunction
+
 function! vimclojure#Repl.doReplCommand(cmd) dict
 	if a:cmd == ",close"
 		call vimclojure#ExecuteNail("Repl", "-S", "-i", self._id)
@@ -545,24 +551,14 @@ function! vimclojure#Repl.doReplCommand(cmd) dict
 					\ "(clojure.contrib.stacktrace/print-stack-trace *e)", "-r",
 					\ "-i", self._id)
 		call self.showText(result)
-		call self.showText(self._prompt . " ")
-		normal G
-		startinsert!
+		call self.showPrompt()
 	elseif a:cmd == ",ct"
 		let result = vimclojure#ExecuteNailWithInput("Repl",
 					\ "(clojure.contrib.stacktrace/print-cause-trace *e)", "-r",
 					\ "-i", self._id)
 		call self.showText(result)
-		call self.showText(self._prompt . " ")
-		normal G
-		startinsert!
+		call self.showPrompt()
 	endif
-endfunction
-
-function! vimclojure#Repl.showPrompt() dict
-	call self.showText(self._prompt . " ")
-	normal G
-	startinsert!
 endfunction
 
 function! vimclojure#Repl.getCommand() dict

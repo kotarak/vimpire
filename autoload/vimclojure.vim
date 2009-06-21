@@ -559,12 +559,24 @@ function! vimclojure#Repl.doReplCommand(cmd) dict
 	endif
 endfunction
 
+function! vimclojure#Repl.showPrompt() dict
+	call self.showText(self._prompt . " ")
+	normal G
+	startinsert!
+endfunction
+
 function! vimclojure#Repl.getCommand() dict
 	let ln = line("$")
 
-	while getline(ln) !~ "^" . self._prompt
+	while getline(ln) !~ "^" . self._prompt && ln > 0
 		let ln = ln - 1
 	endwhile
+
+	" Special Case: User deleted Prompt by accident. Insert a new one.
+	if ln == 0
+		call self.showPrompt()
+		return ""
+	endif
 
 	let cmd = vimclojure#Yank("l", ln . "," . line("$") . "yank l")
 
@@ -576,6 +588,11 @@ endfunction
 function! vimclojure#Repl.enterHook() dict
 	let cmd = self.getCommand()
 
+	" Special Case: Showed prompt (or user just hit enter).
+	if cmd == ""
+		return
+	endif
+
 	if self.isReplCommand(cmd)
 		call self.doReplCommand(cmd)
 		return
@@ -585,6 +602,7 @@ function! vimclojure#Repl.enterHook() dict
 	if result == "false"
 		execute "normal! GA\<CR>x"
 		normal ==x
+		startinsert!
 	else
 		let result = vimclojure#ExecuteNailWithInput("Repl", cmd,
 					\ "-r", "-i", self._id)
@@ -592,10 +610,8 @@ function! vimclojure#Repl.enterHook() dict
 
 		let self._historyDepth = 0
 		let self._history = [cmd] + self._history
-		call self.showText(self._prompt . " ")
-		normal G
+		call self.showPrompt()
 	endif
-	startinsert!
 endfunction
 
 function! vimclojure#Repl.upHistory() dict

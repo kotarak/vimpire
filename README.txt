@@ -82,6 +82,9 @@ let vimclojure#NailgunClient = "/path/to/your/ng"
 Please refer to the online documentation in the doc folder for further
 information on how to use VimClojure, its features and its caveats.
 
+Note: You might need to check the Makefile for special lib requirments
+to compile the nailgun client, eg. OpenSolaris.
+
 Using Ivy
 =========
 

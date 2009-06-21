@@ -487,7 +487,7 @@ endfunction
 " The Repl
 let vimclojure#Repl = copy(vimclojure#Buffer)
 
-let vimclojure#Repl._prompt = "Clojure=>"
+let vimclojure#Repl._prompt = "user=>"
 let vimclojure#Repl._history = []
 let vimclojure#Repl._historyDepth = 0
 let vimclojure#Repl._replCommands = [ ",close", ",st", ",ct" ]
@@ -610,6 +610,12 @@ function! vimclojure#Repl.enterHook() dict
 
 		let self._historyDepth = 0
 		let self._history = [cmd] + self._history
+
+		let namespace = vimclojure#ExecuteNailWithInput("Repl",
+					\ "(clojure.core/ns-name clojure.core/*ns*)",
+					\ "-r", "-i", self._id)
+		let self._prompt = namespace . "=>"
+
 		call self.showPrompt()
 	endif
 endfunction

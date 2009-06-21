@@ -195,13 +195,14 @@
 
 (defnail Repl
   "Usage: ng de.kotka.vimclojure.nails.Repl [options]"
-  [[start? s "Start a new Repl."]
-   [stop?  S "Stop the Repl of the given id."]
-   [run?   r "Run the input in the Repl context of the given id."]
-   [id     i "The id of the repl to act on." "-1"]
-   [nspace n "Change to namespace before executing the input." ""]
-   [file   f "The filename to be set." "REPL"]
-   [line   l "The initial line to be set." "0"]]
+  [[start?  s "Start a new Repl."]
+   [stop?   S "Stop the Repl of the given id."]
+   [run?    r "Run the input in the Repl context of the given id."]
+   [id      i "The id of the repl to act on." "-1"]
+   [nspace  n "Change to namespace before executing the input." ""]
+   [file    f "The filename to be set." "REPL"]
+   [line    l "The initial line to be set." "0"]
+   [ignore? I "Ignore the command with respect to *1, *2 , *3"]]
   (let [id     (Integer/parseInt id)
         line   (Integer/parseInt line)
         nspace (when (not= nspace "")
@@ -209,7 +210,7 @@
     (cond
       start (println (repl/start))
       stop  (repl/stop id)
-      run   (repl/run id nspace file line))))
+      run   (repl/run id nspace file line ignore))))
 
 (defnail CheckSyntax
   "Usage: ng de.kotka.vimclojure.nails.CheckSyntax"

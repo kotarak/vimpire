@@ -168,16 +168,18 @@
 (defn run
   "Reads from *in* and evaluates the found expressions. The state of the
   Repl is retrieved using the given id. Output goes to *out* and *err*.
-  The initial input line and the file are set to the supplied values."
-  [id nspace file line]
+  The initial input line and the file are set to the supplied values.
+  Ignore flags whether the evaluation result is saved in the star Vars."
+  [id nspace file line ignore]
   (with-repl id nspace file line
     (try
       (doseq [form (stream->seq *in*)]
         (let [result (eval form)]
           ((if de.kotka.vimclojure.repl/*print-pretty* pretty-print prn) result)
-          (set! *3 *2)
-          (set! *2 *1)
-          (set! *1 result)))
+          (when-not ignore
+            (set! *3 *2)
+            (set! *2 *1)
+            (set! *1 result))))
       (catch Throwable e
         (println (if (instance? clojure.lang.Compiler$CompilerException e)
                    e

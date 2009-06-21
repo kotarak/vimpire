@@ -614,6 +614,7 @@ function! vimclojure#Repl.enterHook() dict
 		let namespace = vimclojure#ExecuteNailWithInput("Repl",
 					\ "(clojure.core/ns-name clojure.core/*ns*)",
 					\ "-r", "-i", self._id)
+		let b:vimclojure_namespace = namespace
 		let self._prompt = namespace . "=>"
 
 		call self.showPrompt()

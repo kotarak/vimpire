@@ -61,7 +61,7 @@ function! VimClojureCheckForStringWorker()
 		if vimclojure#SynIdName() != "clojureString"
 			return -1
 		endif
-		if vimclojure#Yank('l', 'normal "lyl') != '\\'
+		if vimclojure#Yank('l', 'normal! "lyl') != '\\'
 			return -1
 		endif
 		call cursor(0, col("$") - 1)
@@ -129,9 +129,9 @@ function! GetClojureIndentWorker()
 	endif
 
 	" In case after the paren is a whitespace, we search for the next word.
-	normal l
-	if vimclojure#Yank('l', 'normal "lyl') == ' '
-		normal w
+	normal! l
+	if vimclojure#Yank('l', 'normal! "lyl') == ' '
+		normal! w
 	endif
 
 	" If we moved to another line, there is no word after the (. We
@@ -142,7 +142,7 @@ function! GetClojureIndentWorker()
 
 	" We still have to check, whether the keyword starts with a (, [ or {.
 	" In that case we use the ( position for indent.
-	let w = vimclojure#Yank('l', 'normal "lye')
+	let w = vimclojure#Yank('l', 'normal! "lye')
 	if stridx('([{', w[0]) > 0
 		return paren[1]
 	endif
@@ -151,12 +151,12 @@ function! GetClojureIndentWorker()
 		return paren[1] + &shiftwidth - 1
 	endif
 
-	normal w
+	normal! w
 	if paren[0] < line(".")
 		return paren[1] + &shiftwidth - 1
 	endif
 
-	normal ge
+	normal! ge
 	return col(".") + 1
 endfunction
 

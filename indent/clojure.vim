@@ -190,7 +190,7 @@ endif
 
 " Defintions:
 setlocal lispwords=def,def-,defn,defn-,defmacro,defmacro-,defmethod,defmulti
-setlocal lispwords+=defonce,defvar,defvar-,defunbound,let,fn,binding,proxy
+setlocal lispwords+=defonce,defvar,defvar-,defunbound,let,fn,letfn,binding,proxy
 
 " Conditionals and Loops:
 setlocal lispwords+=if,if-not,if-let,when,when-not,when-let,when-first

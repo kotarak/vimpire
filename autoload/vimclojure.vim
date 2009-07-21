@@ -514,7 +514,7 @@ function! vimclojure#Repl.New() dict
 
 	let instance._id = vimclojure#ExecuteNail("Repl", "-s")
 	call vimclojure#ExecuteNailWithInput("Repl",
-				\ "(require 'clojure.contrib.stacktrace)", "-r",
+				\ "(require 'clojure.stacktrace)", "-r",
 				\ "-i", instance._id)
 	let instance._buffer = bufnr("%")
 
@@ -548,13 +548,13 @@ function! vimclojure#Repl.doReplCommand(cmd) dict
 		stopinsert
 	elseif a:cmd == ",st"
 		let result = vimclojure#ExecuteNailWithInput("Repl",
-					\ "(clojure.contrib.stacktrace/print-stack-trace *e)", "-r",
+					\ "(clojure.stacktrace/print-stack-trace *e)", "-r",
 					\ "-i", self._id)
 		call self.showText(result)
 		call self.showPrompt()
 	elseif a:cmd == ",ct"
 		let result = vimclojure#ExecuteNailWithInput("Repl",
-					\ "(clojure.contrib.stacktrace/print-cause-trace *e)", "-r",
+					\ "(clojure.stacktrace/print-cause-trace *e)", "-r",
 					\ "-i", self._id)
 		call self.showText(result)
 		call self.showPrompt()

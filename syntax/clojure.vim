@@ -27,7 +27,7 @@ if (exists("g:clj_highlight_builtins") && g:clj_highlight_builtins != 0)
 		\ "Repeat":    "recur map mapcat reduce filter for doseq dorun "
 		\            . "doall dotimes",
 		\ "Special":   ". def do fn if let new quote var loop",
-		\ "Variable":  "*warn-on-reflection* this "
+		\ "Variable":  "*warn-on-reflection* this *assert*"
 		\            . "*agent* *ns* *in* *out* *err* *command-line-args* "
 		\            . "*print-meta* *print-readably* *print-length* "
 		\            . "*allow-unresolved-args* *compile-files* "
@@ -42,7 +42,8 @@ if (exists("g:clj_highlight_builtins") && g:clj_highlight_builtins != 0)
 		\            . "locking destructure ns dosync binding delay "
 		\            . "lazy-cons lazy-cat time assert doc with-precision "
 		\            . "with-local-vars .. doto memfn proxy amap areduce "
-		\            . "refer-clojure future lazy-seq letfn",
+		\            . "refer-clojure future lazy-seq letfn "
+		\            . "with-loading-context",
 		\ "Func":      "= not= not nil? false? true? complement identical? "
 		\            . "string? symbol? map? seq? vector? keyword? var? "
 		\            . "special-symbol? apply partial comp constantly "
@@ -113,7 +114,12 @@ if (exists("g:clj_highlight_builtins") && g:clj_highlight_builtins != 0)
 		\            . "future-call methods mod pcalls prefers pvalues "
 		\            . "print-namespace-doc remove-watcher reset! "
 		\            . "reset-meta! type vary-meta unquote-splicing "
-		\            . "sequence clojure-version counted? stream?"
+		\            . "sequence clojure-version counted? stream? "
+		\            . "chunk-buffer chunk-append chunk chunk-first "
+		\            . "chunk-rest chunk-next chunk-cons chunked-seq? "
+		\            . "deliver future? future-done? future-cancel "
+		\            . "future-cancelled? get-method promise "
+		\            . "ref-history-count ref-min-history ref-max-history"
 		\ }
 
 	for category in keys(s:builtins_map)

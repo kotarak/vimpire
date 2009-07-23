@@ -106,6 +106,15 @@ endif
 let vimclojure#Buffer = {}
 
 function! vimclojure#Buffer.New() dict
+	let instance = copy(self)
+
+	call self.MakeBuffer()
+	call self.Init(instance)
+
+	return instance
+endfunction
+
+function! vimclojure#Buffer.MakeBuffer()
 	if g:vimclojure#SplitPos == "left" || g:vimclojure#SplitPos == "right"
 		let o_sr = &splitright
 		if g:vimclojure#SplitPos == "left"
@@ -125,6 +134,10 @@ function! vimclojure#Buffer.New() dict
 		new
 		let &splitbelow = o_sb
 	endif
+endfunction
+
+function! vimclojure#Buffer.Init(instance)
+	let a:instance._buffer = bufnr("%")
 endfunction
 
 function! vimclojure#Buffer.goHere() dict
@@ -158,9 +171,16 @@ endfunction
 let vimclojure#PreviewWindow = copy(vimclojure#Buffer)
 
 function! vimclojure#PreviewWindow.New() dict
-	pclose!
+	let instance = copy(self)
 
-	call g:vimclojure#Buffer.New()
+	call g:vimclojure#Buffer.MakeBuffer()
+	call self.Init(instance)
+
+	return instance
+endfunction
+
+function! vimclojure#PreviewWindow.Init(instance) dict
+	pclose!
 
 	set previewwindow
 	set winfixheight
@@ -173,7 +193,7 @@ function! vimclojure#PreviewWindow.New() dict
 
 	call append(0, "; Use " . leader . "p to close this buffer!")
 
-	return copy(self)
+	return a:instance
 endfunction
 
 function! vimclojure#PreviewWindow.goHere() dict
@@ -486,6 +506,7 @@ endfunction
 
 " The Repl
 let vimclojure#Repl = copy(vimclojure#Buffer)
+let vimclojure#Repl.__superBufferInit = vimclojure#Repl.Init
 
 let vimclojure#Repl._prompt = "user=>"
 let vimclojure#Repl._history = []
@@ -495,7 +516,14 @@ let vimclojure#Repl._replCommands = [ ",close", ",st", ",ct" ]
 function! vimclojure#Repl.New() dict
 	let instance = copy(self)
 
-	call g:vimclojure#Buffer.New()
+	call g:vimclojure#Buffer.MakeBuffer()
+	call self.Init(instance)
+
+	return instance
+endfunction
+
+function! vimclojure#Repl.Init(instance) dict
+	call self.__superBufferInit(a:instance)
 
 	setlocal buftype=nofile
 	setlocal noswapfile
@@ -512,13 +540,12 @@ function! vimclojure#Repl.New() dict
 
 	call append(line("$"), ["Clojure", self._prompt . " "])
 
-	let instance._id = vimclojure#ExecuteNail("Repl", "-s")
+	let a:instance._id = vimclojure#ExecuteNail("Repl", "-s")
 	call vimclojure#ExecuteNailWithInput("Repl",
 				\ "(require 'clojure.stacktrace)", "-r",
-				\ "-i", instance._id)
-	let instance._buffer = bufnr("%")
+				\ "-i", a:instance._id)
 
-	let b:vimclojure_repl = instance
+	let b:vimclojure_repl = a:instance
 
 	setfiletype clojure
 

@@ -69,7 +69,7 @@ function! vimclojure#ExtractSexpr(toplevel)
 	function closure.f() dict
 		if searchpairpos('(', '', ')', 'bW' . self.flag,
 					\ 'vimclojure#SynIdName() !~ "clojureParen\\d"') != [0, 0]
-			return vimclojure#Yank('l', 'normal "ly%')
+			return vimclojure#Yank('l', 'normal! "ly%')
 		end
 		return ""
 	endfunction
@@ -487,7 +487,7 @@ function! vimclojure#EvalParagraph()
 	let closure = {}
 
 	function! closure.f() dict
-		normal }
+		normal! }
 		return line(".")
 	endfunction
 
@@ -549,7 +549,7 @@ function! vimclojure#Repl.Init(instance) dict
 
 	setfiletype clojure
 
-	normal G
+	normal! G
 	startinsert!
 endfunction
 
@@ -560,12 +560,6 @@ function! vimclojure#Repl.isReplCommand(cmd) dict
 		endif
 	endfor
 	return 0
-endfunction
-
-function! vimclojure#Repl.showPrompt() dict
-	call self.showText(self._prompt . " ")
-	normal G
-	startinsert!
 endfunction
 
 function! vimclojure#Repl.doReplCommand(cmd) dict
@@ -586,6 +580,12 @@ function! vimclojure#Repl.doReplCommand(cmd) dict
 		call self.showText(result)
 		call self.showPrompt()
 	endif
+endfunction
+
+function! vimclojure#Repl.showPrompt() dict
+	call self.showText(self._prompt . " ")
+	normal! G
+	startinsert!
 endfunction
 
 function! vimclojure#Repl.getCommand() dict
@@ -624,7 +624,7 @@ function! vimclojure#Repl.enterHook() dict
 	let result = vimclojure#ExecuteNailWithInput("CheckSyntax", cmd)
 	if result == "false"
 		execute "normal! GA\<CR>x"
-		normal ==x
+		normal! ==x
 		startinsert!
 	else
 		let result = vimclojure#ExecuteNailWithInput("Repl", cmd,
@@ -657,7 +657,7 @@ function! vimclojure#Repl.upHistory() dict
 		call self.showText(self._prompt . " " . cmd)
 	endif
 
-	normal G$
+	normal! G$
 endfunction
 
 function! vimclojure#Repl.downHistory() dict
@@ -676,17 +676,17 @@ function! vimclojure#Repl.downHistory() dict
 		call self.showText(self._prompt . " ")
 	endif
 
-	normal G$
+	normal! G$
 endfunction
 
 function! vimclojure#Repl.deleteLast() dict
-	normal G
+	normal! G
 
 	while getline("$") !~ self._prompt
-		normal dd
+		normal! dd
 	endwhile
 
-	normal dd
+	normal! dd
 endfunction
 
 " Highlighting

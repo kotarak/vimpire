@@ -62,7 +62,7 @@ function! ClojureGetFoldingLevel(lineno)
 	function closure.f() dict
 		execute self.lineno
 
-		if vimclojure#SynIdName() =~ 'clojureParen\d' && vimclojure#Yank('l', 'normal "lyl') == '('
+		if vimclojure#SynIdName() =~ 'clojureParen\d' && vimclojure#Yank('l', 'normal! "lyl') == '('
 			return 1
 		endif
 

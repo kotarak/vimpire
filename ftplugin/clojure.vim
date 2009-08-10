@@ -149,8 +149,8 @@ if exists("b:vimclojure_namespace")
 	inoremap <Plug>ClojureReplUpHistory <C-O>:call b:vimclojure_repl.upHistory()<CR>
 	inoremap <Plug>ClojureReplDownHistory <C-O>:call b:vimclojure_repl.downHistory()<CR>
 
-	nnoremap <Plug>ClojureClosePreview :pclose!<CR>
-	call vimclojure#MapPlug("n", "p", "ClosePreview")
+	nnoremap <Plug>ClojureCloseResultBuffer :call vimclojure#ResultBuffer.CloseBuffer()<CR>
+	call vimclojure#MapPlug("n", "p", "CloseResultBuffer")
 
 	setlocal omnifunc=vimclojure#OmniCompletion
 

@@ -168,40 +168,60 @@ function! vimclojure#Buffer.close() dict
 endfunction
 
 " The transient buffer, used to display results.
-let vimclojure#PreviewWindow = copy(vimclojure#Buffer)
+let vimclojure#ResultBuffer = copy(vimclojure#Buffer)
+let vimclojure#ResultBuffer["__superBufferInit"] = vimclojure#ResultBuffer["Init"]
+let vimclojure#ResultBuffer.__instance = []
 
-function! vimclojure#PreviewWindow.New() dict
+function! vimclojure#ResultBuffer.New() dict
+	if g:vimclojure#ResultBuffer.__instance != []
+		return self.Init(g:vimclojure#ResultBuffer.__instance[0])
+	endif
+
 	let instance = copy(self)
+	let g:vimclojure#ResultBuffer.__instance = [ instance ]
 
 	call g:vimclojure#Buffer.MakeBuffer()
+	call self.__superBufferInit(instance)
 	call self.Init(instance)
 
 	return instance
 endfunction
 
-function! vimclojure#PreviewWindow.Init(instance) dict
-	pclose!
-
-	set previewwindow
-	set winfixheight
-
+function! vimclojure#ResultBuffer.Init(instance) dict
 	setlocal noswapfile
 	setlocal buftype=nofile
 	setlocal bufhidden=wipe
 
+	call vimclojure#MapPlug("n", "p", "CloseResultBuffer")
+
 	let leader = exists("g:maplocalleader") ? g:maplocalleader : "\\"
+
+	1
+	normal! "_dG
 
 	call append(0, "; Use " . leader . "p to close this buffer!")
 
 	return a:instance
 endfunction
 
-function! vimclojure#PreviewWindow.goHere() dict
-	wincmd P
+function! vimclojure#ResultBuffer.CloseBuffer() dict
+	if g:vimclojure#ResultBuffer.__instance != []
+		let instance = g:vimclojure#ResultBuffer.__instance[0]
+		let g:vimclojure#ResultBuffer.__instance = []
+		call instance.close()
+	endif
 endfunction
 
-function! vimclojure#PreviewWindow.close() dict
-	pclose
+" A special result buffer for clojure output.
+let vimclojure#ClojureResultBuffer = copy(vimclojure#ResultBuffer)
+let vimclojure#ClojureResultBuffer["__superResultBufferInit"] =
+			\ vimclojure#ResultBuffer["Init"]
+
+function! vimclojure#ClojureResultBuffer.Init(instance) dict
+	call self.__superResultBufferInit(a:instance)
+	setfiletype clojure
+
+	return a:instance
 endfunction
 
 " Nails
@@ -254,7 +274,7 @@ endfunction
 function! vimclojure#DocLookup(word)
 	let docs = vimclojure#ExecuteNailWithInput("DocLookup", a:word,
 				\ "-n", b:vimclojure_namespace)
-	let resultBuffer = g:vimclojure#PreviewWindow.New()
+	let resultBuffer = g:vimclojure#ResultBuffer.New()
 	call resultBuffer.showText(docs)
 	wincmd p
 endfunction
@@ -263,7 +283,7 @@ function! vimclojure#FindDoc()
 	let pattern = input("Pattern to look for: ")
 	let result = vimclojure#ExecuteNailWithInput("FindDoc", pattern)
 
-	let resultBuffer = g:vimclojure#PreviewWindow.New()
+	let resultBuffer = g:vimclojure#ResultBuffer.New()
 	call resultBuffer.showText(result)
 
 	wincmd p
@@ -324,18 +344,16 @@ endfunction
 function! vimclojure#MetaLookup(word)
 	let docs = vimclojure#ExecuteNailWithInput("MetaLookup", a:word,
 				\ "-n", b:vimclojure_namespace)
-	let resultBuffer = g:vimclojure#PreviewWindow.New()
+	let resultBuffer = g:vimclojure#ClojureResultBuffer.New()
 	call resultBuffer.showText(docs)
-	setfiletype clojure
 	wincmd p
 endfunction
 
 function! vimclojure#SourceLookup(word)
 	let source = vimclojure#ExecuteNailWithInput("SourceLookup", a:word,
 				\ "-n", b:vimclojure_namespace)
-	let resultBuffer = g:vimclojure#PreviewWindow.New()
+	let resultBuffer = g:vimclojure#ClojureResultBuffer.New()
 	call resultBuffer.showText(source)
-	setfiletype clojure
 	wincmd p
 endfunction
 
@@ -362,17 +380,15 @@ function! vimclojure#MacroExpand(firstOnly)
 	let sexp = vimclojure#ExtractSexpr(0)
 	let ns = b:vimclojure_namespace
 
-	let resultBuffer = g:vimclojure#PreviewWindow.New()
-
 	let cmd = ["MacroExpand", sexp, "-n", ns]
 	if a:firstOnly
 		let cmd = cmd + [ "-o" ]
 	endif
 
 	let result = call(function("vimclojure#ExecuteNailWithInput"), cmd)
-	call resultBuffer.showText(result)
-	setfiletype clojure
 
+	let resultBuffer = g:vimclojure#ClojureResultBuffer.New()
+	call resultBuffer.showText(result)
 	wincmd p
 endfunction
 
@@ -380,22 +396,17 @@ function! vimclojure#RequireFile(all)
 	let ns = b:vimclojure_namespace
 	let all = a:all ? "-all" : ""
 
-	let resultBuffer = g:vimclojure#PreviewWindow.New()
-
 	let require = "(require :reload" . all . " :verbose '". ns. ")"
 	let result = vimclojure#ExecuteNailWithInput("Repl", require, "-r")
 
+	let resultBuffer = g:vimclojure#ClojureResultBuffer.New()
 	call resultBuffer.showText(result)
-	setfiletype clojure
-
 	wincmd p
 endfunction
 
 function! vimclojure#RunTests(all)
 	let ns = b:vimclojure_namespace
 	let all = a:all ? "-all" : ""
-
-	let resultBuffer = g:vimclojure#PreviewWindow.New()
 
 	let cmd = ""
 	if ns != "user"
@@ -405,9 +416,8 @@ function! vimclojure#RunTests(all)
 	let cmd .= "(clojure.contrib.test-is/run-tests (find-ns '" . ns ."))"
 	let result = vimclojure#ExecuteNailWithInput("Repl", cmd, "-r")
 
+	let resultBuffer = g:vimclojure#ClojureResultBuffer.New()
 	call resultBuffer.showText(result)
-	setfiletype clojure
-
 	wincmd p
 endfunction
 
@@ -419,10 +429,8 @@ function! vimclojure#EvalFile()
 	let result = vimclojure#ExecuteNailWithInput("Repl", content,
 				\ "-r", "-n", ns, "-f", file)
 
-	let resultBuffer = g:vimclojure#PreviewWindow.New()
+	let resultBuffer = g:vimclojure#ClojureResultBuffer.New()
 	call resultBuffer.showText(result)
-	setfiletype clojure
-
 	wincmd p
 endfunction
 
@@ -435,10 +443,8 @@ function! vimclojure#EvalLine()
 	let result = vimclojure#ExecuteNailWithInput("Repl", content,
 				\ "-r", "-n", ns, "-f", file, "-l", theLine)
 
-	let resultBuffer = g:vimclojure#PreviewWindow.New()
+	let resultBuffer = g:vimclojure#ClojureResultBuffer.New()
 	call resultBuffer.showText(result)
-	setfiletype clojure
-
 	wincmd p
 endfunction
 
@@ -450,10 +456,8 @@ function! vimclojure#EvalBlock() range
 	let result = vimclojure#ExecuteNailWithInput("Repl", content,
 				\ "-r", "-n", ns, "-f", file, "-l", a:firstline - 1)
 
-	let resultBuffer = g:vimclojure#PreviewWindow.New()
+	let resultBuffer = g:vimclojure#ClojureResultBuffer.New()
 	call resultBuffer.showText(result)
-	setfiletype clojure
-
 	wincmd p
 endfunction
 
@@ -472,10 +476,8 @@ function! vimclojure#EvalToplevel()
 	let result = vimclojure#ExecuteNailWithInput("Repl", expr,
 				\ "-r", "-n", ns, "-f", file, "-l", pos[0] - 1)
 
-	let resultBuffer = g:vimclojure#PreviewWindow.New()
+	let resultBuffer = g:vimclojure#ClojureResultBuffer.New()
 	call resultBuffer.showText(result)
-	setfiletype clojure
-
 	wincmd p
 endfunction
 
@@ -497,10 +499,8 @@ function! vimclojure#EvalParagraph()
 	let result = vimclojure#ExecuteNailWithInput("Repl", content,
 				\ "-r", "-n", ns, "-f", file, "-l", startPosition - 1)
 
-	let resultBuffer = g:vimclojure#PreviewWindow.New()
+	let resultBuffer = g:vimclojure#ClojureResultBuffer.New()
 	call resultBuffer.showText(result)
-	setfiletype clojure
-
 	wincmd p
 endfunction
 

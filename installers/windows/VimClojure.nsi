@@ -1,24 +1,24 @@
-; VimClojureBox.nsi
+; VimClojure.nsi
 ;--------------------------------
 
 ; Needed for setting env vars.
-!include "installers\windows\EnvVarUpdate.nsh"
+!include "EnvVarUpdate.nsh"
 
 ; The name of the installer
-Name "VimClojureBox"
+Name "VimClojure"
 
 ; The file to write
-OutFile "VimClojureBox.exe"
+OutFile "VimClojure.exe"
 
-LicenseText "VimClojure Box License"
-LicenseData "installers\LICENSE.rtf"
+LicenseText "VimClojure License"
+LicenseData "..\LICENSE.rtf"
 
 ; The default installation directory
-InstallDir $PROGRAMFILES\VimClojureBox
+InstallDir $PROGRAMFILES\VimClojure
 
 ; Registry key to check for directory (so if you install again, it will 
 ; overwrite the old one automatically)
-InstallDirRegKey HKLM "Software\VimClojureBox" "Install_Dir"
+InstallDirRegKey HKLM "Software\VimClojure" "Install_Dir"
 
 ; Request application privileges for Windows Vista
 RequestExecutionLevel admin
@@ -37,30 +37,30 @@ UninstPage instfiles
 ;--------------------------------
 
 ; The stuff to install
-Section "VimClojureBox (required)"
+Section "VimClojure (required)"
 
   SectionIn RO
 
   ; Set output path to the installation directory.
   CreateDirectory "$INSTDIR"
   SetOutPath $INSTDIR
-  File "installers\LICENSE.rtf"
+  File "..\LICENSE.rtf"
 
   ; Write the installation path into the registry
-  WriteRegStr HKLM SOFTWARE\VimClojureBox "Install_Dir" "$INSTDIR"
+  WriteRegStr HKLM SOFTWARE\VimClojure "Install_Dir" "$INSTDIR"
 
   ; Write the uninstall keys for Windows
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VimClojureBox" "DisplayName" "VimClojureBox"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VimClojureBox" "UninstallString" '"$INSTDIR\uninstall.exe"'
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VimClojureBox" "NoModify" 1
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VimClojureBox" "NoRepair" 1
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VimClojure" "DisplayName" "VimClojure"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VimClojure" "UninstallString" '"$INSTDIR\uninstall.exe"'
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VimClojure" "NoModify" 1
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VimClojure" "NoRepair" 1
   WriteUninstaller "uninstall.exe"
 
   ; Jar files
   CreateDirectory "$INSTDIR\jars"
   SetOutPath $INSTDIR\jars
-  File "lib\*.jar"
-  File "lib\vimclojure.jar"
+  File "..\..\build\vimclojure.jar"
+  File "..\..\lib\clojure-*.jar"
 
   ; Executables
   CreateDirectory "$INSTDIR\bin"
@@ -88,12 +88,12 @@ Section "VimClojureBox (required)"
   ReadEnvStr $R0 "HOMEDRIVE"
   ReadEnvStr $R1 "HOMEPATH"
   SetOutPath "$R0$R1\vimfiles"
-  File /r "tmpvimfiles\*.*"
+  File /r "..\..\tmpvimfiles\*.*"
   IfFileExists "_vimrc" append_vimrc copy_vimrc
 
   copy_vimrc:
     ; Create a starter _vimrc with no vimclojure settings.
-    File /r "installers\windows\_vimrc"
+    File /r "_vimrc"
 
   ; Add vimclojure settings, including short path to ng.exe.
   ; We have to use the short path because spaces cause vimclojure to puke.
@@ -113,9 +113,9 @@ Section "VimClojureBox (required)"
     FileWrite "$0" "let g:vimclojure#NailgunClient='$1'$\r$\n"
     FileClose "$0"
 
-  CreateDirectory "$SMPROGRAMS\VimClojureBox"
-  CreateShortCut "$SMPROGRAMS\VimClojureBox\Clojure REPL.lnk" "$INSTDIR\bin\clj.bat" "" "$INSTDIR\bin\clj.bat" 0
-  CreateShortCut "$SMPROGRAMS\VimClojureBox\Start Nailgun Server.lnk" "$INSTDIR\bin\ng-server.bat" "" "$INSTDIR\bin\ng-server.bat" 0
+  CreateDirectory "$SMPROGRAMS\VimClojure"
+  CreateShortCut "$SMPROGRAMS\VimClojure\Clojure REPL.lnk" "$INSTDIR\bin\clj.bat" "" "$INSTDIR\bin\clj.bat" 0
+  CreateShortCut "$SMPROGRAMS\VimClojure\Start Nailgun Server.lnk" "$INSTDIR\bin\ng-server.bat" "" "$INSTDIR\bin\ng-server.bat" 0
 
   ; Add bin dir to path
   ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR\bin"
@@ -129,20 +129,20 @@ SectionEnd
 Section "Uninstall"
 
   ; Remove registry keys
-  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VimClojureBox"
-  DeleteRegKey HKLM SOFTWARE\VimClojureBox
+  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VimClojure"
+  DeleteRegKey HKLM SOFTWARE\VimClojure
 
   ; Remove uninstaller
   Delete $INSTDIR\uninstall.exe
 
   ; Remove shortcuts, if any
-  Delete "$SMPROGRAMS\VimClojureBox\*.*"
+  Delete "$SMPROGRAMS\VimClojure\*.*"
 
   ; Remove bin dir from path
   ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR\bin"
 
   ; Remove directories used
-  RMDir /r "$SMPROGRAMS\VimClojureBox"
+  RMDir /r "$SMPROGRAMS\VimClojure"
   RMDir /r "$INSTDIR"
 
   ; FIXME: Isn't that a bit unconditional?

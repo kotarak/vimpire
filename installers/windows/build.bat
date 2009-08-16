@@ -1,5 +1,3 @@
-rmdir /s/q bin
-mkdir bin
 pushd ..\..
 rmdir /s/q tmpvimfiles
 echo vimdir=tmpvimfiles> local.properties

@@ -2,7 +2,9 @@
 ;--------------------------------
 
 ; Needed for setting env vars.
-!include "EnvVarUpdate.nsh"
+!include "nsh\EnvVarUpdate.nsh"
+!include "nsh\TextReplace.nsh"
+!include "nsh\ReplaceInFileWithTextReplace.nsh"
 
 ; The name of the installer
 Name "VimClojure"
@@ -66,22 +68,12 @@ Section "VimClojure (required)"
   CreateDirectory "$INSTDIR\bin"
   SetOutPath $INSTDIR\bin
   File "bin\*.*"
-  ; Create batch files ; Batch files
 
   ; clj.bat
-  FileOpen "$0" "clj.bat" "w"
-  FileWrite "$0" "@echo off$\r$\n"
-  FileWrite "$0" "setlocal ENABLEDELAYEDEXPANSION$\r$\n"
-  FileWrite "$0" "for %%I IN ($\"$INSTDIR\jars\*.jar$\") DO SET CP=!CP!;%%~fI$\r$\n"
-  FileWrite "$0" "java -cp $\"%CP%$\" clojure.main %1 %2 %3 %4 %5 %6 %7 %8 %9$\r$\n"
-  FileClose "$0"
+  ${ReplaceInFile} "$INSTDIR\bin\clj.bat" "VIMCLOJURE_DIR" "$INSTDIR"
+
   ; ng-server.bat
-  FileOpen "$0" "ng-server.bat" "w"
-  FileWrite "$0" "@echo off$\r$\n"
-  FileWrite "$0" "setlocal ENABLEDELAYEDEXPANSION$\r$\n"
-  FileWrite "$0" "for %%I IN ($\"$INSTDIR\jars\*.jar$\") DO SET CP=!CP!;%%~fI$\r$\n"
-  FileWrite "$0" "java -cp $\"%CP%$\" com.martiansoftware.nailgun.NGServer 127.0.0.1 %1 %2 %3 %4 %5 %6 %7 %8 %9$\r$\n"
-  FileClose "$0"
+  ${ReplaceInFile} "$INSTDIR\bin\ng-server.bat" "VIMCLOJURE_DIR" "$INSTDIR"
   
   ; Set output path to the vimfiles directory in the user's home directory.
   ; This is where VIM plugins should be installed.

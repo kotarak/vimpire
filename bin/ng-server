@@ -1,5 +1,5 @@
-#! /bin/sh
-#
+#! /usr/bin/env bash
+
 # Copyright (c) Stephen C. Gilardi. All rights reserved.  The use and
 # distribution terms for this software are covered by the Eclipse Public
 # License 1.0 (http://opensource.org/licenses/eclipse-1.0.php) which can be
@@ -8,24 +8,31 @@
 # terms of this license.  You must not remove this notice, or any other,
 # from this software.
 #
+# clj-env-dir Launches Clojure, passing along command line arguments. This
+#             launcher can be configured using environment variables and
+#             makes it easy to include directories full of classpath roots
+#             in CLASSPATH.
+#
 # scgilardi (gmail)
 # Created 7 January 2009
 #
-# Modified by Meikel Brandmeyer <mb _ kotka de> to act as launcher for
-# the Nailgun server of VimClojure and be sure to not rely on bash.
+# Modified to act as launcher for the Nailgun server and to read in an
+# optional .clojure file in the current directory naming further items
+# for the CLASSPATH.
 #
-# Frankfurt am Main, 03.03.2009
+# Meikel Brandmeyer (mb ? kotka ! de)
+# Frankfurt am Main, 21.08.2009
 #
-# Environment variables:
+# Environment variables (optional):
 #
-# Optional:
-#
-#  CLOJURE_EXT  The path to a directory containing (either directly or as
-#               symbolic links) jar files and/or directories whose paths
-#               should be in Clojure's classpath. The value of the
-#               CLASSPATH environment variable for Clojure will be a list
-#               of these paths followed by the previous value of CLASSPATH
-#               (if any).
+#  CLOJURE_EXT  Colon-delimited list of paths to directories whose top-level
+#               contents are (either directly or as symbolic links) jar
+#               files and/or directories whose paths will be in Clojure's
+#               classpath. The value of the CLASSPATH environment variable
+#               for Clojure will include these top-level paths followed by
+#               the previous value of CLASSPATH (if any).
+#               default:
+#               example: /usr/local/share/clojure/ext:$HOME/.clojure.d/ext
 #
 #  CLOJURE_JAVA The command to launch a JVM instance for Clojure
 #               default: java
@@ -34,22 +41,37 @@
 #  CLOJURE_OPTS Java options for this JVM instance
 #               default:
 #               example:"-Xms32M -Xmx128M -server"
+#
+#  .clojure     A file in the current directory. Every line names an item
+#               which will be added to the CLASSPATH.
 
-if [ -d "${CLOJURE_EXT:-}" ]; then
-	EXT="`find ${CLOJURE_EXT} -maxdepth 1 -print0 | tr \\\\0 :`"
-	if [ -n "${EXT}" ]; then
-		if [ -n "${CLASSPATH}" ]; then
-			CLASSPATH="${EXT}${CLASSPATH}"
-		else
-			CLASSPATH="${EXT}"
-		fi
-	fi
+set -o errexit
+#set -o nounset
+#set -o xtrace
+
+if [ -n "${CLOJURE_EXT:-}" ]; then
+    OLD="$IFS"
+    IFS=":"
+    EXT="$(find -H ${CLOJURE_EXT} -mindepth 1 -maxdepth 1 -print0 | tr \\0 \:)"
+    IFS="$OLD"
+    if [ -n "${CLASSPATH:-}" ]; then
+        export CLASSPATH="${EXT}${CLASSPATH}"
+    else
+        export CLASSPATH="${EXT%:}"
+    fi
 fi
-export CLASSPATH
 
-if [ -z "${CLOJURE_JAVA}" ]; then
-	CLOJURE_JAVA="java"
+if [ -f .clojure ]; then
+    for path in `cat .clojure`; do
+        if [ -n "${CLASSPATH:-}" ]; then
+            export CLASSPATH="${path}${CLASSPATH}"
+        else
+            export CLASSPATH="${path%:}"
+        fi
+    done
 fi
 
-# Since we do not provide any security we at least bind only to the loopback.
-exec ${CLOJURE_JAVA} ${CLOJURE_OPTS} com.martiansoftware.nailgun.NGServer 127.0.0.1
+JAVA=${CLOJURE_JAVA:-java}
+OPTS=${CLOJURE_OPTS:-}
+
+exec ${JAVA} ${OPTS} com.martiansoftware.nailgun.NGServer 127.0.0.1 "$@"

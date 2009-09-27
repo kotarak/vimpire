@@ -245,6 +245,17 @@ if !exists("vimclojure#NailgunClient")
 	let vimclojure#NailgunClient = "ng"
 endif
 
+function! vimclojure#ShellEscapeArguments(vals)
+	let closure = { 'vals': a:vals, 'tosafe': 'shellslash' }
+
+	function closure.f() dict
+		set noshellslash
+		return map(copy(self.vals), 'shellescape(v:val)')
+	endfunction
+
+	return vimclojure#WithSavedOption(closure)
+endfunction
+
 function! vimclojure#ExecuteNailWithInput(nail, input, ...)
 	if type(a:input) == type("")
 		let input = split(a:input, '\n', 1)
@@ -258,7 +269,7 @@ function! vimclojure#ExecuteNailWithInput(nail, input, ...)
 
 		let cmdline = [g:vimclojure#NailgunClient,
 					\ "de.kotka.vimclojure.nails." . a:nail]
-					\ + map(copy(a:000), 'shellescape(v:val)')
+					\ + vimclojure#ShellEscapeArguments(a:000)
 		let cmd = join(cmdline, " ") . " <" . inputfile
 
 		let result = system(cmd)
@@ -281,7 +292,7 @@ endfunction
 function! vimclojure#FilterNail(nail, rngStart, rngEnd, ...)
 	let cmdline = [g:vimclojure#NailgunClient,
 				\ "de.kotka.vimclojure.nails." . a:nail]
-				\ + map(copy(a:000), 'shellescape(v:val)')
+				\ + vimclojure#ShellEscapeArguments(a:000)
 	let cmd = a:rngStart . "," . a:rngEnd . "!" . join(cmdline, " ")
 
 	silent execute cmd

@@ -201,7 +201,9 @@ void sendHeader(unsigned int size, char chunkType) {
  * @param text the null-terminated string to send
  */
 void sendText(char chunkType, char *text) {
-  int len = strlen(text);
+  int len = 0;
+  if (text != NULL)
+    len = strlen(text);
   sendHeader(len, chunkType);
   sendAll(nailgunsocket, text, len);
 }

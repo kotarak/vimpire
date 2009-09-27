@@ -11,8 +11,11 @@ endfunction
 
 function! vimclojure#WithSaved(closure)
 	let v = a:closure.get(a:closure.tosafe)
-	let r = a:closure.f()
-	call a:closure.set(a:closure.tosafe, v)
+	try
+		let r = a:closure.f()
+	finally
+		call a:closure.set(a:closure.tosafe, v)
+	endtry
 	return r
 endfunction
 

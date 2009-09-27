@@ -32,6 +32,19 @@ function! vimclojure#WithSavedRegister(closure)
 	return vimclojure#WithSaved(a:closure)
 endfunction
 
+function! vimclojure#WithSavedOption(closure)
+	function a:closure.get(option)
+		execute "let val = &" . a:option
+		return val
+	endfunction
+
+	function a:closure.set(option, value)
+		execute "let &" . a:option . " = a:value"
+	endfunction
+
+	return vimclojure#WithSaved(a:closure)
+endfunction
+
 function! vimclojure#Yank(r, how)
 	let closure = {'tosafe': a:r, 'yank': a:how}
 

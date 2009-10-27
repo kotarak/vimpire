@@ -40,29 +40,37 @@
   command-line arguments available according to the specification
   and the nailgun context as 'nailContext'."
   [nail usage arguments & body]
-  `(do
-     (gen-class
-       :name    ~(symbol (str "de.kotka.vimclojure.nails." (name nail)))
-       :prefix  ~(symbol (str (name nail) "-"))
-       :methods [#^{:static true}
-                 [~'nailMain [com.martiansoftware.nailgun.NGContext] ~'void]]
-       :main    false)
+  (let [encoding (if-let [enc (System/getProperty "clojure.vim.encoding")]
+                   enc
+                   "UTF-8")]
+    `(do
+       (gen-class
+         :name    ~(symbol (str "de.kotka.vimclojure.nails." (name nail)))
+         :prefix  ~(symbol (str (name nail) "-"))
+         :methods [#^{:static true}
+                   [~'nailMain [com.martiansoftware.nailgun.NGContext] ~'void]]
+         :main    false)
 
-     (defn ~(symbol (str (name nail) "-nailMain"))
-       ~usage
-       [~(with-meta 'nailContext {:tag 'NGContext})]
-       (binding [~'*in*  (-> ~'nailContext
-                           .in
-                           InputStreamReader.
-                           LineNumberingPushbackReader.)
-                 ~'*out* (-> ~'nailContext .out OutputStreamWriter.)
-                 ~'*err* (-> ~'nailContext .err PrintWriter.)]
-         (util/with-command-line (.getArgs ~'nailContext)
-           ~usage
-           ~arguments
-           ~@body)
-         (.flush *out*)
-         (.flush *err*)))))
+       (defn ~(symbol (str (name nail) "-nailMain"))
+         ~usage
+         [~(with-meta 'nailContext {:tag 'NGContext})]
+         (binding [~'*in*  (-> ~'nailContext
+                             .in
+                             (InputStreamReader. ~encoding)
+                             LineNumberingPushbackReader.)
+                   ~'*out* (-> ~'nailContext
+                             .out
+                             (OutputStreamWriter. ~encoding))
+                   ~'*err* (-> ~'nailContext
+                             .err
+                             (OutputStreamWriter. ~encoding)
+                             PrintWriter.)]
+           (util/with-command-line (.getArgs ~'nailContext)
+             ~usage
+             ~arguments
+             ~@body)
+           (.flush *out*)
+           (.flush *err*))))))
 
 (defnail DocLookup
   "Usage: ng de.kotka.vimclojure.nails.DocString [options]"

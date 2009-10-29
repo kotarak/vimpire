@@ -648,7 +648,8 @@ function! vimclojure#Repl.enterHook() dict
 		return
 	endif
 
-	let result = vimclojure#ExecuteNailWithInput("CheckSyntax", cmd)
+	let result = vimclojure#ExecuteNailWithInput("CheckSyntax", cmd,
+				\ "-n", b:vimclojure_namespace)
 	if result == "false"
 		execute "normal! GA\<CR>x"
 		normal! ==x

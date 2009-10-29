@@ -222,12 +222,14 @@
 
 (defnail CheckSyntax
   "Usage: ng de.kotka.vimclojure.nails.CheckSyntax"
-  []
-  (try
-    (dorun (util/stream->seq *in*))
-    (println true)
-    (catch Exception e
-      (println false))))
+  [[nspace  n "Change to namespace before executing the input." ""]]
+  (let [nspace (util/resolve-and-load-namespace nspace)]
+    (binding [*ns* nspace]
+      (try
+        (dorun (util/stream->seq *in*))
+        (println true)
+        (catch Exception e
+          (println false))))))
 
 (defnail Complete
   "Usage: ng de.kotka.vimclojure.nails.Complete"

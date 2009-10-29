@@ -62,6 +62,13 @@ The clojure syntax highlighting provides several options:
         g:clj_paren_rainbow
                 If it exists and is nonzero, then differing levels of
                 parenthesisation will receive different highlighting.
+
+        g:clj_dynamic_highlighting
+                Uses the dynamic features of VimClojure to dynamically add
+                the symbols of required and used namespaces. The file needs
+                to be correct (ie. w/o syntax errors and on the classpath)
+                for this to work. If this is not the case, that dynamic
+                highlighting is not done.
 <
 The g:clj_paren_rainbow option provides 10 levels of individual colorisation
 for the parentheses. Because of the quantity of colorisation levels, unlike

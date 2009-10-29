@@ -131,7 +131,8 @@ if (exists("g:clj_highlight_builtins") && g:clj_highlight_builtins != 0)
 	call vimclojure#ColorNamespace(s:builtins_map)
 endif
 
-if exists("b:vimclojure_namespace")
+if exists("g:clj_dynamic_highlighting") && g:clj_dynamic_highlighting != 0
+			\ && exists("b:vimclojure_namespace")
 	try
 		let s:result = vimclojure#ExecuteNailWithInput("DynamicHighlighting",
 					\ b:vimclojure_namespace)

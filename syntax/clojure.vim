@@ -132,11 +132,16 @@ if (exists("g:clj_highlight_builtins") && g:clj_highlight_builtins != 0)
 endif
 
 if exists("b:vimclojure_namespace")
-	let s:result = vimclojure#ExecuteNailWithInput("DynamicHighlighting",
-				\ b:vimclojure_namespace)
-	execute "let s:highlights = " . s:result
-	call vimclojure#ColorNamespace(s:highlights)
-	unlet s:result s:highlights
+	try
+		let s:result = vimclojure#ExecuteNailWithInput("DynamicHighlighting",
+					\ b:vimclojure_namespace)
+		execute "let s:highlights = " . s:result
+		call vimclojure#ColorNamespace(s:highlights)
+		unlet s:result s:highlights
+	catch /.*/
+		" We ignore errors here. If the file is messed up, we at least get
+		" the basic syntax highlighting.
+	endtry
 endif
 
 syn cluster clojureAtomCluster   contains=clojureError,clojureFunc,clojureMacro,clojureCond,clojureDefine,clojureRepeat,clojureException,clojureConstant,clojureVariable,clojureSpecial,clojureKeyword,clojureString,clojureCharacter,clojureNumber,clojureRational,clojureFloat,clojureBoolean,clojureQuote,clojureUnquote,clojureDispatch,clojurePattern

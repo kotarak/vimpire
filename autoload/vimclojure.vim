@@ -767,6 +767,7 @@ function! vimclojure#InitBuffer()
 								\ vimclojure#ExecuteNailWithInput(
 								\   "NamespaceOfFile", content)
 				catch /.*/
+					echoerr "Could not determine the Namespace of the file. This might have different reasons. Please check, that the ng server is running with the correct classpath and that the file does not contain syntax errors. The interactive features will not be enabled, ie. the keybindings will not be mapped. Reason: " . v:exception
 				endtry
 			endif
 		endif

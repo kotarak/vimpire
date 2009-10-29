@@ -203,6 +203,14 @@ Plug name and your setting will override the default mapping.
                         Start a new Vim Repl in a fresh buffer. There
                         might be multiple Repls at the same time.
 
+The following key mappings are also supported if the dynamic features are
+turned off.
+
+<LocalLeader>aw                                 *aw* *AddToLispWords*
+                        Add the word under the cursor to the lispwords option
+                        of the bufer. This modifies the way the form is
+                        indented.
+
 Vim Repl
 --------
 

@@ -774,5 +774,9 @@ function! vimclojure#InitBuffer()
 	endif
 endfunction
 
+function! vimclojure#AddToLispWords(word)
+	execute "setlocal lw+=" . a:word
+endfunction
+
 " Epilog
 let &cpo = s:save_cpo

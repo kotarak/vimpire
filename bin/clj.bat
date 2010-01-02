@@ -11,9 +11,8 @@ REM #
 REM # scgilardi (gmail)
 REM # Created 7 January 2009
 REM #
-REM # Modified by Justin Johnson <justin _ honesthacker com> to act as Windows
-REM # launcher for the Nailgun server of VimClojure, and to include a check for
-REM # a .clojure file in the current directory.
+REM # Modified by Justin Johnson <justin _ honesthacker com> to run on Windows
+REM # and to include a check for .clojure file in the current directory.
 REM #
 REM # Environment variables:
 REM #
@@ -42,9 +41,7 @@ REM #  .clojure     A file sitting in the directory where you invoke ng-server.
 REM #               Each line contains a single path that should be added to the classpath.
 REM #
 
-REM # Add clojure, clojure-contrib and vimclojure to classpath
 SETLOCAL ENABLEDELAYEDEXPANSION
-FOR %%E IN ("VIMCLOJURE_DIR\jars\*.jar") DO SET CP=!CP!;%%~fE
 
 REM # Add all jar files from CLOJURE_EXT directory to classpath
 IF DEFINED CLOJURE_EXT FOR %%E IN ("%CLOJURE_EXT%\*") DO SET CP=!CP!;%%~fE
@@ -55,5 +52,4 @@ REM # If the current directory has a .clojure file in it, add each path
 REM # in the file to the classpath.
 IF EXIST .clojure FOR /F %%E IN (.clojure) DO SET CP=!CP!;%%~fE
 
-REM # Since we do not provide any security we at least bind only to the loopback.
-%CLOJURE_JAVA% %CLOJURE_OPTS% -cp "%CP%" com.martiansoftware.nailgun.NGServer 127.0.0.1 %1 %2 %3 %4 %5 %6 %7 %8 %9
+%CLOJURE_JAVA% %CLOJURE_OPTS% -cp "%CP%" clojure.main %1 %2 %3 %4 %5 %6 %7 %8 %9

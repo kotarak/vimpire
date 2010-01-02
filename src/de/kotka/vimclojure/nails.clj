@@ -40,29 +40,37 @@
   command-line arguments available according to the specification
   and the nailgun context as 'nailContext'."
   [nail usage arguments & body]
-  `(do
-     (gen-class
-       :name    ~(symbol (str "de.kotka.vimclojure.nails." (name nail)))
-       :prefix  ~(symbol (str (name nail) "-"))
-       :methods [#^{:static true}
-                 [~'nailMain [com.martiansoftware.nailgun.NGContext] ~'void]]
-       :main    false)
+  (let [encoding (if-let [enc (System/getProperty "clojure.vim.encoding")]
+                   enc
+                   "UTF-8")]
+    `(do
+       (gen-class
+         :name    ~(symbol (str "de.kotka.vimclojure.nails." (name nail)))
+         :prefix  ~(symbol (str (name nail) "-"))
+         :methods [#^{:static true}
+                   [~'nailMain [com.martiansoftware.nailgun.NGContext] ~'void]]
+         :main    false)
 
-     (defn ~(symbol (str (name nail) "-nailMain"))
-       ~usage
-       [~(with-meta 'nailContext {:tag 'NGContext})]
-       (binding [~'*in*  (-> ~'nailContext
-                           .in
-                           InputStreamReader.
-                           LineNumberingPushbackReader.)
-                 ~'*out* (-> ~'nailContext .out OutputStreamWriter.)
-                 ~'*err* (-> ~'nailContext .err PrintWriter.)]
-         (util/with-command-line (.getArgs ~'nailContext)
-           ~usage
-           ~arguments
-           ~@body)
-         (.flush *out*)
-         (.flush *err*)))))
+       (defn ~(symbol (str (name nail) "-nailMain"))
+         ~usage
+         [~(with-meta 'nailContext {:tag 'NGContext})]
+         (binding [~'*in*  (-> ~'nailContext
+                             .in
+                             (InputStreamReader. ~encoding)
+                             LineNumberingPushbackReader.)
+                   ~'*out* (-> ~'nailContext
+                             .out
+                             (OutputStreamWriter. ~encoding))
+                   ~'*err* (-> ~'nailContext
+                             .err
+                             (OutputStreamWriter. ~encoding)
+                             PrintWriter.)]
+           (util/with-command-line (.getArgs ~'nailContext)
+             ~usage
+             ~arguments
+             ~@body)
+           (.flush *out*)
+           (.flush *err*))))))
 
 (defnail DocLookup
   "Usage: ng de.kotka.vimclojure.nails.DocString [options]"
@@ -195,13 +203,14 @@
 
 (defnail Repl
   "Usage: ng de.kotka.vimclojure.nails.Repl [options]"
-  [[start? s "Start a new Repl."]
-   [stop?  S "Stop the Repl of the given id."]
-   [run?   r "Run the input in the Repl context of the given id."]
-   [id     i "The id of the repl to act on." "-1"]
-   [nspace n "Change to namespace before executing the input." ""]
-   [file   f "The filename to be set." "REPL"]
-   [line   l "The initial line to be set." "0"]]
+  [[start?  s "Start a new Repl."]
+   [stop?   S "Stop the Repl of the given id."]
+   [run?    r "Run the input in the Repl context of the given id."]
+   [id      i "The id of the repl to act on." "-1"]
+   [nspace  n "Change to namespace before executing the input." ""]
+   [file    f "The filename to be set." "REPL"]
+   [line    l "The initial line to be set." "0"]
+   [ignore? I "Ignore the command with respect to *1, *2 , *3"]]
   (let [id     (Integer/parseInt id)
         line   (Integer/parseInt line)
         nspace (when (not= nspace "")
@@ -209,16 +218,18 @@
     (cond
       start (println (repl/start))
       stop  (repl/stop id)
-      run   (repl/run id nspace file line))))
+      run   (repl/run id nspace file line ignore))))
 
 (defnail CheckSyntax
   "Usage: ng de.kotka.vimclojure.nails.CheckSyntax"
-  []
-  (try
-    (dorun (util/stream->seq *in*))
-    (println true)
-    (catch Exception e
-      (println false))))
+  [[nspace  n "Change to namespace before executing the input." ""]]
+  (let [nspace (util/resolve-and-load-namespace nspace)]
+    (binding [*ns* nspace]
+      (try
+        (dorun (util/stream->seq *in*))
+        (println true)
+        (catch Exception e
+          (println false))))))
 
 (defnail Complete
   "Usage: ng de.kotka.vimclojure.nails.Complete"

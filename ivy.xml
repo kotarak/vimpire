@@ -11,13 +11,14 @@
     </publications>
 
     <dependencies>
-        <dependency org="org.clojure" name="clojure" rev="1.0.0"
+        <dependency org="org.clojure" name="clojure"
+            rev="fe6eddf66e8e6a66c9f462b125a7740e900dde21"
             conf="default->compiled"/>
-        <dependency org="org.clojure.contrib" name="def" rev="919"
+        <dependency org="org.clojure.contrib" name="def"
+            rev="6fea921c91d453c750586c960ec92caacf4fa5e6"
             conf="default->compiled"/>
-        <dependency org="org.clojure.contrib" name="pprint" rev="919"
-            conf="default->compiled"/>
-        <dependency org="org.clojure.contrib" name="stacktrace" rev="919"
+        <dependency org="org.clojure.contrib" name="pprint"
+            rev="6fea921c91d453c750586c960ec92caacf4fa5e6"
             conf="default->compiled"/>
     </dependencies>
 

@@ -21,8 +21,6 @@
 ; THE SOFTWARE.
 
 (ns vimclojure.nails
-  (:use
-     [clojure.contrib.def :only (defvar)])
   (:require
      (vimclojure [repl :as repl]
                  [util :as util]

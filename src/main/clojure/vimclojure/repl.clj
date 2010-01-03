@@ -22,14 +22,15 @@
 
 (ns vimclojure.repl
   (:use
-     [clojure.contrib.def :only (defvar)]
      [vimclojure.util :only (stream->seq pretty-print)])
   (:import
      (clojure.lang Var Compiler LineNumberingPushbackReader)))
 
-(defvar *repls*
-  (ref {})
-  "A map holding the references to all running repls indexed by their repl id.")
+(def
+  #^{:doc
+  "A map holding the references to all running repls indexed by their repl id."}
+  *repls*
+  (ref {}))
 
 (let [id (ref 0)]
   (defn repl-id
@@ -37,9 +38,12 @@
     []
     (dosync (alter id inc))))
 
-(defvar *print-pretty*
-  false
-  "Set to true in the Repl if you wanted pretty printed results.")
+(def
+  #^{:doc
+  "Set to true in the Repl if you want pretty printed results. Has no effect
+  if clojure.contrib.pprint is not available."}
+  *print-pretty*
+  false)
 
 (defstruct
   #^{:doc

@@ -20,10 +20,10 @@
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 ; THE SOFTWARE.
 
-(clojure.core/ns de.kotka.vimclojure.repl
+(ns vimclojure.repl
   (:use
      [clojure.contrib.def :only (defvar)]
-     [de.kotka.vimclojure.util :only (stream->seq pretty-print)])
+     [vimclojure.util :only (stream->seq pretty-print)])
   (:import
      (clojure.lang Var Compiler LineNumberingPushbackReader)))
 
@@ -67,7 +67,7 @@
               :expr2              nil
               :expr3              nil
               :exception          nil
-              :print-pretty       de.kotka.vimclojure.repl/*print-pretty*
+              :print-pretty       vimclojure.repl/*print-pretty*
               :line               0))
 
 (defn start
@@ -136,7 +136,7 @@
          #'*2                   (the-repl :expr2)
          #'*3                   (the-repl :expr3)
          #'*e                   (the-repl :exception)
-         #'de.kotka.vimclojure.repl/*print-pretty* (the-repl :print-pretty)})
+         #'vimclojure.repl/*print-pretty* (the-repl :print-pretty)})
       (thunk)
       (finally
         (when (not= id -1)
@@ -155,7 +155,7 @@
                                  :expr2              *2
                                  :expr3              *3
                                  :exception          *e
-                                 :print-pretty       de.kotka.vimclojure.repl/*print-pretty*
+                                 :print-pretty       vimclojure.repl/*print-pretty*
                                  :line               (dec (.getLineNumber *in*))))))
         (Var/popThreadBindings)))))
 
@@ -175,7 +175,7 @@
     (try
       (doseq [form (stream->seq *in*)]
         (let [result (eval form)]
-          ((if de.kotka.vimclojure.repl/*print-pretty* pretty-print prn) result)
+          ((if vimclojure.repl/*print-pretty* pretty-print prn) result)
           (when-not ignore
             (set! *3 *2)
             (set! *2 *1)

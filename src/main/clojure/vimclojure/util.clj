@@ -20,7 +20,7 @@
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 ; THE SOFTWARE.
 
-(clojure.core/ns de.kotka.vimclojure.util
+(ns vimclojure.util
   (:require
      [clojure.contrib.pprint :as pprint]))
 

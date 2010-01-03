@@ -268,7 +268,7 @@ function! vimclojure#ExecuteNailWithInput(nail, input, ...)
 		call writefile(input, inputfile)
 
 		let cmdline = [g:vimclojure#NailgunClient,
-					\ "de.kotka.vimclojure.nails." . a:nail]
+					\ "vimclojure.nails." . a:nail]
 					\ + vimclojure#ShellEscapeArguments(a:000)
 		let cmd = join(cmdline, " ") . " <" . inputfile
 
@@ -291,7 +291,7 @@ endfunction
 
 function! vimclojure#FilterNail(nail, rngStart, rngEnd, ...)
 	let cmdline = [g:vimclojure#NailgunClient,
-				\ "de.kotka.vimclojure.nails." . a:nail]
+				\ "vimclojure.nails." . a:nail]
 				\ + vimclojure#ShellEscapeArguments(a:000)
 	let cmd = a:rngStart . "," . a:rngEnd . "!" . join(cmdline, " ")
 

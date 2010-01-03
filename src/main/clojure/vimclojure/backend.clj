@@ -20,9 +20,9 @@
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 ; THE SOFTWARE.
 
-(clojure.core/ns de.kotka.vimclojure.backend
+(ns vimclojure.backend
   (:require
-     [de.kotka.vimclojure.util :as util])
+     [vimclojure.util :as util])
   (:import
      clojure.lang.RT
      (java.io File FileInputStream InputStreamReader

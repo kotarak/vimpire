@@ -13,7 +13,7 @@
 ;
 ; See also: http://en.wikibooks.org/wiki/Clojure_Programming
 
-(ns de.kotka.vimclojure.gencompletions
+(ns vimclojure.gencompletions
   (:gen-class
      :main true))
 

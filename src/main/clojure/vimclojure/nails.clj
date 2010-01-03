@@ -20,13 +20,13 @@
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 ; THE SOFTWARE.
 
-(clojure.core/ns de.kotka.vimclojure.nails
+(ns vimclojure.nails
   (:use
      [clojure.contrib.def :only (defvar)])
   (:require
-     (de.kotka.vimclojure [repl :as repl]
-                          [util :as util]
-                          [backend :as backend]))
+     (vimclojure [repl :as repl]
+                 [util :as util]
+                 [backend :as backend]))
   (:import
      com.martiansoftware.nailgun.NGContext
      clojure.lang.LineNumberingPushbackReader
@@ -45,7 +45,7 @@
                    "UTF-8")]
     `(do
        (gen-class
-         :name    ~(symbol (str "de.kotka.vimclojure.nails." (name nail)))
+         :name    ~(symbol (str "vimclojure.nails." (name nail)))
          :prefix  ~(symbol (str (name nail) "-"))
          :methods [#^{:static true}
                    [~'nailMain [com.martiansoftware.nailgun.NGContext] ~'void]]
@@ -73,7 +73,7 @@
            (.flush *err*))))))
 
 (defnail DocLookup
-  "Usage: ng de.kotka.vimclojure.nails.DocString [options]"
+  "Usage: ng vimclojure.nails.DocString [options]"
   [[nspace n "Lookup the symbols in the given namespace." "user"]]
   (let [nspace  (util/resolve-and-load-namespace nspace)
         symbols (map symbol (line-seq (BufferedReader. *in*)))]
@@ -81,14 +81,14 @@
     (flush)))
 
 (defnail FindDoc
-  "Usage: ng de.kotka.vimclojure.nails.FindDoc"
+  "Usage: ng vimclojure.nails.FindDoc"
   []
   (let [patterns (line-seq (BufferedReader. *in*))]
     (doseq [pattern patterns]
       (find-doc pattern))))
 
 (defnail JavadocPath
-  "Usage: ng de.kotka.vimclojure.nails.JavadocPath [options]"
+  "Usage: ng vimclojure.nails.JavadocPath [options]"
   [[nspace n "Lookup the symbols in the given namespace." "user"]]
   (let [nspace         (util/resolve-and-load-namespace nspace)
         our-ns-resolve #(ns-resolve nspace %)]
@@ -100,7 +100,7 @@
       (println path))))
 
 (defnail SourceLookup
-  "Usage: ng de.kotka.vimclojure.nails.SourceLookup [options]"
+  "Usage: ng vimclojure.nails.SourceLookup [options]"
   [[nspace n "Lookup the symbols in the given namespace." "user"]]
   (let [nspace         (util/resolve-and-load-namespace nspace)
         our-ns-resolve #(ns-resolve nspace %)]
@@ -112,7 +112,7 @@
       (println src))))
 
 (defnail MetaLookup
-  "Usage: ng de.kotka.vimclojure.nails.MetaLookup [options]"
+  "Usage: ng vimclojure.nails.MetaLookup [options]"
   [[nspace n "Lookup the symbols in the given namespace." "user"]]
   (let [nspace         (util/resolve-and-load-namespace nspace)
         our-ns-resolve #(ns-resolve nspace %)]
@@ -121,7 +121,7 @@
       (util/pretty-print metainfo))))
 
 (defnail SourceLocation
-  "Usage: ng de.kotka.vimclojure.nails.SourceLocation [options]"
+  "Usage: ng vimclojure.nails.SourceLocation [options]"
   [[nspace n "Lookup the symbols in the given namespace." "user"]]
   (let [nspace         (util/resolve-and-load-namespace nspace)
         our-ns-resolve #(ns-resolve nspace %)]
@@ -133,7 +133,7 @@
       (println (util/clj->vim positions)))))
 
 (defnail DynamicHighlighting
-  "Usage: ng de.kotka.vimclojure.nails.DynamicHighlighting"
+  "Usage: ng vimclojure.nails.DynamicHighlighting"
   []
   (let [nspace    (read)
         c-c       (the-ns 'clojure.core)
@@ -167,7 +167,7 @@
       println)))
 
 (defnail NamespaceOfFile
-  "Usage: ng de.kotka.vimclojure.nails.NamespaceOfFile"
+  "Usage: ng vimclojure.nails.NamespaceOfFile"
   []
   (let [of-interest '#{in-ns ns clojure.core/in-ns clojure.core/ns}
         in-seq      (util/stream->seq *in*)
@@ -184,13 +184,13 @@
                                                            second)))))
 
 (defnail NamespaceInfo
-  "Usage: ng de.kotka.vimclojure.nails.NamespaceInfo"
+  "Usage: ng vimclojure.nails.NamespaceInfo"
   []
   (println (util/clj->vim (map #(-> % symbol find-ns backend/ns-info)
                                (line-seq (BufferedReader. *in*))))))
 
 (defnail MacroExpand
-  "Usage: ng de.kotka.vimclojure.nails.MacroExpand [options]"
+  "Usage: ng vimclojure.nails.MacroExpand [options]"
   [[nspace n "Lookup the symbols in the given namespace." "user"]
    [one?   o "Expand only the first macro."]]
   (let [nspace (util/resolve-and-load-namespace nspace)
@@ -202,7 +202,7 @@
         (-> expr expand util/pretty-print-code)))))
 
 (defnail Repl
-  "Usage: ng de.kotka.vimclojure.nails.Repl [options]"
+  "Usage: ng vimclojure.nails.Repl [options]"
   [[start?  s "Start a new Repl."]
    [stop?   S "Stop the Repl of the given id."]
    [run?    r "Run the input in the Repl context of the given id."]
@@ -221,7 +221,7 @@
       run   (repl/run id nspace file line ignore))))
 
 (defnail CheckSyntax
-  "Usage: ng de.kotka.vimclojure.nails.CheckSyntax"
+  "Usage: ng vimclojure.nails.CheckSyntax"
   [[nspace  n "Change to namespace before executing the input." ""]]
   (let [nspace (util/resolve-and-load-namespace nspace)]
     (binding [*ns* nspace]
@@ -232,7 +232,7 @@
           (println false))))))
 
 (defnail Complete
-  "Usage: ng de.kotka.vimclojure.nails.Complete"
+  "Usage: ng vimclojure.nails.Complete"
   [[nspace n "Start completion in this namespace." "user"]
    [prefix p "Prefix used for the match, ie. the part before /." ""]
    [base   b "Base pattern to be matched."]]

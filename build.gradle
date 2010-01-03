@@ -1,0 +1,64 @@
+usePlugin 'clojure'
+
+group = 'vimclojure'
+version = '2.2.0-SNAPSHOT'
+
+aotCompile = true
+
+gradleHomeRepo repositories
+clojureSnapshotsRepo repositories
+
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    clojure {
+        visible = false
+        description = 'Compile only configuration for clojure'
+    }
+}
+
+dependencies {
+    clojure 'org.clojure:clojure:1.0.0'
+}
+
+sourceSets.main.compileClasspath = configurations.clojure
+
+compileClojure.dependsOn compileJava
+
+defaultTasks 'build'
+
+configureClojarsDeploy(uploadArchives)
+
+// Install the Vim part of the plugin
+void installFiles(File directory, String pattern, File destination) {
+    destination.mkdirs()
+    ant.copy(todir: destination) {
+        fileset dir: directory, includes: pattern
+    }
+}
+
+task installVim << {
+    File installDir
+
+    if (hasProperty('vimdir')) {
+        installDir = new File(vimdir)
+    } else if (System.getProperty('os.name').toLowerCase().startsWith("win")) {
+        installDir = new File(System.getProperty('user.home') + "/vimfiles")
+    } else {
+        installDir = new File(Systm.getProperty('user.home') + "/.vim")
+    }
+
+    // The Vim files:
+    [ 'autoload', 'indent', 'syntax', 'ftdetect', 'ftplugin' ].each {
+        File subDir = new File(installDir, it)
+        installFiles it, '**/*.vim', subDir
+    }
+
+    // The Docs and other text files:
+    [ 'doc', 'ftplugin/clojure' ].each {
+        File subDir = new File(installDir, it)
+        installFiles it, '**/*.txt', subDir
+    }
+}

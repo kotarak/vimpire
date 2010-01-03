@@ -20,9 +20,7 @@
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 ; THE SOFTWARE.
 
-(ns vimclojure.util
-  (:require
-     [clojure.contrib.pprint :as pprint]))
+(ns vimclojure.util)
 
 ; Common helpers
 (defn str-cut
@@ -383,11 +381,23 @@
   "Print the given form in a pretty way. If Tom Faulhaber's pretty printer is
   not installed simply defaults prn."
   [form]
-  (pprint/pprint form))
+  (prn form))
 
 (defn pretty-print-code
   "Print the given form in a pretty way. If Tom Faulhaber's pretty printer is
   not installed simply defaults prn. Uses the *code-dispatch* formatting."
   [form]
-  (pprint/with-pprint-dispatch pprint/*code-dispatch*
-    (pprint/pprint form)))
+  (prn form))
+
+; Load optional libraries
+(defmacro defoptional
+   [sym args & body]
+   `(let [docstring# (:doc (meta (var ~sym)))]
+      (defn ~sym ~args ~@body)
+      (alter-meta! (var ~sym) assoc :doc docstring#)))
+
+(try
+  (load "optional/prettyprint")
+  (catch Exception exc
+    (when-not (re-find #"Could not locate clojure/contrib/pprint__init.class or clojure/contrib/pprint.clj on classpath" (str exc))
+      (throw exc))))

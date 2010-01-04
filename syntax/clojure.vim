@@ -209,7 +209,7 @@ syn region  clojureComment     matchgroup=clojureParen0 start="(comment"rs=s+1 m
 syn region  clojureComment                              start="#!" end="\n"
 syn match   clojureComment "#_"
 
-syn sync match matchPlace grouphere NONE "^[^ \t]"
+syn sync fromstart
 
 if version >= 600
 	command -nargs=+ HiLink highlight default link <args>

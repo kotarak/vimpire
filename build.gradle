@@ -3,7 +3,7 @@ usePlugin 'clojure'
 group = 'vimclojure'
 version = '2.2.0-SNAPSHOT'
 
-aotCompile = true
+aotCompile = false
 
 gradleHomeRepo repositories
 clojureSnapshotsRepo repositories

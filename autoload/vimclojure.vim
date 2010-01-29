@@ -756,6 +756,11 @@ function! vimclojure#OmniCompletion(findstart, base)
 endfunction
 
 function! vimclojure#InitBuffer()
+	if exists("b:vimclojure_loaded")
+		return
+	endif
+	let b:vimclojure_loaded = 1
+
 	if exists("g:clj_want_gorilla") && g:clj_want_gorilla == 1
 		if !exists("b:vimclojure_namespace")
 			" Get the namespace of the buffer.

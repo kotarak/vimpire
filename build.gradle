@@ -47,19 +47,19 @@ task installVim << {
     } else if (System.getProperty('os.name').toLowerCase().startsWith("win")) {
         installDir = new File(System.getProperty('user.home') + "/vimfiles")
     } else {
-        installDir = new File(Systm.getProperty('user.home') + "/.vim")
+        installDir = new File(System.getProperty('user.home') + "/.vim")
     }
 
     // The Vim files:
     [ 'autoload', 'indent', 'syntax', 'ftdetect', 'ftplugin' ].each {
         File subDir = new File(installDir, it)
-        installFiles it, '**/*.vim', subDir
+        installFiles file(it), '**/*.vim', subDir
     }
 
     // The Docs and other text files:
     [ 'doc', 'ftplugin/clojure' ].each {
         File subDir = new File(installDir, it)
-        installFiles it, '**/*.txt', subDir
+        installFiles file(it), '**/*.txt', subDir
     }
 }
 

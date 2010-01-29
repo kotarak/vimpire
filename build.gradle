@@ -42,8 +42,8 @@ void installFiles(File directory, String pattern, File destination) {
 task installVim << {
     File installDir
 
-    if (hasProperty('vimdir')) {
-        installDir = new File(vimdir)
+    if (project.hasProperty('vimdir')) {
+        installDir = new File(project.vimdir)
     } else if (System.getProperty('os.name').toLowerCase().startsWith("win")) {
         installDir = new File(System.getProperty('user.home') + "/vimfiles")
     } else {

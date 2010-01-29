@@ -168,7 +168,7 @@
                 (.getResourceAsStream (RT/baseLoader) fname))]
     (when strm
       (with-open [rdr (LineNumberReader. (InputStreamReader. strm))]
-        (dotimes [_ (dec (:line ^the-var))] (.readLine rdr))
+        (dotimes [_ (dec (:line (meta the-var)))] (.readLine rdr))
         (let [text (StringBuilder.)
               pbr (proxy [PushbackReader] [rdr]
                     (read [] (let [i (proxy-super read)]

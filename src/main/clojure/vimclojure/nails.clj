@@ -27,7 +27,18 @@
                  [backend :as backend]))
   (:import
      java.io.BufferedReader
-     com.martiansoftware.nailgun.NGContext))
+     com.martiansoftware.nailgun.NGContext
+     com.martiansoftware.nailgun.NGServer))
+
+(defn start-server-thread
+  "Start a nailgun server in a dedicated daemon thread. host defaults
+  to 127.0.0.1, port to 2113."
+  ([]     (start-server-thread "127.0.0.1" 2113))
+  ([host] (start-server-thread host 2113))
+  ([host port]
+   (doto (Thread. #(NGServer/main (into-array [(str host ":" port)])))
+     (.setDaemon true)
+     (.start))))
 
 (defmacro defnail
   "Define a new Nail of the given name. The arguments is a command line

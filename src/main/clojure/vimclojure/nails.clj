@@ -26,6 +26,7 @@
                  [util :as util]
                  [backend :as backend]))
   (:import
+     java.io.BufferedReader
      com.martiansoftware.nailgun.NGContext))
 
 (defmacro defnail

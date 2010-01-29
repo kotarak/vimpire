@@ -13,11 +13,18 @@ endif
 " Highlight superfluous closing parens, brackets and braces.
 syn match clojureError "]\|}\|)"
 
-if (exists("g:clj_highlight_builtins") && g:clj_highlight_builtins != 0)
-			\ || (exists("g:clj_want_gorilla") && g:clj_want_gorilla != 0)
-	" Special case for Windows.
+" Special case for Windows.
+try
 	call vimclojure#InitBuffer()
+catch /.*/
+	" We swallow a failure here. It means most likely that the
+	" server is not running.
+	echohl WarningMsg
+	echomsg v:exception
+	echohl None
+endtry
 
+if exists("g:clj_highlight_builtins") && g:clj_highlight_builtins != 0
 	let s:builtins_map = {
 		\ "Constant":  "nil",
 		\ "Boolean":   "true false",

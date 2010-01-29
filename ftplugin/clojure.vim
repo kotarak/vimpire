@@ -82,7 +82,15 @@ if exists("g:clj_want_folding") && g:clj_want_folding == 1 && 0 == 1
 	setlocal foldmethod=expr
 endif
 
-call vimclojure#InitBuffer()
+try
+	call vimclojure#InitBuffer()
+catch /.*/
+	" We swallow a failure here. It means most likely that the
+	" server is not running.
+	echohl WarningMsg
+	echomsg v:exception
+	echohl None
+endtry
 
 call vimclojure#MakePlug("n", "AddToLispWords", 'vimclojure#AddToLispWords(expand("<cword>"))')
 call vimclojure#MapPlug("n", "aw", "AddToLispWords")

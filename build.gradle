@@ -31,6 +31,23 @@ defaultTasks 'build'
 
 configureClojarsDeploy(uploadArchives)
 
+task vimZip(type: Zip) {
+    zipFileSet(dir: 'autoload') { prefix = 'autoload' }
+    zipFileSet(dir: 'bin')      { prefix = 'bin' }
+    zipFileSet(dir: 'doc')      { prefix = 'doc' }
+    zipFileSet(dir: 'ftdetect') { prefix = 'ftdetect' }
+    zipFileSet(dir: 'ftplugin') { prefix = 'ftplugin' }
+    zipFileSet(dir: 'indent')   { prefix = 'indent' }
+    zipFileSet(dir: 'syntax')   { prefix = 'syntax' }
+    zipFileSet(dir: 'ngclient') { prefix = 'ngclient' }
+    fileSet(dir: '.') {
+        include 'LICENSE.txt'
+        include 'README.txt'
+        include 'Makefile'
+        include 'ng.exe'
+    }
+}
+
 // Install the Vim part of the plugin
 void installFiles(File directory, String pattern, File destination) {
     destination.mkdirs()

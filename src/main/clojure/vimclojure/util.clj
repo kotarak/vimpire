@@ -362,6 +362,9 @@
 (defn resolve-and-load-namespace
   "Loads and returns the namespace named by the given string or symbol."
   [namespace]
+  ; Special case for user: make sure it always exists for the Repl.
+  (binding [*ns* *ns*]
+    (in-ns 'user))
   (let [namespace (if (symbol? namespace) namespace (symbol namespace))]
     (try
       (the-ns namespace)

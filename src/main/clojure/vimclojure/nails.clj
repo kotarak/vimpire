@@ -198,7 +198,7 @@
         nspace (when (not= nspace "")
                  (util/resolve-and-load-namespace nspace))]
     (cond
-      start (println (repl/start))
+      start (println (repl/start nspace))
       stop  (repl/stop id)
       run   (repl/run id nspace file line ignore))))
 

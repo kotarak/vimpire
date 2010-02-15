@@ -55,33 +55,32 @@
 
 (defn make-repl
   "Create a new Repl."
-  [id]
-  (struct-map repl
-              :id                 id
-              :ns                 (the-ns 'user)
-              :warn-on-reflection *warn-on-reflection*
-              :print-meta         *print-meta*
-              :print-length       *print-length*
-              :print-level        *print-level*
-              :compile-path       (System/getProperty
-                                    "clojure.compile.path"
-                                    "classes")
-              :command-line-args  nil
-              :expr1              nil
-              :expr2              nil
-              :expr3              nil
-              :exception          nil
-              :print-pretty       vimclojure.repl/*print-pretty*
-              :line               0))
+  ([id] (make-repl (the-ns 'user)))
+  ([id namespace]
+   (struct-map repl
+               :id                 id
+               :ns                 namespace
+               :warn-on-reflection *warn-on-reflection*
+               :print-meta         *print-meta*
+               :print-length       *print-length*
+               :print-level        *print-level*
+               :compile-path       (System/getProperty
+                                     "clojure.compile.path"
+                                     "classes")
+               :command-line-args  nil
+               :expr1              nil
+               :expr2              nil
+               :expr3              nil
+               :exception          nil
+               :print-pretty       vimclojure.repl/*print-pretty*
+               :line               0)))
 
 (defn start
   "Start a new Repl and register it in the system."
-  []
+  [nspace]
   ; Make sure user namespace exists.
-  (binding [*ns* *ns*]
-    (in-ns 'user))
   (let [id       (repl-id)
-        the-repl (make-repl id)]
+        the-repl (make-repl id nspace)]
     (dosync (commute *repls* assoc id the-repl))
     id))
 

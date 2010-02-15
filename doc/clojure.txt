@@ -246,6 +246,7 @@ The following convenience commands are provided:
  - ,close - close the Repl and free the Repl resources in the server process
  - ,st - print a stack trace of *e as with clojure.contrib.stacktrace
  - ,ct - print a cause trace of *e as with clojure.contrib.stacktrace
+ - ,toggle-pprint - toggle pretty-printing of evaluated values
 
 Pretty Printing
 ---------------

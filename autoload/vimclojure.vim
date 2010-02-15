@@ -537,7 +537,7 @@ let vimclojure#Repl.__superBufferInit = vimclojure#Repl.Init
 
 let vimclojure#Repl._history = []
 let vimclojure#Repl._historyDepth = 0
-let vimclojure#Repl._replCommands = [ ",close", ",st", ",ct" ]
+let vimclojure#Repl._replCommands = [ ",close", ",st", ",ct", ",toggle-pprint" ]
 
 function! vimclojure#Repl.New(namespace) dict
 	let instance = copy(self)
@@ -605,6 +605,12 @@ function! vimclojure#Repl.doReplCommand(cmd) dict
 	elseif a:cmd == ",ct"
 		let result = vimclojure#ExecuteNailWithInput("Repl",
 					\ "(clojure.stacktrace/print-cause-trace *e)", "-r",
+					\ "-i", self._id)
+		call self.showText(result)
+		call self.showPrompt()
+	elseif a:cmd == ",toggle-pprint"
+		let result = vimclojure#ExecuteNailWithInput("Repl",
+					\ "(set! vimclojure.repl/*print-pretty* (not vimclojure.repl/*print-pretty*))", "-r",
 					\ "-i", self._id)
 		call self.showText(result)
 		call self.showPrompt()

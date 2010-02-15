@@ -191,7 +191,7 @@ setlocal lispwords+=defnk
 
 " Conditionals and Loops:
 setlocal lispwords+=if,if-not,if-let,when,when-not,when-let,when-first
-setlocal lispwords+=cond,condp,loop,dotimes,for,while
+setlocal lispwords+=condp,loop,dotimes,for,while
 
 " Blocks:
 setlocal lispwords+=do,doto,try,catch,locking,with-in-str,with-out-str,with-open

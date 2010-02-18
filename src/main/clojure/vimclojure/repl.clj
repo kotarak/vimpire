@@ -55,7 +55,7 @@
 
 (defn make-repl
   "Create a new Repl."
-  ([id] (make-repl (the-ns 'user)))
+  ([id] (make-repl id (the-ns 'user)))
   ([id namespace]
    (struct-map repl
                :id                 id

@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /usr/bin/env bash
 
 GRADLE_REV="0.8"
 GRADLE_URL="http://dist.codehaus.org/gradle/gradle-${GRADLE_REV}-bin.zip"
@@ -33,3 +33,6 @@ if [ ! -e "${CACHE_PLUGIN_DIR}" ]; then
 fi
 
 echo "clojure=clojuresque.ClojurePlugin" >> "${CACHE_GRADLE_DIR}/plugin.properties"
+
+echo "Don't forget to set GRADLE_HOME!"
+echo "export GRADLE_HOME=\"${CACHE_GRADLE_DIR}\""

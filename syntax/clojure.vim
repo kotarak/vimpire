@@ -209,7 +209,8 @@ syn region  clojureAnonFn  matchgroup=clojureParen0 start="#(" matchgroup=clojur
 syn region  clojureVector  matchgroup=clojureParen0 start="\[" matchgroup=clojureParen0 end="\]" contains=@clojureTopCluster,clojureVarArg,clojureSexpLevel0
 syn region  clojureMap     matchgroup=clojureParen0 start="{"  matchgroup=clojureParen0 end="}"  contains=@clojureTopCluster,clojureSexpLevel0
 syn region  clojureSet     matchgroup=clojureParen0 start="#{" matchgroup=clojureParen0 end="}"  contains=@clojureTopCluster,clojureSexpLevel0
-syn region  clojurePattern                          start=/#"/                          end=/"/  skip=/\\"/
+
+syn region  clojurePattern start=/L\=\#"/ skip=/\\\\\|\\"/ end=/"/
 
 syn region  clojureCommentSexp                          start="("                                       end=")" transparent contained contains=clojureCommentSexp
 syn region  clojureComment     matchgroup=clojureParen0 start="(comment"rs=s+1 matchgroup=clojureParen0 end=")"                       contains=clojureCommentSexp

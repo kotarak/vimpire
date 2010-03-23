@@ -1,19 +1,41 @@
-___    ______           ______________     ________
-__ |  / /__(_)______ _____  ____/__  /___________(_)___  _____________
-__ | / /__  /__  __ `__ \  /    __  /_  __ \____  /_  / / /_  ___/  _ \
-__ |/ / _  / _  / / / / / /___  _  / / /_/ /___  / / /_/ /_  /   /  __/
-_____/  /_/  /_/ /_/ /_/\____/  /_/  \____/___  /  \__,_/ /_/    \___/
-                                           /___/
-
-VimClojure – a Clojure environment for Vim
-==========================================
+# VimClojure – a Clojure environment for Vim
 
 VimClojure is one of the most sophisticated editing environments for Clojure.
 It provides syntax highlighting, indenting and command completion.
 
-If requested it also provides a SLIME like interface to dynamically work with
-Clojure code. For this to work the included Nailgun server must be running.
-Remote may be forwarded via ssh.
+VimClojure is not intended to be an easy to use Clojure IDE, but a plugin
+to make life easier for people already familiar with Vim. So you should
+be familiar with Vim and/or Java. Eg. VimClojure won't help you in any way
+to set up a correct classpath! This is the responsibility of the build
+system of the given project. So before using the dynamic server make
+yourself comfortable with Clojure, the JVM and Vim.
+
+# Requirements
+
+Please make sure that the following options are set in your .vimrc:
+
+    syntax on
+    filetype plugin indent on
+
+Otherwise the filetype is not activated, and hence VimClojure doesn't work.
+
+# Online Documentation
+
+Please refer to the online documentation in the doc folder for further
+information on how to use VimClojure, its features and its caveats. To
+rebuild the help tags for the online documentation issue the following
+command in Vim instance.
+
+    " On Unix:
+    :helptags ~/.vim/doc
+    " On Windows:
+    :helptags ~/vimfiles/doc
+
+# Here be Dragons
+
+If requested VimClojure also provides a SLIME like interface to dynamically
+work with Clojure code. For this to work the included Nailgun server must be
+running. Remote may be forwarded via ssh.
 
 Features of the interactive interface are:
 
@@ -23,87 +45,67 @@ Features of the interactive interface are:
 - smart omni completion
 - easy evaluation of code in a buffer
 
+However: **This is not a requirement!** VimClojure works perfectly in
+_offline_ mode. That is: just unpack the distribution zip in your .vim
+directory and you are good to go! In fact I discourage newbies to use the
+server.
+
+## Configuration
+
 To activate the interactive interface define the clj_want_gorilla variable
-in your .vimrc: let clj_want_gorilla = 1
+in your .vimrc: `let clj_want_gorilla = 1`
 
-Requirements
-============
+## Building the Nailgun interface
 
-Please make sure that the following options are set in your .vimrc:
+After unzipping the Vim plugin part, simply type `make` in the `vimclojure`
+subdirectory. This will compile the nailgun client. For Windows the client
+is already pre-compiled as `ng.exe`.
 
-––8<––––8<––––8<––
-syntax on
-filetype plugin indent on
-––8<––––8<––––8<––
+    let vimclojure#NailgunClient = "/path/to/your/ng"
 
-Otherwise the filetype is not activated, and hence VimClojure doesn't work.
+It will default to `<home>/.vim/vimclojure/ng-client/ng` on Unix/Mac and
+`<home>/vimfiles/vimclojure/ng-client/ng.exe` on Windows.
 
-Building the Nailgun interface
-==============================
+Note: You might need to check the Makefile for special lib requirements
+to compile the nailgun client, eg. on OpenSolaris.
 
-To build the Nailgun interface, create a local.properties file that contains
-the path to your clojure.jar and clojure-contrib.jar. The file should look
-similar to:
+It is **not** required to build the **server side** of the Nailgun interface
+and I strongly discourage to do so. The server is provided as jar file
+from [Clojars](http://clojars.org). Just add the artifact to your development
+dependencies.
 
-––8<––––8<––––8<––
-clojure.jar=/path/to/clojure.jar
-clojure-contrib.jar=/path/to/clojure-contrib.jar
-nailgun-client=ng
-vimdir=/custom/installation/path/for/vimplugin
-––8<––––8<––––8<––
+* For Gradle (with Clojuresque):
+  
+      dependencies {
+          development 'vimclojure:vimclojure:<version>'
+      }
+  
+* For Leiningen:
+  
+      (defproject …
+        :dev-dependencies […
+                           [vimclojure "<version>"]
+                           …])
+  
+* For Ivy:
+  
+      <dependency org="vimclojure" name="vimclojure" rev="<version>"/>
+  
+* For Maven:
+  
+        <dependency>
+          <groupId>vimclojure</groupId>
+          <artifactId>vimclojure</artifactId>
+          <version><version></version>
+        </dependency>
+  
 
-Once you have created this file, simply run ant. This should give a
-vimclojure.jar containing the server part and the nailgun client. Note for
-Windows users: please leave out the last line in the properties file. The
-windows client for nailgun is included in the distribution as ng.exe. Delete
-it only in case you are sure, that you can rebuild it. You may see an error
-when building the nailgun-client. That's ok.
+For manual download: http://clojars.org/repo/vimclojure/vimclojure/<version>/vimclojure-<version>.jar
 
-Running „ant install“ will install the vim plugin into the named directory.
-If you omit the vimdir line in the local.properties file the vim plugin
-will be installed in the user's runtime directory – <home>/.vim on Unic/Mac,
-<home>\vimfiles on Windows.
+There are also launcher scripts included in the vimclojure/bin subdirectory
+based on Stephen C. Gilardi's clj-env-dir launcher. See information on how
+to use them in the corresponding files.
 
-To run the Nailgun server you need the clojure.jar, clojure-contrib.jar and
-vimclojure.jar in your Classpath:
-
-java -cp /path/to/clojure.jar:/path/to/clojure-contrib.jar:/path/to/vimclojure.jar com.martiansoftware.nailgun.NGServer 127.0.0.1
-
-There is also a launcher script included in the bin subdirectory based on
-Stephen C. Gilardi's clj-env-dir launcher. Set the environment variable
-CLOJURE_EXT to the name of a directory containing the jars and (possibly
-links to) subdirectories you want in your classpath. Additionally the
-CLASSPATH environment variable will be added to the classpath.
-
-Put the nailgun client somewhere into your PATH or specify the location in
-your .vimrc by means of the vimclojure#NailgunClient variable.
-
-––8<––––8<––––8<––
-let vimclojure#NailgunClient = "/path/to/your/ng"
-––8<––––8<––––8<––
-
-Please refer to the online documentation in the doc folder for further
-information on how to use VimClojure, its features and its caveats.
-
-Note: You might need to check the Makefile for special lib requirments
-to compile the nailgun client, eg. OpenSolaris.
-
-Using Ivy
-=========
-
-Alternatively you may use Ivy to resolve the dependencies. Simply omit the
-first two lines in the local.properties file and ant will automatically
-download any missing dependencies. In case you don't have Ivy installed,
-this will be fetched also.
-
-VimClojure is available as Ivy dependency also. Run "ant publish-local"
-after building the VimClojure and use
-
-    <dependency org="de.kokta" name="vimclojure" rev="2.1.0"/>
-
-to include the VimClojure jar in your projects classpath. But mapping
-the dependency to a private configuration the dependency is only for
-development. Users of your project won't be bothered with the dependency.
-
+-- 
 Meikel Branmdeyer <mb@kotka.de>
-Frankfurt am Main, 2009
+Erlensee, 2010

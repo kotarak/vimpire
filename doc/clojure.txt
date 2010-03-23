@@ -248,6 +248,10 @@ The following convenience commands are provided:
  - ,ct - print a cause trace of *e as with clojure.contrib.stacktrace
  - ,toggle-pprint - toggle pretty-printing of evaluated values
 
+You can also start a Repl with the :ClojureRepl command. This command works
+regardless of the type of the current buffer, while the shortcuts only work in
+Clojure buffers.
+
 Pretty Printing
 ---------------
 

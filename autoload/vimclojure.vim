@@ -539,6 +539,11 @@ let vimclojure#Repl._history = []
 let vimclojure#Repl._historyDepth = 0
 let vimclojure#Repl._replCommands = [ ",close", ",st", ",ct", ",toggle-pprint" ]
 
+" Simple wrapper to allow on demand load of autoload/vimclojure.vim.
+function! vimclojure#StartRepl()
+	call g:vimclojure#Repl.New("user")
+endfunction
+
 function! vimclojure#Repl.New(namespace) dict
 	let instance = copy(self)
 

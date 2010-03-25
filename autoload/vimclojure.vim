@@ -179,6 +179,11 @@ function! vimclojure#Buffer.showText(text) dict
 	call append(line("$"), text)
 endfunction
 
+function! vimclojure#Buffer.clear() dict
+	1
+	normal! "_dG
+endfunction
+
 function! vimclojure#Buffer.close() dict
 	execute "bdelete! " . self._buffer
 endfunction
@@ -210,11 +215,8 @@ function! vimclojure#ResultBuffer.Init(instance) dict
 
 	call vimclojure#MapPlug("n", "p", "CloseResultBuffer")
 
+	call a:instance.clear()
 	let leader = exists("g:maplocalleader") ? g:maplocalleader : "\\"
-
-	1
-	normal! "_dG
-
 	call append(0, "; Use " . leader . "p to close this buffer!")
 
 	return a:instance

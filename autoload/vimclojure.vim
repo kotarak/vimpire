@@ -160,6 +160,10 @@ function! vimclojure#Buffer.goHere() dict
 	execute "buffer! " . self._buffer
 endfunction
 
+function! vimclojure#Buffer.goHereWindow() dict
+	execute "sbuffer! " . self._buffer
+endfunction
+
 function! vimclojure#Buffer.resize() dict
 	call self.goHere()
 	let size = line("$")
@@ -195,7 +199,19 @@ let vimclojure#ResultBuffer.__instance = []
 
 function! vimclojure#ResultBuffer.New() dict
 	if g:vimclojure#ResultBuffer.__instance != []
-		return self.Init(g:vimclojure#ResultBuffer.__instance[0])
+		let closure = {
+					\ 'instance' : g:vimclojure#ResultBuffer.__instance[0],
+					\ 'tosafe'   : 'switchbuf',
+					\ 'class'    : self
+					\ }
+		function closure.f() dict
+			set switchbuf=useopen
+			call self.instance.goHereWindow()
+			call self.instance.clear()
+			return self.class.Init(self.instance)
+		endfunction
+
+		return vimclojure#WithSavedOption(closure)
 	endif
 
 	let instance = copy(self)

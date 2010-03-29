@@ -52,8 +52,8 @@ server.
 
 ## Configuration
 
-To activate the interactive interface define the clj_want_gorilla variable
-in your .vimrc: `let clj_want_gorilla = 1`
+To activate the interactive interface define the vimclojure#WantNailgun variable
+in your .vimrc: `let vimclojure#WantNailgun = 1`
 
 ## Building the Nailgun interface
 

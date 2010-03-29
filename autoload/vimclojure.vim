@@ -33,6 +33,15 @@ if !exists("g:vimclojure#ParenRainbow")
 	endif
 endif
 
+if !exists("g:vimclojure#WantNailgun")
+	if exists("g:clj_want_gorilla")
+		echoerr "g:clj_paren_rainbow is deprecated! Use vimclojure#WantNailgun"
+		let vimclojure#WantNailgun = g:clj_want_gorilla
+	else
+		let vimclojure#WantNailgun = 0
+	endif
+endif
+
 function! vimclojure#SynIdName()
 	return synIDattr(synID(line("."), col("."), 0), "name")
 endfunction
@@ -820,7 +829,7 @@ function! vimclojure#InitBuffer()
 	endif
 	let b:vimclojure_loaded = 1
 
-	if exists("g:clj_want_gorilla") && g:clj_want_gorilla == 1
+	if g:vimclojure#WantNailgun == 1
 		if !exists("b:vimclojure_namespace")
 			" Get the namespace of the buffer.
 			if &previewwindow

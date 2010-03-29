@@ -5,6 +5,34 @@
 let s:save_cpo = &cpo
 set cpo&vim
 
+" Configuration
+if !exists("g:vimclojure#HighlightBuiltins")
+	if exists("g:clj_highlight_builtins")
+		echoerr "g:clj_highlight_builtins is deprecated! Use vimclojure#HighlightBuiltins"
+		let vimclojure#HighlightBuiltins = g:clj_highlight_builtins
+	else
+		let vimclojure#HighlightBuiltins = 1
+	endif
+endif
+
+if !exists("g:vimclojure#DynamicHighlighting")
+	if exists("g:clj_dynamic_highlighting")
+		echoerr "g:clj_dynamic_highlighting is deprecated! Use vimclojure#DynamicHighlighting"
+		let vimclojure#DynamicHighlighting = g:clj_dynamic_highlighting
+	else
+		let vimclojure#DynamicHighlighting = 0
+	endif
+endif
+
+if !exists("g:vimclojure#ParenRainbow")
+	if exists("g:clj_paren_rainbow")
+		echoerr "g:clj_paren_rainbow is deprecated! Use vimclojure#ParenRainbow"
+		let vimclojure#ParenRainbow = g:clj_paren_rainbow
+	else
+		let vimclojure#ParenRainbow = 0
+	endif
+endif
+
 function! vimclojure#SynIdName()
 	return synIDattr(synID(line("."), col("."), 0), "name")
 endfunction

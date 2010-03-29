@@ -24,7 +24,7 @@ catch /.*/
 	echohl None
 endtry
 
-if exists("g:clj_highlight_builtins") && g:clj_highlight_builtins != 0
+if g:vimclojure#HighlightBuiltins != 0
 	let s:builtins_map = {
 		\ "Constant":  "nil",
 		\ "Boolean":   "true false",
@@ -138,8 +138,7 @@ if exists("g:clj_highlight_builtins") && g:clj_highlight_builtins != 0
 	call vimclojure#ColorNamespace(s:builtins_map)
 endif
 
-if exists("g:clj_dynamic_highlighting") && g:clj_dynamic_highlighting != 0
-			\ && exists("b:vimclojure_namespace")
+if g:vimclojure#DynamicHighlighting != 0 && exists("b:vimclojure_namespace")
 	try
 		let s:result = vimclojure#ExecuteNailWithInput("DynamicHighlighting",
 					\ b:vimclojure_namespace)
@@ -259,7 +258,7 @@ HiLink clojureError     Error
 
 HiLink clojureParen0    Delimiter
 
-if exists("g:clj_paren_rainbow") && g:clj_paren_rainbow != 0
+if vimclojure#ParenRainbow != 0
 	if &background == "dark"
 		highlight default clojureParen1 ctermfg=yellow      guifg=orange1
 		highlight default clojureParen2 ctermfg=green       guifg=yellow1

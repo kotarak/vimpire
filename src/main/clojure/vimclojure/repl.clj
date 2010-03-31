@@ -30,13 +30,13 @@
   #^{:doc
   "A map holding the references to all running repls indexed by their repl id."}
   *repls*
-  (ref {}))
+  (atom {}))
 
-(let [id (ref 0)]
+(let [id (atom 0)]
   (defn repl-id
     "Get a new Repl id."
     []
-    (dosync (alter id inc))))
+    (swap! id inc)))
 
 (def
   #^{:doc
@@ -81,16 +81,15 @@
   ; Make sure user namespace exists.
   (let [id       (repl-id)
         the-repl (make-repl id nspace)]
-    (dosync (commute *repls* assoc id the-repl))
+    (swap! *repls* assoc id the-repl)
     id))
 
 (defn stop
   "Stop the Repl with the given id."
   [id]
-  (dosync
-    (when-not (@*repls* id)
-      (throw (Exception. "Not Repl of that id or Repl currently active: " id)))
-    (commute *repls* dissoc id)))
+  (when-not (@*repls* id)
+    (throw (Exception. "Not Repl of that id or Repl currently active: " id)))
+  (swap! *repls* dissoc id))
 
 (defn root-cause
   "Drill down to the real root cause of the given Exception."
@@ -111,13 +110,12 @@
   to use a one-shot context. Sets the file line accordingly."
   [id nspace file line thunk]
   (let [the-repl (if (not= id -1)
-                   (dosync
-                     (let [the-repls (deref *repls*)
-                           the-repl  (the-repls id)]
-                       (when-not the-repl
-                         (throw (Exception. (str "No Repl of that id: " id))))
-                       (alter *repls* dissoc id)
-                       the-repl))
+                   (locking *repls*
+                     (if-let [the-repl (get @*repls* id)]
+                       (do
+                         (swap! *repls* dissoc id)
+                         the-repl)
+                       (throw (Exception. (str "No Repl of that id: " id)))))
                    (make-repl -1))
         line     (if (= line 0)
                    (the-repl :line)
@@ -143,24 +141,23 @@
       (thunk)
       (finally
         (when (not= id -1)
-          (dosync
-            (commute *repls* assoc id
-                     (struct-map repl
-                                 :id                 id
-                                 :ns                 *ns*
-                                 :warn-on-reflection *warn-on-reflection*
-                                 :print-meta         *print-meta*
-                                 :print-length       *print-length*
-                                 :print-level        *print-level*
-                                 :compile-path       *compile-path*
-                                 :command-line-args  *command-line-args*
-                                 :expr1              *1
-                                 :expr2              *2
-                                 :expr3              *3
-                                 :exception          *e
-                                 :print-pretty       vimclojure.repl/*print-pretty*
-                                 :line               (dec (.getLineNumber *in*))))))
-        (Var/popThreadBindings)))))
+          (swap! *repls* assoc id
+                 (struct-map repl
+                             :id                 id
+                             :ns                 *ns*
+                             :warn-on-reflection *warn-on-reflection*
+                             :print-meta         *print-meta*
+                             :print-length       *print-length*
+                             :print-level        *print-level*
+                             :compile-path       *compile-path*
+                             :command-line-args  *command-line-args*
+                             :expr1              *1
+                             :expr2              *2
+                             :expr3              *3
+                             :exception          *e
+                             :print-pretty       vimclojure.repl/*print-pretty*
+                             :line               (dec (.getLineNumber *in*))))))
+        (Var/popThreadBindings))))
 
 (defmacro with-repl
   "Executes body in the context of the Repl with the given id. id may be -1

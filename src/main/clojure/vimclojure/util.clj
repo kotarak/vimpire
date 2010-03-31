@@ -232,6 +232,10 @@
   [thing]
   (str thing))
 
+(defmethod clj->vim nil
+  [_]
+  0)
+
 (defn safe-var-get
   [the-var]
   (when (.isBound the-var)

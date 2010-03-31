@@ -196,6 +196,10 @@
   [thing]
   (str-wrap thing \"))
 
+(defmethod clj->vim Boolean
+  [thing]
+  (if thing "1" "0"))
+
 (derive clojure.lang.ISeq              ::ToVimList)
 (derive clojure.lang.IPersistentSet    ::ToVimList)
 (derive clojure.lang.IPersistentVector ::ToVimList)

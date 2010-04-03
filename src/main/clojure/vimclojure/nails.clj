@@ -76,12 +76,10 @@
                       ~@body)))))
 
 (defnail DocLookup
-  "Usage: ng vimclojure.nails.DocString [options]"
+  "Usage: ng vimclojure.nails.DocString [options] symbol ..."
   [[nspace n "Lookup the symbols in the given namespace." "user"]]
-  (let [nspace  (util/resolve-and-load-namespace nspace)
-        symbols (map symbol (line-seq (BufferedReader. *in*)))]
-    (print (backend/doc-lookup nspace symbols))
-    (flush)))
+  (let [nspace  (util/resolve-and-load-namespace nspace)]
+    (backend/doc-lookup nspace (read))))
 
 (defnail FindDoc
   "Usage: ng vimclojure.nails.FindDoc"

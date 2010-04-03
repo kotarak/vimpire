@@ -32,20 +32,27 @@
 (defn doc-lookup
   "Lookup up the documentation for the given symbols in the given namespace.
   The documentation is returned as a string."
-  [namespace symbols]
-  (with-out-str
-    (doseq [sym symbols]
-      (cond
-        (special-form-anchor sym)
-        (print-special-doc sym "Special Form" (special-form-anchor sym))
+  [namespace symbol]
+  (condp #(%1 %2) symbol
+    special-form-anchor
+    :>>
+    (fn [_]
+      (print-special-doc symbol "Special Form" (special-form-anchor symbol)))
 
-        (syntax-symbol-anchor sym)
-        (print-special-doc sym "Special Form" (syntax-symbol-anchor sym))
+    syntax-symbol-anchor
+    :>>
+    (fn [_]
+      (print-special-doc symbol "Special Form" (syntax-symbol-anchor symbol)))
 
-        :else
-        (if-let [nspace (find-ns sym)]
-          (print-namespace-doc nspace)
-          (print-doc (ns-resolve namespace sym)))))))
+    find-ns
+    :>>
+    (fn [nspace] (print-namespace-doc nspace))
+
+    #(ns-resolve namespace %)
+    :>>
+    (fn [v] (print-doc v))
+
+    (throw (Exception. (str "No such Var or Namespace: " symbol)))))
 
 (defn javadoc-path-for-class
   "Translate the name of a Class to the path of its javadoc file."

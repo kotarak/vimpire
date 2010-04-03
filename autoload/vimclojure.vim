@@ -369,10 +369,10 @@ function! vimclojure#FilterNail(nail, rngStart, rngEnd, ...)
 endfunction
 
 function! vimclojure#DocLookup(word)
-	let docs = vimclojure#ExecuteNailWithInput("DocLookup", a:word,
+	let doc = vimclojure#ExecuteNailWithInput("DocLookup", a:word,
 				\ "-n", b:vimclojure_namespace)
-	let resultBuffer = g:vimclojure#ResultBuffer.New()
-	call resultBuffer.showText(docs)
+	let buf = g:vimclojure#ResultBuffer.New()
+	call buf.showOutput(doc)
 	wincmd p
 endfunction
 

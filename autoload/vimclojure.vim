@@ -852,9 +852,13 @@ function! vimclojure#InitBuffer()
 			else
 				try
 					let content = getbufline(bufnr("%"), 1, line("$"))
-					let b:vimclojure_namespace =
+					let namespace =
 								\ vimclojure#ExecuteNailWithInput(
 								\   "NamespaceOfFile", content)
+					if namespace.stderr != ""
+						throw namespace.stderr
+					endif
+					let b:vimclojure_namespace = namespace.value
 				catch /.*/
 					echoerr "Could not determine the Namespace of the file. This might have different reasons. Please check, that the ng server is running with the correct classpath and that the file does not contain syntax errors. The interactive features will not be enabled, ie. the keybindings will not be mapped. Reason: " . v:exception
 				endtry

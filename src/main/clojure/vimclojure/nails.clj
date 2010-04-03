@@ -178,13 +178,12 @@
                       (drop-while #(or (not (instance? clojure.lang.ISeq %))
                                        (not (contains? of-interest (first %))))
                                   in-seq))]
-    (println
-      (cond
-        (not (instance? clojure.lang.ISeq candidate))    "user"
-        ('#{ns clojure.core/ns} (first candidate))       (second candidate)
-        ('#{in-ns clojure.core/in-ns} (first candidate)) (-> candidate
-                                                           second
-                                                           second)))))
+    (cond
+      (not (instance? clojure.lang.ISeq candidate))    "user"
+      ('#{ns clojure.core/ns} (first candidate))       (second candidate)
+      ('#{in-ns clojure.core/in-ns} (first candidate)) (-> candidate
+                                                         second
+                                                         second))))
 
 (defnail NamespaceInfo
   "Usage: ng vimclojure.nails.NamespaceInfo"

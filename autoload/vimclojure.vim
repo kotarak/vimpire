@@ -421,18 +421,25 @@ function! vimclojure#JavadocLookup(word)
 	let path = vimclojure#ExecuteNailWithInput("JavadocPath", word,
 				\ "-n", b:vimclojure_namespace)
 
+	if path.stderr != ""
+		let buf = g:vimclojure#ResultBuffer.New()
+		call buf.showOutput(path)
+		wincmd p
+		return
+	endif
+
 	let match = ""
 	for pattern in keys(g:vimclojure#JavadocPathMap)
-		if path =~ "^" . pattern && len(match) < len(pattern)
+		if path.value =~ "^" . pattern && len(match) < len(pattern)
 			let match = pattern
 		endif
 	endfor
 
 	if match == ""
-		throw "No matching Javadoc URL found for " . path
+		echoerr "No matching Javadoc URL found for " . path.value
 	endif
 
-	let url = g:vimclojure#JavadocPathMap[match] . path
+	let url = g:vimclojure#JavadocPathMap[match] . path.value
 	call system(join([g:vimclojure#Browser, url], " "))
 endfunction
 

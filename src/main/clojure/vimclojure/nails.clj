@@ -91,12 +91,9 @@
   [[nspace n "Lookup the symbols in the given namespace." "user"]]
   (let [nspace         (util/resolve-and-load-namespace nspace)
         our-ns-resolve #(ns-resolve nspace %)]
-    (doseq [path (map #(-> %
-                         symbol
-                         our-ns-resolve
-                         backend/javadoc-path-for-class)
-                      (util/stream->seq *in*))]
-      (println path))))
+    (-> (read)
+      our-ns-resolve
+      backend/javadoc-path-for-class)))
 
 (defnail SourceLookup
   "Usage: ng vimclojure.nails.SourceLookup [options]"

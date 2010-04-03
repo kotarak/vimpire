@@ -493,10 +493,10 @@ function! vimclojure#MacroExpand(firstOnly)
 		let cmd = cmd + [ "-o" ]
 	endif
 
-	let result = call(function("vimclojure#ExecuteNailWithInput"), cmd)
+	let expanded = call(function("vimclojure#ExecuteNailWithInput"), cmd)
 
-	let resultBuffer = g:vimclojure#ClojureResultBuffer.New()
-	call resultBuffer.showText(result)
+	let buf = g:vimclojure#ClojureResultBuffer.New()
+	call buf.showOutput(expanded)
 	wincmd p
 endfunction
 

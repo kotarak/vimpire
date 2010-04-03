@@ -187,8 +187,9 @@
                  #(macroexpand-1 %)
                  #(macroexpand %))]
     (binding [*ns* nspace]
-      (doseq [expr (util/stream->seq *in*)]
-        (-> expr expand util/pretty-print-code)))))
+      (-> (read)
+        expand
+        util/pretty-print-code))))
 
 (defnail Repl
   "Usage: ng vimclojure.nails.Repl [options]"

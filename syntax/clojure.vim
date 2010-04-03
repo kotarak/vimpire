@@ -142,9 +142,10 @@ if g:vimclojure#DynamicHighlighting != 0 && exists("b:vimclojure_namespace")
 	try
 		let s:result = vimclojure#ExecuteNailWithInput("DynamicHighlighting",
 					\ b:vimclojure_namespace)
-		execute "let s:highlights = " . s:result
-		call vimclojure#ColorNamespace(s:highlights)
-		unlet s:result s:highlights
+		if s:result.stderr == ""
+			call vimclojure#ColorNamespace(s:result.value)
+			unlet s:result
+		endif
 	catch /.*/
 		" We ignore errors here. If the file is messed up, we at least get
 		" the basic syntax highlighting.

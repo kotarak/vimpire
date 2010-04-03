@@ -152,11 +152,9 @@
                                       (instance? clojure.lang.MultiFn v)))
                                vars))
         vars      (clojure.set/difference vars fns)]
-    (-> (hash-map "Func"     (map first fns)
-                  "Macro"    (map first macros)
-                  "Variable" (map first vars))
-      util/clj->vim
-      println)))
+    (hash-map "Func"     (map first fns)
+              "Macro"    (map first macros)
+              "Variable" (map first vars))))
 
 (defnail NamespaceOfFile
   "Usage: ng vimclojure.nails.NamespaceOfFile"

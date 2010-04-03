@@ -443,19 +443,19 @@ function! vimclojure#JavadocLookup(word)
 	call system(join([g:vimclojure#Browser, url], " "))
 endfunction
 
-function! vimclojure#MetaLookup(word)
-	let docs = vimclojure#ExecuteNailWithInput("MetaLookup", a:word,
-				\ "-n", b:vimclojure_namespace)
-	let resultBuffer = g:vimclojure#ClojureResultBuffer.New()
-	call resultBuffer.showText(docs)
-	wincmd p
-endfunction
-
 function! vimclojure#SourceLookup(word)
 	let source = vimclojure#ExecuteNailWithInput("SourceLookup", a:word,
 				\ "-n", b:vimclojure_namespace)
 	let buf = g:vimclojure#ClojureResultBuffer.New()
 	call buf.showOutput(source)
+	wincmd p
+endfunction
+
+function! vimclojure#MetaLookup(word)
+	let meta = vimclojure#ExecuteNailWithInput("MetaLookup", a:word,
+				\ "-n", b:vimclojure_namespace)
+	let buf = g:vimclojure#ClojureResultBuffer.New()
+	call buf.showOutput(meta)
 	wincmd p
 endfunction
 

@@ -110,9 +110,10 @@
   [[nspace n "Lookup the symbols in the given namespace." "user"]]
   (let [nspace         (util/resolve-and-load-namespace nspace)
         our-ns-resolve #(ns-resolve nspace %)]
-    (doseq [metainfo (map #(-> % symbol our-ns-resolve meta)
-                     (util/stream->seq *in*))]
-      (util/pretty-print metainfo))))
+    (-> (read)
+      our-ns-resolve
+      meta
+      util/pretty-print)))
 
 (defnail SourceLocation
   "Usage: ng vimclojure.nails.SourceLocation [options]"

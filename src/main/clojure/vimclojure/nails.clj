@@ -100,12 +100,10 @@
   [[nspace n "Lookup the symbols in the given namespace." "user"]]
   (let [nspace         (util/resolve-and-load-namespace nspace)
         our-ns-resolve #(ns-resolve nspace %)]
-    (doseq [src (map #(-> %
-                        symbol
-                        our-ns-resolve
-                        backend/get-source)
-                     (util/stream->seq *in*))]
-      (println src))))
+    (-> (read)
+      our-ns-resolve
+      backend/get-source
+      println)))
 
 (defnail MetaLookup
   "Usage: ng vimclojure.nails.MetaLookup [options]"

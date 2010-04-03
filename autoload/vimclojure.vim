@@ -454,8 +454,8 @@ endfunction
 function! vimclojure#SourceLookup(word)
 	let source = vimclojure#ExecuteNailWithInput("SourceLookup", a:word,
 				\ "-n", b:vimclojure_namespace)
-	let resultBuffer = g:vimclojure#ClojureResultBuffer.New()
-	call resultBuffer.showText(source)
+	let buf = g:vimclojure#ClojureResultBuffer.New()
+	call buf.showOutput(source)
 	wincmd p
 endfunction
 

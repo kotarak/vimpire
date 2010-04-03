@@ -220,6 +220,20 @@ function! vimclojure#Buffer.showText(text) dict
 	call append(line("$"), text)
 endfunction
 
+function! vimclojure#Buffer.showOutput(output) dict
+	call self.goHere()
+	if a:output.value == 0
+		if a:output.stdout != ""
+			call self.showText(a:output.stdout)
+		endif
+		if a:output.stderr != ""
+			call self.showText(a:output.stderr)
+		endif
+	else
+		call self.showText(a:output.value)
+	endif
+endfunction
+
 function! vimclojure#Buffer.clear() dict
 	1
 	normal! "_dG

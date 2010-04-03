@@ -460,21 +460,27 @@ function! vimclojure#MetaLookup(word)
 endfunction
 
 function! vimclojure#GotoSource(word)
-	let result = vimclojure#ExecuteNailWithInput("SourceLocation", a:word,
+	let pos = vimclojure#ExecuteNailWithInput("SourceLocation", a:word,
 				\ "-n", b:vimclojure_namespace)
-	execute "let pos = " . result
 
-	if !filereadable(pos.file)
-		let file = findfile(pos.file)
-		if file == ""
-			echoerr pos.file . " not found in 'path'"
-			return
-		endif
-		let pos.file = file
+	if pos.stderr != ""
+		let buf = g:vimclojure#ResultBuffer.New()
+		call buf.showOutput(pos)
+		wincmd p
+		return
 	endif
 
-	execute "edit " . pos.file
-	execute pos.line
+	if !filereadable(pos.value.file)
+		let file = findfile(pos.value.file)
+		if file == ""
+			echoerr pos.value.file . " not found in 'path'"
+			return
+		endif
+		let pos.value.file = file
+	endif
+
+	execute "edit " . pos.value.file
+	execute pos.value.line
 endfunction
 
 " Evaluators

@@ -84,9 +84,7 @@
 (defnail FindDoc
   "Usage: ng vimclojure.nails.FindDoc"
   []
-  (let [patterns (line-seq (BufferedReader. *in*))]
-    (doseq [pattern patterns]
-      (find-doc pattern))))
+  (find-doc (.readLine *in*)))
 
 (defnail JavadocPath
   "Usage: ng vimclojure.nails.JavadocPath [options]"

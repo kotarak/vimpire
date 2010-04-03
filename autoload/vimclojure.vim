@@ -378,11 +378,9 @@ endfunction
 
 function! vimclojure#FindDoc()
 	let pattern = input("Pattern to look for: ")
-	let result = vimclojure#ExecuteNailWithInput("FindDoc", pattern)
-
-	let resultBuffer = g:vimclojure#ResultBuffer.New()
-	call resultBuffer.showText(result)
-
+	let doc = vimclojure#ExecuteNailWithInput("FindDoc", pattern)
+	let buf = g:vimclojure#ResultBuffer.New()
+	call buf.showOutput(doc)
 	wincmd p
 endfunction
 

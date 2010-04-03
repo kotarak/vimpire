@@ -341,17 +341,18 @@ function! vimclojure#ExecuteNailWithInput(nail, input, ...)
 					\ + vimclojure#ShellEscapeArguments(a:000)
 		let cmd = join(cmdline, " ") . " <" . inputfile
 
-		let result = system(cmd)
+		let output = system(cmd)
 
 		if v:shell_error
 			echoerr "Couldn't execute Nail! "
-						\ . substitute(result, '\n\(\t\?\)', ' ', 'g')
+						\ . substitute(output, '\n\(\t\?\)', ' ', 'g')
 		endif
 	finally
 		call delete(inputfile)
 	endtry
 
-	return substitute(result, '\n$', '', '')
+	execute "let result = " . substitute(output, '\n$', '', '')
+	return result
 endfunction
 
 function! vimclojure#ExecuteNail(nail, ...)

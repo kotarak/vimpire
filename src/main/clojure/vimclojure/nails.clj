@@ -22,13 +22,15 @@
 
 (ns vimclojure.nails
   (:require
-     (vimclojure [repl :as repl]
-                 [util :as util]
-                 [backend :as backend]))
+    (vimclojure [repl :as repl]
+                [util :as util]
+                [backend :as backend]))
   (:import
-     java.io.BufferedReader
-     com.martiansoftware.nailgun.NGContext
-     com.martiansoftware.nailgun.NGServer))
+    java.io.BufferedReader
+    java.io.StringWriter
+    java.io.PrintWriter
+    com.martiansoftware.nailgun.NGContext
+    com.martiansoftware.nailgun.NGServer))
 
 (defn start-server-thread
   "Start a nailgun server in a dedicated daemon thread. host defaults
@@ -40,6 +42,23 @@
      (.setDaemon true)
      (.start))))
 
+(defn nail-driver
+  "Driver for the defnail macro."
+  [#^NGContext ctx nail]
+  (let [out (StringWriter.)
+        err (StringWriter.)
+        ret (binding [*out* (PrintWriter. out)
+                      *err* (PrintWriter. err)]
+              (try
+                (nail ctx)
+                (catch Exception e
+                  (.printStackTrace e *err*))))]
+    (println
+      (util/clj->vim {:value  ret
+                      :stdout (.toString out)
+                      :stderr (.toString err)}))
+    (flush)))
+
 (defmacro defnail
   "Define a new Nail of the given name. The arguments is a command line
   arguments specification vector suitable for with-command-line. The body
@@ -48,11 +67,13 @@
   'nailContext'."
   [nail usage arguments & body]
   `(defn ~nail
-     [~(with-meta 'nailContext {:tag 'NGContext})]
-     (util/with-command-line (next (.getArgs ~'nailContext))
-       ~usage
-       ~arguments
-       ~@body)))
+     [ctx#]
+     (nail-driver ctx#
+                  (fn [~(with-meta 'nailContext {:tag `NGContext})]
+                    (util/with-command-line (next (.getArgs ~'nailContext))
+                      ~usage
+                      ~arguments
+                      ~@body)))))
 
 (defnail DocLookup
   "Usage: ng vimclojure.nails.DocString [options]"

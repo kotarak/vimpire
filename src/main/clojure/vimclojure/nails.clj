@@ -232,12 +232,9 @@
   [[nspace n "Start completion in this namespace." "user"]
    [prefix p "Prefix used for the match, ie. the part before /." ""]
    [base   b "Base pattern to be matched."]]
-  (let [nspace (util/resolve-and-load-namespace nspace)
-        prefix (symbol prefix)]
-    (if-not (and (= base "") (= prefix ""))
-      (let [to-complete (util/decide-completion-in nspace prefix base)
-            completions (mapcat #(backend/complete % nspace prefix base)
-                                to-complete)
-            completions (map #(apply util/make-completion-item %) completions)]
-        (println (util/clj->vim completions)))
-      (println "[]"))))
+  (let [nspace      (util/resolve-and-load-namespace nspace)
+        prefix      (symbol prefix)
+        to-complete (util/decide-completion-in nspace prefix base)
+        completions (mapcat #(backend/complete % nspace prefix base)
+                            to-complete)]
+    (map #(apply util/make-completion-item %) completions)))

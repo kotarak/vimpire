@@ -841,11 +841,14 @@ function! vimclojure#OmniCompletion(findstart, base)
 			let base = a:base
 		endif
 
+		if prefix == "" && base == ""
+			return []
+		endif
+
 		let completions = vimclojure#ExecuteNail("Complete",
 					\ "-n", b:vimclojure_namespace,
 					\ "-p", prefix, "-b", base)
-		execute "let result = " . completions
-		return result
+		return completions.value
 	endif
 endfunction
 

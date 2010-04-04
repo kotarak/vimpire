@@ -685,13 +685,13 @@ function! vimclojure#Repl.doReplCommand(cmd) dict
 		stopinsert
 	elseif a:cmd == ",st"
 		let result = vimclojure#ExecuteNailWithInput("Repl",
-					\ "(clojure.stacktrace/print-stack-trace *e)", "-r",
+					\ "(vimclojure.util/pretty-print-stacktrace *e)", "-r",
 					\ "-i", self._id)
 		call self.showOutput(result)
 		call self.showPrompt()
 	elseif a:cmd == ",ct"
 		let result = vimclojure#ExecuteNailWithInput("Repl",
-					\ "(clojure.stacktrace/print-cause-trace *e)", "-r",
+					\ "(vimclojure.util/pretty-print-causetrace *e)", "-r",
 					\ "-i", self._id)
 		call self.showOutput(result)
 		call self.showPrompt()

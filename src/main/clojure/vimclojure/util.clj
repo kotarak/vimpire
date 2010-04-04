@@ -400,6 +400,20 @@
   [form]
   (prn form))
 
+(defn pretty-print-stacktrace
+  "Print the stacktrace of the given Throwable. Tries clj-stacktrace,
+  clojure.stacktrace and clojure.contrib.stacktrace in that order. Otherwise
+  defaults to simple printing."
+  [e]
+  (.printStackTrace e *out*))
+
+(defn pretty-print-causetrace
+  "Print the causetrace of the given Throwable. Tries clj-stacktrace,
+  clojure.stacktrace and clojure.contrib.stacktrace in that order. Otherwise
+  defaults to simple printing."
+  [e]
+  (pretty-print-stacktrace e))
+
 ; Load optional libraries
 (defmacro defoptional
    [sym args & body]
@@ -412,3 +426,25 @@
   (catch Exception exc
     (when-not (re-find #"Could not locate clojure/contrib/pprint__init.class or clojure/contrib/pprint.clj on classpath" (str exc))
       (throw exc))))
+
+(def stacktrace-printer nil)
+
+(try
+  (load "optional/clj_stacktrace")
+  (catch Exception exc
+    (when-not (re-find #"Could not locate clj_stacktrace/repl__init.class or clj_stacktrace/repl.clj on classpath" (str exc))
+      (throw exc))))
+
+(when-not stacktrace-printer
+  (try
+    (load "optional/core_stacktrace")
+    (catch Exception exc
+      (when-not (re-find #"Could not locate clojure/stacktrace__init.class or clojure/stacktrace.clj on classpath" (str exc))
+        (throw exc)))))
+
+(when-not stacktrace-printer
+  (try
+    (load "optional/contrib_stacktrace")
+    (catch Exception exc
+      (when-not (re-find #"Could not locate clojure/contrib/stacktrace__init.class or clojure/contrib/stacktrace.clj on classpath" (str exc))
+        (throw exc)))))

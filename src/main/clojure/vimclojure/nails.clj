@@ -200,26 +200,32 @@
    [nspace  n "Change to namespace before executing the input." ""]
    [file    f "The filename to be set." "REPL"]
    [line    l "The initial line to be set." "0"]
-   [ignore? I "Ignore the command with respect to *1, *2 , *3"]]
+   [ignore? I "Ignore the command with respect to *1, *2, *3"]]
   (let [id     (Integer/parseInt id)
         line   (Integer/parseInt line)
         nspace (when (not= nspace "")
                  (util/resolve-and-load-namespace nspace))]
     (cond
-      start (println (repl/start nspace))
+      start {:id (repl/start nspace)}
       stop  (repl/stop id)
       run   (repl/run id nspace file line ignore))))
 
+(defnail ReplNamespace
+  "Usage: ng vimclojure.nails.Repl [options]"
+  [[id i "The id of the repl to act on."]]
+  (let [id (Integer/parseInt id)]
+    (get (get @repl/*repls* :id {:ns "user"}) :ns)))
+
 (defnail CheckSyntax
   "Usage: ng vimclojure.nails.CheckSyntax"
-  [[nspace  n "Change to namespace before executing the input." ""]]
+  [[nspace  n "Change to namespace before executing the input." "user"]]
   (let [nspace (util/resolve-and-load-namespace nspace)]
     (binding [*ns* nspace]
       (try
         (dorun (util/stream->seq *in*))
-        (println true)
+        true
         (catch Exception e
-          (println false))))))
+          false)))))
 
 (defnail Complete
   "Usage: ng vimclojure.nails.Complete"

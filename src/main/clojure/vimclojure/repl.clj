@@ -89,7 +89,8 @@
   [id]
   (when-not (@*repls* id)
     (throw (Exception. "Not Repl of that id or Repl currently active: " id)))
-  (swap! *repls* dissoc id))
+  (swap! *repls* dissoc id)
+  nil)
 
 (defn root-cause
   "Drill down to the real root cause of the given Exception."
@@ -156,8 +157,8 @@
                              :expr3              *3
                              :exception          *e
                              :print-pretty       vimclojure.repl/*print-pretty*
-                             :line               (dec (.getLineNumber *in*))))))
-        (Var/popThreadBindings))))
+                             :line               (dec (.getLineNumber *in*)))))
+        (Var/popThreadBindings)))))
 
 (defmacro with-repl
   "Executes body in the context of the Repl with the given id. id may be -1
@@ -181,7 +182,5 @@
             (set! *2 *1)
             (set! *1 result))))
       (catch Throwable e
-        (println (if (instance? clojure.lang.Compiler$CompilerException e)
-                   e
-                   (root-cause e)))
+        (println e)
         (set! *e e)))))

@@ -508,7 +508,7 @@ function! vimclojure#RequireFile(all)
 	let result = vimclojure#ExecuteNailWithInput("Repl", require, "-r")
 
 	let resultBuffer = g:vimclojure#ClojureResultBuffer.New()
-	call resultBuffer.showText(result)
+	call resultBuffer.showOutput(result)
 	wincmd p
 endfunction
 
@@ -525,7 +525,7 @@ function! vimclojure#RunTests(all)
 	let result = vimclojure#ExecuteNailWithInput("Repl", cmd, "-r")
 
 	let resultBuffer = g:vimclojure#ClojureResultBuffer.New()
-	call resultBuffer.showText(result)
+	call resultBuffer.showOutput(result)
 	wincmd p
 endfunction
 
@@ -538,7 +538,7 @@ function! vimclojure#EvalFile()
 				\ "-r", "-n", ns, "-f", file)
 
 	let resultBuffer = g:vimclojure#ClojureResultBuffer.New()
-	call resultBuffer.showText(result)
+	call resultBuffer.showOutput(result)
 	wincmd p
 endfunction
 
@@ -552,7 +552,7 @@ function! vimclojure#EvalLine()
 				\ "-r", "-n", ns, "-f", file, "-l", theLine)
 
 	let resultBuffer = g:vimclojure#ClojureResultBuffer.New()
-	call resultBuffer.showText(result)
+	call resultBuffer.showOutput(result)
 	wincmd p
 endfunction
 
@@ -565,7 +565,7 @@ function! vimclojure#EvalBlock() range
 				\ "-r", "-n", ns, "-f", file, "-l", a:firstline - 1)
 
 	let resultBuffer = g:vimclojure#ClojureResultBuffer.New()
-	call resultBuffer.showText(result)
+	call resultBuffer.showOutput(result)
 	wincmd p
 endfunction
 
@@ -585,7 +585,7 @@ function! vimclojure#EvalToplevel()
 				\ "-r", "-n", ns, "-f", file, "-l", pos[0] - 1)
 
 	let resultBuffer = g:vimclojure#ClojureResultBuffer.New()
-	call resultBuffer.showText(result)
+	call resultBuffer.showOutput(result)
 	wincmd p
 endfunction
 
@@ -608,7 +608,7 @@ function! vimclojure#EvalParagraph()
 				\ "-r", "-n", ns, "-f", file, "-l", startPosition - 1)
 
 	let resultBuffer = g:vimclojure#ClojureResultBuffer.New()
-	call resultBuffer.showText(result)
+	call resultBuffer.showOutput(result)
 	wincmd p
 endfunction
 
@@ -654,8 +654,9 @@ function! vimclojure#Repl.Init(instance, namespace) dict
 
 	call append(line("$"), ["Clojure", a:instance._prompt . " "])
 
-	let a:instance._id = vimclojure#ExecuteNail("Repl", "-s",
+	let replStart = vimclojure#ExecuteNail("Repl", "-s",
 				\ "-n", a:namespace)
+	let a:instance._id = replStart.value.id
 	call vimclojure#ExecuteNailWithInput("Repl",
 				\ "(require 'clojure.stacktrace)",
 				\ "-r", "-i", a:instance._id)
@@ -686,19 +687,19 @@ function! vimclojure#Repl.doReplCommand(cmd) dict
 		let result = vimclojure#ExecuteNailWithInput("Repl",
 					\ "(clojure.stacktrace/print-stack-trace *e)", "-r",
 					\ "-i", self._id)
-		call self.showText(result)
+		call self.showOutput(result)
 		call self.showPrompt()
 	elseif a:cmd == ",ct"
 		let result = vimclojure#ExecuteNailWithInput("Repl",
 					\ "(clojure.stacktrace/print-cause-trace *e)", "-r",
 					\ "-i", self._id)
-		call self.showText(result)
+		call self.showOutput(result)
 		call self.showPrompt()
 	elseif a:cmd == ",toggle-pprint"
 		let result = vimclojure#ExecuteNailWithInput("Repl",
 					\ "(set! vimclojure.repl/*print-pretty* (not vimclojure.repl/*print-pretty*))", "-r",
 					\ "-i", self._id)
-		call self.showText(result)
+		call self.showOutput(result)
 		call self.showPrompt()
 	endif
 endfunction
@@ -744,23 +745,22 @@ function! vimclojure#Repl.enterHook() dict
 
 	let result = vimclojure#ExecuteNailWithInput("CheckSyntax", cmd,
 				\ "-n", b:vimclojure_namespace)
-	if result == "false"
+	if result.value == 0
 		execute "normal! GA\<CR>x"
 		normal! ==x
 		startinsert!
 	else
 		let result = vimclojure#ExecuteNailWithInput("Repl", cmd,
 					\ "-r", "-i", self._id)
-		call self.showText(result)
+		call self.showOutput(result)
 
 		let self._historyDepth = 0
 		let self._history = [cmd] + self._history
 
-		let namespace = vimclojure#ExecuteNailWithInput("Repl",
-					\ "(clojure.core/ns-name clojure.core/*ns*)",
-					\ "-r", "-I", "-i", self._id)
-		let b:vimclojure_namespace = namespace
-		let self._prompt = namespace . "=>"
+		let namespace = vimclojure#ExecuteNailWithInput("ReplNamespace", "",
+					\ "-i", self._id)
+		let b:vimclojure_namespace = namespace.value
+		let self._prompt = namespace.value . "=>"
 
 		call self.showPrompt()
 	endif

@@ -22,7 +22,7 @@
 
 (ns vimclojure.repl
   (:use
-     [vimclojure.util :only (stream->seq pretty-print)])
+     [vimclojure.util :only (stream->seq pretty-print pretty-print-causetrace)])
   (:import
      (clojure.lang Var Compiler LineNumberingPushbackReader)))
 
@@ -182,5 +182,7 @@
             (set! *2 *1)
             (set! *1 result))))
       (catch Throwable e
-        (println e)
+        (if (= id -1)
+          (pretty-print-causetrace e)
+          (println e))
         (set! *e e)))))

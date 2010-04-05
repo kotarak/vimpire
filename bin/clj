@@ -55,21 +55,23 @@ if [ -n "${CLOJURE_EXT:-}" ]; then
     EXT="$(find -H ${CLOJURE_EXT} -mindepth 1 -maxdepth 1 -print0 | tr \\0 \:)"
     IFS="$OLD"
     if [ -n "${CLASSPATH:-}" ]; then
-        export CLASSPATH="${EXT}${CLASSPATH}"
+        CLASSPATH="${EXT}${CLASSPATH}"
     else
-        export CLASSPATH="${EXT%:}"
+        CLASSPATH="${EXT%:}"
     fi
 fi
 
 if [ -f .clojure ]; then
     for path in `cat .clojure`; do
         if [ -n "${CLASSPATH:-}" ]; then
-            export CLASSPATH="${path}${CLASSPATH}"
+            CLASSPATH="${path}:${CLASSPATH}"
         else
-            export CLASSPATH="${path%:}"
+            CLASSPATH="${path%:}"
         fi
     done
 fi
+
+export CLASSPATH
 
 JAVA=${CLOJURE_JAVA:-java}
 OPTS=${CLOJURE_OPTS:-}

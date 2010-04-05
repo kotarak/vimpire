@@ -5,10 +5,17 @@
 let s:save_cpo = &cpo
 set cpo&vim
 
+function! vimclojure#WarnDeprecated(old, new)
+	echohl WarningMsg
+	echomsg a:old . " is deprecated! Use " . a:new . "!"
+	echohl None
+endfunction
+
 " Configuration
 if !exists("g:vimclojure#HighlightBuiltins")
 	if exists("g:clj_highlight_builtins")
-		echoerr "g:clj_highlight_builtins is deprecated! Use vimclojure#HighlightBuiltins"
+		call vimclojure#WarnDeprecated("g:clj_highlight_builtins",
+					\ "vimclojure#HighlightBuiltins")
 		let vimclojure#HighlightBuiltins = g:clj_highlight_builtins
 	else
 		let vimclojure#HighlightBuiltins = 1
@@ -17,7 +24,8 @@ endif
 
 if !exists("g:vimclojure#DynamicHighlighting")
 	if exists("g:clj_dynamic_highlighting")
-		echoerr "g:clj_dynamic_highlighting is deprecated! Use vimclojure#DynamicHighlighting"
+		call vimclojure#WarnDeprecated("g:clj_dynamic_highlighting",
+					\ "vimclojure#DynamicHighlighting")
 		let vimclojure#DynamicHighlighting = g:clj_dynamic_highlighting
 	else
 		let vimclojure#DynamicHighlighting = 0
@@ -26,7 +34,8 @@ endif
 
 if !exists("g:vimclojure#ParenRainbow")
 	if exists("g:clj_paren_rainbow")
-		echoerr "g:clj_paren_rainbow is deprecated! Use vimclojure#ParenRainbow"
+		call vimclojure#WarnDeprecated("g:clj_paren_rainbow"
+					\ "vimclojure#ParenRainbow")
 		let vimclojure#ParenRainbow = g:clj_paren_rainbow
 	else
 		let vimclojure#ParenRainbow = 0
@@ -35,7 +44,8 @@ endif
 
 if !exists("g:vimclojure#WantNailgun")
 	if exists("g:clj_want_gorilla")
-		echoerr "g:clj_paren_rainbow is deprecated! Use vimclojure#WantNailgun"
+		call vimclojure#WarnDeprecated("g:clj_want_gorilla",
+					\ "vimclojure#WantNailgun")
 		let vimclojure#WantNailgun = g:clj_want_gorilla
 	else
 		let vimclojure#WantNailgun = 0

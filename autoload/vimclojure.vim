@@ -162,8 +162,12 @@ function! vimclojure#MapPlug(mode, keys, plug)
 endfunction
 
 " A Buffer...
-if !exists("vimclojure#SplitPos")
+if !exists("g:vimclojure#SplitPos")
 	let vimclojure#SplitPos = "top"
+endif
+
+if !exists("g:vimclojure#SplitSize")
+	let vimclojure#SplitSize = ""
 endif
 
 let vimclojure#Buffer = {}
@@ -185,7 +189,7 @@ function! vimclojure#Buffer.MakeBuffer()
 		else
 			set splitright
 		end
-		vnew
+		execute printf("%svnew", g:vimclojure#SplitSize)
 		let &splitright = o_sr
 	else
 		let o_sb = &splitbelow
@@ -194,7 +198,7 @@ function! vimclojure#Buffer.MakeBuffer()
 		else
 			set nosplitbelow
 		end
-		new
+		execute printf("%snew", g:vimclojure#SplitSize)
 		let &splitbelow = o_sb
 	endif
 endfunction

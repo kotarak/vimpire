@@ -37,12 +37,17 @@ recall the message and read it conveniently without time pressure.
 
 VimClojure might pop up windows, like the preview window or the Repl.
 The place where this is done may be controlled with the SplitPos variable.
-Possible values are "left", "right", "top" and "bottom". Thedefault is
+Possible values are "left", "right", "top" and "bottom". The default is
 "top".
 
 Example:
 >
         let vimclojure#SplitPos = "left"
+<
+It is also possible to specify the size of the new window. The size is
+specified in lines/columns.
+>
+        let vimclojure#SplitSize = 10
 <
 
 Syntax Highlighting                 *ft-clj-syntax*

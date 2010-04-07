@@ -44,10 +44,7 @@ public class Nail {
         } catch (Exception exc) {
             Throwable e = exc;
             System.err.println("A crisis has arisen:");
-            do {
-                e.printStackTrace();
-                e = e.getCause();
-            } while (e != null);
+            e.printStackTrace();
         }
     }
 

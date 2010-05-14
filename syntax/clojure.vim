@@ -52,7 +52,7 @@ if g:vimclojure#HighlightBuiltins != 0
 		\            . "with-local-vars .. doto memfn proxy amap areduce "
 		\            . "refer-clojure future lazy-seq letfn "
 		\            . "with-loading-context bound-fn extend extend-protocol "
-		\            . "extend-type reify with-bindings",
+		\            . "extend-type reify with-bindings ->>",
 		\ "Func":      "= not= not nil? false? true? complement identical? "
 		\            . "string? symbol? map? seq? vector? keyword? var? "
 		\            . "special-symbol? apply partial comp constantly "

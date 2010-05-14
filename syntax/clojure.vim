@@ -155,7 +155,7 @@ endif
 syn cluster clojureAtomCluster   contains=clojureError,clojureFunc,clojureMacro,clojureCond,clojureDefine,clojureRepeat,clojureException,clojureConstant,clojureVariable,clojureSpecial,clojureKeyword,clojureString,clojureCharacter,clojureNumber,clojureRational,clojureFloat,clojureBoolean,clojureQuote,clojureUnquote,clojureDispatch,clojurePattern
 syn cluster clojureTopCluster    contains=@clojureAtomCluster,clojureComment,clojureSexp,clojureAnonFn,clojureVector,clojureMap,clojureSet
 
-syn keyword clojureTodo contained FIXME XXX
+syn keyword clojureTodo contained FIXME XXX TODO FIXME: XXX: TODO:
 syn match   clojureComment contains=clojureTodo ";.*$"
 
 syn match   clojureKeyword "\c:\{1,2}[a-z?!\-_+*./=<>#$][a-z0-9?!\-_+*\./=<>#$]*"

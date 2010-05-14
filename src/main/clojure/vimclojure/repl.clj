@@ -182,7 +182,9 @@
             (set! *2 *1)
             (set! *1 result))))
       (catch Throwable e
-        (if (= id -1)
-          (pretty-print-causetrace e)
-          (println e))
-        (set! *e e)))))
+        (binding [*out* *err*]
+          (if (= id -1)
+            (pretty-print-causetrace e)
+            (println e)))
+        (set! *e e)
+        nil))))

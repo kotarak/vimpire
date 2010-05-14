@@ -51,7 +51,7 @@
                       *err* (PrintWriter. err)]
               (try
                 (nail ctx)
-                (catch Exception e
+                (catch Throwable e
                   (.printStackTrace e *err*))))]
     (println
       (util/clj->vim {:value  ret
@@ -224,7 +224,7 @@
       (try
         (dorun (util/stream->seq *in*))
         true
-        (catch Exception e
+        (catch Throwable e
           false)))))
 
 (defnail Complete

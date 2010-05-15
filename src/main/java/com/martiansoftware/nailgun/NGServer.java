@@ -443,6 +443,17 @@ public class NGServer implements Runnable {
 			}
 		}
 
+		try {
+			Class.forName("clojure.lang.IFn");
+		} catch (ClassNotFoundException ignore) {
+			System.err.println("ERROR: Could not find clojure.lang.IFn on the classpath!");
+			System.err.println("ERROR: This most likely means that Clojure is not on the classpath!");
+			System.err.println("ERROR: Please check your settings!");
+			System.err.println("ERROR: Here is the classpath for your reference:");
+			System.err.println(System.getProperty("java.class.path"));
+			return;
+		}
+
 		NGServer server = new NGServer(serverAddress, port);
 		Thread t = new Thread(server);
 		t.setName("NGServer(" + serverAddress + ", " + port + ")");

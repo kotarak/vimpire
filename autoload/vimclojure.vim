@@ -350,9 +350,9 @@ function! vimclojure#ExecuteNailWithInput(nail, input, ...)
 	try
 		call writefile(input, inputfile)
 
-		let cmdline = [g:vimclojure#NailgunClient,
-					\ "vimclojure.Nail", a:nail]
-					\ + vimclojure#ShellEscapeArguments(a:000)
+		let cmdline = vimclojure#ShellEscapeArguments(
+					\ [g:vimclojure#NailgunClient, "vimclojure.Nail", a:nail]
+					\ + a:000)
 		let cmd = join(cmdline, " ") . " <" . inputfile
 
 		let output = system(cmd)

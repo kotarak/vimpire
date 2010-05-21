@@ -23,12 +23,6 @@
 
 package vimclojure;
 
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-
-import clojure.lang.IPersistentMap;
-import clojure.lang.LineNumberingPushbackReader;
 import clojure.lang.RT;
 import clojure.lang.Symbol;
 import clojure.lang.Var;
@@ -64,34 +58,6 @@ public class Nail {
         }
 
         final Var nailDriver = RT.var(namespace, function);
-        String encoding = System.getProperty("clojure.vim.encoding");
-
-        if (encoding == null) {
-            encoding = "UTF-8";
-        }
-
-        final LineNumberingPushbackReader in =
-            new LineNumberingPushbackReader(
-                    new InputStreamReader(ctx.in, encoding));
-        final OutputStreamWriter out =
-            new OutputStreamWriter(ctx.out, encoding);
-        final PrintWriter err =
-            new PrintWriter(
-                    new OutputStreamWriter(ctx.err, encoding));
-
-        final IPersistentMap ioBindings = RT.map(
-                RT.var("clojure.core", "*in*"), in,
-                RT.var("clojure.core", "*out*"), out,
-                RT.var("clojure.core", "*err*"), err);
-
-        Var.pushThreadBindings(ioBindings);
-        try {
-            nailDriver.invoke(ctx);
-        } finally {
-            Var.popThreadBindings();
-        }
-
-        out.flush();
-        err.flush();
+        nailDriver.invoke(ctx);
     }
 }

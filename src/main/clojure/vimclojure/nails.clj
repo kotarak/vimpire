@@ -27,10 +27,11 @@
                 [backend :as backend]))
   (:import
     java.io.BufferedReader
-    java.io.StringWriter
-    java.io.PrintWriter
+    java.io.ByteArrayOutputStream
+    java.io.PrintStream
     com.martiansoftware.nailgun.NGContext
-    com.martiansoftware.nailgun.NGServer))
+    com.martiansoftware.nailgun.NGServer
+    com.martiansoftware.nailgun.ThreadLocalPrintStream))
 
 (defn start-server-thread
   "Start a nailgun server in a dedicated daemon thread. host defaults
@@ -45,18 +46,28 @@
 (defn nail-driver
   "Driver for the defnail macro."
   [#^NGContext ctx nail]
-  (let [out (StringWriter.)
-        err (StringWriter.)
-        ret (binding [*out* (PrintWriter. out)
-                      *err* (PrintWriter. err)]
-              (try
-                (nail ctx)
-                (catch Throwable e
-                  (.printStackTrace e *err*))))]
-    (println
-      (util/clj->vim {:value  ret
-                      :stdout (.toString out)
-                      :stderr (.toString err)}))
+  (let [out          (ByteArrayOutputStream.)
+        pout         (PrintStream. out)
+        encoding     (if-let [encoding (System/getProperty "clojure.vim.encoding")]
+                       encoding
+                       "UTF-8")
+        setup-stream (fn [#^ThreadLocalPrintStream sys local]
+                       (let [old (.getPrintStream sys)]
+                         (.init sys local)
+                         old))
+        nail-out     (setup-stream System/out pout)
+        nail-err     (setup-stream System/err pout)
+        result       (try
+                       (nail ctx)
+                       (catch Throwable e
+                         (.printStackTrace e)))]
+    (.init #^ThreadLocalPrintStream System/out nail-out)
+    (.init #^ThreadLocalPrintStream System/err nail-err)
+    (print
+      (util/clj->vim
+        {:value  result
+         :stdout (.toString out encoding)
+         :stderr ""}))
     (flush)))
 
 (defmacro defnail

@@ -1,14 +1,22 @@
-usePlugin 'clojure'
+buildscript {
+    repositories {
+        flatDir name: 'gradleHome',
+                dirs: new File(System.getenv('GRADLE_HOME') + '/lib/plugins')
+    }
+    dependencies {
+        classpath 'clojuresque:clojuresque:1.4.0-SNAPSHOT'
+    }
+}
+
+apply plugin: 'clojure'
 
 group = 'vimclojure'
 version = '2.2.0-SNAPSHOT'
 
 aotCompile = false
 
-gradleHomeRepo repositories
-clojureSnapshotsRepo repositories
-
 repositories {
+    gradleHomeRepo()
     mavenCentral()
 }
 
@@ -32,15 +40,16 @@ defaultTasks 'build'
 configureClojarsDeploy(uploadArchives)
 
 task vimZip(type: Zip) {
-    zipFileSet(dir: 'autoload') { prefix = 'autoload' }
-    zipFileSet(dir: 'bin')      { prefix = 'bin' }
-    zipFileSet(dir: 'doc')      { prefix = 'doc' }
-    zipFileSet(dir: 'ftdetect') { prefix = 'ftdetect' }
-    zipFileSet(dir: 'ftplugin') { prefix = 'ftplugin' }
-    zipFileSet(dir: 'indent')   { prefix = 'indent' }
-    zipFileSet(dir: 'syntax')   { prefix = 'syntax' }
-    zipFileSet(dir: 'ngclient') { prefix = 'ngclient' }
-    fileSet(dir: '.') {
+    from('.') {
+        include 'autoload/**/*'
+        include 'bin/**/*'
+        exclude 'bin/kickoff.sh'
+        include 'doc/**/*'
+        include 'ftdetect/**/*'
+        include 'ftplugin/**/*'
+        include 'indent/**/*'
+        include 'syntax/**/*'
+        include 'ngclient/**/*'
         include 'LICENSE.txt'
         include 'README.txt'
         include 'Makefile'

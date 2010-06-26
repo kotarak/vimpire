@@ -225,7 +225,7 @@
   "Usage: ng vimclojure.nails.Repl [options]"
   [[id i "The id of the repl to act on."]]
   (let [id (Integer/parseInt id)]
-    (get (get @repl/*repls* :id {:ns "user"}) :ns)))
+    (get (get @repl/*repls* id {:ns "user"}) :ns)))
 
 (defnail CheckSyntax
   "Usage: ng vimclojure.nails.CheckSyntax"

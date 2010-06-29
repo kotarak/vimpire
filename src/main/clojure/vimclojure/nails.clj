@@ -261,10 +261,16 @@
   (let [nspace (util/resolve-and-load-namespace nspace)]
     (binding [*ns* nspace]
       (try
-        (dorun (util/stream->seq *in*))
-        true
-        (catch Throwable e
-          false)))))
+        (let [eof (Object.)]
+          (loop [x nil]
+            (if (identical? x eof)
+              true
+              (recur (read *in* false eof)))))
+        (catch clojure.lang.LispReader$ReaderException exc
+          (let [e (.getCause exc)]
+            (if (= "EOF while reading" (.getMessage e))
+              false
+              (throw exc))))))))
 
 (defnail Complete
   "Usage: ng vimclojure.nails.Complete"

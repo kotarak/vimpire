@@ -759,10 +759,13 @@ function! vimclojure#Repl.enterHook() dict
 
 	let result = vimclojure#ExecuteNailWithInput("CheckSyntax", cmd,
 				\ "-n", b:vimclojure_namespace)
-	if result.value == 0
+	if result.value == 0 && result.stderr == ""
 		execute "normal! GA\<CR>x"
 		normal! ==x
 		startinsert!
+	elseif result.stderr != ""
+		let buf = g:vimclojure#ResultBuffer.New()
+		call buf.showOutput(result)
 	else
 		let result = vimclojure#ExecuteNailWithInput("Repl", cmd,
 					\ "-r", "-i", self._id)

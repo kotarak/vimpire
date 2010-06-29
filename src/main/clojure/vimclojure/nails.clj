@@ -28,9 +28,14 @@
   (:import
     java.io.BufferedReader
     java.io.ByteArrayOutputStream
+    java.io.InputStreamReader
+    java.io.OutputStreamWriter
     java.io.PrintStream
+    java.io.PrintWriter
+    clojure.lang.LineNumberingPushbackReader
     com.martiansoftware.nailgun.NGContext
     com.martiansoftware.nailgun.NGServer
+    com.martiansoftware.nailgun.ThreadLocalInputStream
     com.martiansoftware.nailgun.ThreadLocalPrintStream))
 
 (defn start-server-thread
@@ -43,32 +48,55 @@
      (.setDaemon true)
      (.start))))
 
+(defn- make-stream-set
+  [in out err]
+  [(-> in InputStreamReader. LineNumberingPushbackReader.)
+   (-> out OutputStreamWriter.)
+   (-> err OutputStreamWriter. PrintWriter.)])
+
+(defn- set-input-stream
+  [#^ThreadLocalInputStream sys local]
+  (let [old (.getInputStream sys)]
+    (.init sys local)
+    old))
+
+(defn- set-output-stream
+  [#^ThreadLocalPrintStream sys local]
+  (let [old (.getPrintStream sys)]
+    (.init sys local)
+    old))
+
 (defn nail-driver
   "Driver for the defnail macro."
   [#^NGContext ctx nail]
   (let [out          (ByteArrayOutputStream.)
-        pout         (PrintStream. out)
+        err          (ByteArrayOutputStream.)
+        [clj-in clj-out clj-err] (make-stream-set (.in ctx) out err)
         encoding     (if-let [encoding (System/getProperty "clojure.vim.encoding")]
                        encoding
                        "UTF-8")
-        setup-stream (fn [#^ThreadLocalPrintStream sys local]
-                       (let [old (.getPrintStream sys)]
-                         (.init sys local)
-                         old))
-        nail-out     (setup-stream System/out pout)
-        nail-err     (setup-stream System/err pout)
-        result       (try
-                       (nail ctx)
-                       (catch Throwable e
-                         (.printStackTrace e)))]
-    (.init #^ThreadLocalPrintStream System/out nail-out)
-    (.init #^ThreadLocalPrintStream System/err nail-err)
-    (print
-      (util/clj->vim
-        {:value  result
-         :stdout (.toString out encoding)
-         :stderr ""}))
-    (flush)))
+        sys-in       (set-input-stream System/in (.in ctx))
+        sys-out      (set-output-stream System/out (PrintStream. out))
+        sys-err      (set-output-stream System/err (PrintStream. err))
+        result       (binding [*in*  clj-in
+                               *out* clj-out
+                               *err* clj-err]
+                       (try
+                         (nail ctx)
+                         (catch Throwable e
+                           (.printStackTrace e))))]
+    (.flush clj-out)
+    (.flush clj-err)
+    (set-input-stream System/in sys-in)
+    (set-output-stream System/out sys-out)
+    (set-output-stream System/err sys-err)
+    (.print (.out ctx)
+            (print-str
+              (util/clj->vim
+                {:value  result
+                 :stdout (.toString out encoding)
+                 :stderr (.toString err encoding)})))
+    (.flush (.out ctx))))
 
 (defmacro defnail
   "Define a new Nail of the given name. The arguments is a command line

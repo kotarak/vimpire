@@ -315,12 +315,19 @@ endfunction
 let vimclojure#ClojureResultBuffer = copy(vimclojure#ResultBuffer)
 let vimclojure#ClojureResultBuffer["__superResultBufferInit"] =
 			\ vimclojure#ResultBuffer["Init"]
+let vimclojure#ClojureResultBuffer["__superResultBufferShowOutput"] =
+			\ vimclojure#ResultBuffer["showOutput"]
 
 function! vimclojure#ClojureResultBuffer.Init(instance) dict
 	call self.__superResultBufferInit(a:instance)
 	setfiletype clojure
 
 	return a:instance
+endfunction
+
+function! vimclojure#ClojureResultBuffer.showOutput(text) dict
+	call self.__superResultBufferShowOutput(a:text)
+	normal G
 endfunction
 
 " Nails

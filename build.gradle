@@ -89,14 +89,12 @@ task installVim << {
     }
 }
 
-task runNailgun(dependsOn: classes) << {
-    project.javaexec {
-        classpath = project.files([
-            sourceSets.main.clojure.srcDirs,
-            sourceSets.main.classesDir.path,
-            configurations.clojure
-        ])
-        main = 'com.martiansoftware.nailgun.NGServer'
-        args = [ '127.0.0.1' ]
-    }
+task runNailgun(type: JavaExec.class, dependsOn: classes) {
+    classpath = project.files([
+        sourceSets.main.clojure.srcDirs,
+        sourceSets.main.classesDir.path,
+        configurations.clojure
+    ])
+    main = 'com.martiansoftware.nailgun.NGServer'
+    args = [ '127.0.0.1' ]
 }

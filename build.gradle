@@ -49,11 +49,19 @@ task vimZip(type: Zip) {
         include 'ftplugin/**/*'
         include 'indent/**/*'
         include 'syntax/**/*'
-        include 'ngclient/**/*'
         include 'LICENSE.txt'
         include 'README.txt'
-        include 'Makefile'
-        include 'ng.exe'
+    }
+}
+
+task nailgunClientZip(type: Zip) {
+    archiveName = "vimclojure-nailgun-client.zip"
+    into("vimclojure-nailgun-client") {
+        from('.') {
+            include "ngclient/**/*"
+            include "Makefile"
+            include "ng.exe"
+        }
     }
 }
 

@@ -167,7 +167,7 @@ if g:vimclojure#DynamicHighlighting != 0 && exists("b:vimclojure_namespace")
 	endtry
 endif
 
-syn cluster clojureAtomCluster   contains=clojureError,clojureFunc,clojureMacro,clojureCond,clojureDefine,clojureRepeat,clojureException,clojureConstant,clojureVariable,clojureSpecial,clojureKeyword,clojureString,clojureCharacter,clojureNumber,clojureRational,clojureBoolean,clojureQuote,clojureUnquote,clojureDispatch,clojurePattern
+syn cluster clojureAtomCluster   contains=clojureError,clojureFunc,clojureMacro,clojureCond,clojureDefine,clojureRepeat,clojureException,clojureConstant,clojureVariable,clojureSpecial,clojureKeyword,clojureString,clojureCharacter,clojureNumber,clojureBoolean,clojureQuote,clojureUnquote,clojureDispatch,clojurePattern
 syn cluster clojureTopCluster    contains=@clojureAtomCluster,clojureComment,clojureSexp,clojureAnonFn,clojureVector,clojureMap,clojureSet
 
 syn keyword clojureTodo contained FIXME XXX TODO FIXME: XXX: TODO:
@@ -195,8 +195,8 @@ for radix in range(2, 36)
 endfor
 
 syn match   clojureNumber "\<-\=[0-9]\+\(M\|\(\.[0-9]*\)\=\([eE][-+]\=[0-9]\+\)\=\)\=\>"
-syn match   clojureHexNumber "\<-\=0x[0-9a-fA-F]\+\>"
-syn match   clojureRational "\<-\=[0-9]\+/[0-9]\+\>"
+syn match   clojureNumber "\<-\=0x[0-9a-fA-F]\+\>"
+syn match   clojureNumber "\<-\=[0-9]\+/[0-9]\+\>"
 
 syn match   clojureQuote "\('\|`\)"
 syn match   clojureUnquote "\(\~@\|\~\)"
@@ -245,8 +245,6 @@ HiLink clojureBoolean   Boolean
 HiLink clojureCharacter Character
 HiLink clojureKeyword   Operator
 HiLink clojureNumber    Number
-HiLink clojureHexNumber Number
-HiLink clojureRational  Number
 HiLink clojureString    String
 HiLink clojurePattern   Constant
 

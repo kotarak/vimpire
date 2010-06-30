@@ -898,7 +898,12 @@ function! vimclojure#InitBuffer()
 					endif
 					let b:vimclojure_namespace = namespace.value
 				catch /.*/
-					echoerr "Could not determine the Namespace of the file. This might have different reasons. Please check, that the ng server is running with the correct classpath and that the file does not contain syntax errors. The interactive features will not be enabled, ie. the keybindings will not be mapped. Reason: " . v:exception
+					let buf = g:vimclojure#ResultBuffer.New()
+					call buf.showText("Could not determine the Namespace of the file.\n\n"
+								\ . "This might have different reasons. Please check, that the ng server\n"
+								\ . "is running with the correct classpath and that the file does not contain\n"
+								\ . "syntax errors. The interactive features will not be enabled, ie. the\n"
+								\ . "keybindings will not be mapped.\n\nReason:\n" . v:exception)
 				endtry
 			endif
 		endif

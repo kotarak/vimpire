@@ -60,6 +60,7 @@ function! vimclojure#ReportError(msg)
 	if g:vimclojure#UseErrorBuffer
 		let buf = g:vimclojure#ResultBuffer.New()
 		call buf.showText(a:msg)
+		wincmd p
 	else
 		echoerr substitute(a:msg, '\n\(\t\?\)', ' ', 'g')
 	endif

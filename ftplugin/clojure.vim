@@ -127,13 +127,13 @@ if exists("b:vimclojure_namespace")
 	call vimclojure#MapPlug("n", "sr", "StartRepl")
 	call vimclojure#MapPlug("n", "sR", "StartLocalRepl")
 
-	call vimclojure#MapPlug("n", "p", "CloseResultBuffer")
-
 	setlocal omnifunc=vimclojure#OmniCompletion
 
 	augroup VimClojure
 		autocmd CursorMovedI <buffer> if pumvisible() == 0 | pclose | endif
 	augroup END
 endif
+
+call vimclojure#MapPlug("n", "p", "CloseResultBuffer")
 
 let &cpo = s:cpo_save

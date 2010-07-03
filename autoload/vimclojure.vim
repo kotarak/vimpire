@@ -181,6 +181,22 @@ function! vimclojure#MapPlug(mode, keys, plug)
 	endif
 endfunction
 
+function! vimclojure#MapCommandPlug(mode, keys, plug)
+	if exists("b:vimclojure_namespace")
+		call vimclojure#MapPlug(a:mode, a:keys, a:plug)
+	elseif g:vimclojure#WantNailgun == 1
+		let msg = ':call vimclojure#ReportError("VimClojure could not initialise the server connection.\n'
+					\ . 'That means you will not be able to use the interactive features.\n'
+					\ . 'Reasons might be that the server is not running or that there is\n'
+					\ . 'some trouble with the classpath.\n\n'
+					\ . 'VimClojure will *not* start the server for you or handle the classpath.\n'
+					\ . 'There is a plethora of tools like ivy, maven, gradle and leiningen,\n'
+					\ . 'which do this better than VimClojure could ever do it.")'
+		execute a:mode . "map <buffer> <silent> <LocalLeader>" . a:keys
+					\ . " " . msg . "<CR>"
+	endif
+endfunction
+
 function! vimclojure#ProtectedPlug(f, ...)
 	try
 		return call(a:f, a:000)

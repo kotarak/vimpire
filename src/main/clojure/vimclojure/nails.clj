@@ -283,3 +283,15 @@
         completions (mapcat #(backend/complete % nspace prefix base)
                             to-complete)]
     (map #(apply util/make-completion-item %) completions)))
+
+(defnail RunTests
+  "Usage: ng vimclojure.nails.RunTests"
+  [[nspace n "Run tests in the given namespace." "user"]
+   [all?   a "Reload all or only the namespace under test"]]
+  (when (not= "user" nspace)
+    (if all
+      (require :reload-all (symbol nspace))
+      (require :reload (symbol nspace))))
+  (util/run-tests-helper (symbol nspace))
+  nil)
+

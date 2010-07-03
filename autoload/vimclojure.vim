@@ -582,16 +582,9 @@ endfunction
 
 function! vimclojure#RunTests(all)
 	let ns = b:vimclojure_namespace
-	let all = a:all ? "-all" : ""
 
-	let cmd = ""
-	if ns != "user"
-		let cmd .= "(require :reload" . all . " '" . ns . ")"
-	endif
-	let cmd .= "(require 'clojure.contrib.test-is)"
-	let cmd .= "(clojure.contrib.test-is/run-tests (find-ns '" . ns ."))"
-	let result = vimclojure#ExecuteNailWithInput("Repl", cmd, "-r")
-
+	let result = call(function("vimclojure#ExecuteNailWithInput"),
+				\ [ "RunTests", "", "-n", ns ] + (a:all ? [ "-a" ] : []))
 	let resultBuffer = g:vimclojure#ClojureResultBuffer.New()
 	call resultBuffer.showOutput(result)
 	wincmd p

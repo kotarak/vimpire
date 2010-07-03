@@ -433,6 +433,10 @@ function! vimclojure#FilterNail(nail, rngStart, rngEnd, ...)
 endfunction
 
 function! vimclojure#DocLookup(word)
+	if a:word == ""
+		return
+	endif
+
 	let doc = vimclojure#ExecuteNailWithInput("DocLookup", a:word,
 				\ "-n", b:vimclojure_namespace)
 	let buf = g:vimclojure#ResultBuffer.New()

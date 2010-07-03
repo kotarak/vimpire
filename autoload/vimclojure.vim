@@ -149,9 +149,15 @@ function! vimclojure#BufferName()
 endfunction
 
 " Key mappings and Plugs
-function! vimclojure#MakePlug(mode, plug, f)
+function! vimclojure#MakePlug(mode, plug, f, args)
 	execute a:mode . "noremap <Plug>Clojure" . a:plug
-				\ . " :call " . a:f . "<CR>"
+				\ . " :call " . a:f . "(" . a:args . ")<CR>"
+endfunction
+
+function! vimclojure#MakeProtectedPlug(mode, plug, f, args)
+	execute a:mode . "noremap <Plug>Clojure" . a:plug
+				\ . " :call vimclojure#ProtectedPlug(function(\""
+				\ . a:f . "\"), " . a:args . ")<CR>"
 endfunction
 
 function! vimclojure#MapPlug(mode, keys, plug)
@@ -159,6 +165,15 @@ function! vimclojure#MapPlug(mode, keys, plug)
 		execute a:mode . "map <buffer> <unique> <silent> <LocalLeader>" . a:keys
 					\ . " <Plug>Clojure" . a:plug
 	endif
+endfunction
+
+function! vimclojure#ProtectedPlug(f, ...)
+	try
+		return call(a:f, a:000)
+	catch /.*/
+		let buf = g:vimclojure#ResultBuffer.New()
+		call buf.showText(v:exception)
+	endtry
 endfunction
 
 " A Buffer...
@@ -365,8 +380,7 @@ function! vimclojure#ExecuteNailWithInput(nail, input, ...)
 		let output = system(cmd)
 
 		if v:shell_error
-			echoerr "Couldn't execute Nail! "
-						\ . substitute(output, '\n\(\t\?\)', ' ', 'g')
+			throw "Couldn't execute Nail!\n" . output
 		endif
 	finally
 		call delete(inputfile)

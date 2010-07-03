@@ -52,7 +52,8 @@
     :>>
     (fn [v] (print-doc v))
 
-    (throw (Exception. (str "No such Var or Namespace: " symbol)))))
+    (println
+      (str "'" symbol "' could not be found. Please check the spelling."))))
 
 (defn javadoc-path-for-class
   "Translate the name of a Class to the path of its javadoc file."

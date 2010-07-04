@@ -171,7 +171,7 @@ endfunction
 function! vimclojure#MakeProtectedPlug(mode, plug, f, args)
 	execute a:mode . "noremap <Plug>Clojure" . a:plug
 				\ . " :call vimclojure#ProtectedPlug(function(\""
-				\ . a:f . "\"), " . a:args . ")<CR>"
+				\ . a:f . "\"), [ " . a:args . " ])<CR>"
 endfunction
 
 function! vimclojure#MapPlug(mode, keys, plug)

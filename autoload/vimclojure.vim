@@ -197,13 +197,15 @@ function! vimclojure#MapCommandPlug(mode, keys, plug)
 	endif
 endfunction
 
-function! vimclojure#ProtectedPlug(f, ...)
-	try
-		return call(a:f, a:000)
-	catch /.*/
-		call vimclojure#ReportError(v:exception)
-	endtry
-endfunction
+if !exists("*vimclojure#ProtectedPlug")
+	function vimclojure#ProtectedPlug(f, args)
+		try
+			return call(a:f, a:args)
+		catch /.*/
+			call vimclojure#ReportError(v:exception)
+		endtry
+	endfunction
+endif
 
 " A Buffer...
 if !exists("g:vimclojure#SplitPos")

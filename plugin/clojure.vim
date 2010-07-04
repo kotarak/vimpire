@@ -45,8 +45,8 @@ call vimclojure#MakeProtectedPlug("v", "EvalBlock",     "vimclojure#EvalBlock", 
 call vimclojure#MakeProtectedPlug("n", "EvalToplevel",  "vimclojure#EvalToplevel", "")
 call vimclojure#MakeProtectedPlug("n", "EvalParagraph", "vimclojure#EvalParagraph", "")
 
-call vimclojure#MakeProtectedPlug("n", "StartRepl", "vimclojure#Repl.New", "user")
-call vimclojure#MakeProtectedPlug("n", "StartLocalRepl", "vimclojure#Repl.New", "b:vimclojure_namespace")
+call vimclojure#MakeProtectedPlug("n", "StartRepl", "vimclojure#StartRepl", "")
+call vimclojure#MakeProtectedPlug("n", "StartLocalRepl", "vimclojure#StartRepl", "b:vimclojure_namespace")
 
 inoremap <Plug>ClojureReplEnterHook <Esc>:call b:vimclojure_repl.enterHook()<CR>
 inoremap <Plug>ClojureReplUpHistory <C-O>:call b:vimclojure_repl.upHistory()<CR>

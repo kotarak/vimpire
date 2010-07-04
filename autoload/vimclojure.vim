@@ -684,8 +684,9 @@ let vimclojure#Repl._historyDepth = 0
 let vimclojure#Repl._replCommands = [ ",close", ",st", ",ct", ",toggle-pprint" ]
 
 " Simple wrapper to allow on demand load of autoload/vimclojure.vim.
-function! vimclojure#StartRepl()
-	call g:vimclojure#Repl.New("user")
+function! vimclojure#StartRepl(...)
+	let ns = a:0 > 0 ? a:1 : "user"
+	call g:vimclojure#Repl.New(ns)
 endfunction
 
 function! vimclojure#Repl.New(namespace) dict

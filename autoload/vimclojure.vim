@@ -706,16 +706,6 @@ function! vimclojure#Repl.Init(instance, namespace) dict
 	setlocal buftype=nofile
 	setlocal noswapfile
 
-	if !hasmapto("<Plug>ClojureReplEnterHook")
-		imap <buffer> <silent> <CR> <Plug>ClojureReplEnterHook
-	endif
-	if !hasmapto("<Plug>ClojureReplUpHistory")
-		imap <buffer> <silent> <C-Up> <Plug>ClojureReplUpHistory
-	endif
-	if !hasmapto("<Plug>ClojureReplDownHistory")
-		imap <buffer> <silent> <C-Down> <Plug>ClojureReplDownHistory
-	endif
-
 	call append(line("$"), ["Clojure", a:instance._prompt . " "])
 
 	let replStart = vimclojure#ExecuteNail("Repl", "-s",
@@ -728,6 +718,16 @@ function! vimclojure#Repl.Init(instance, namespace) dict
 	let b:vimclojure_repl = a:instance
 
 	setfiletype clojure
+
+	if !hasmapto("<Plug>ClojureReplEnterHook")
+		imap <buffer> <silent> <CR> <Plug>ClojureReplEnterHook
+	endif
+	if !hasmapto("<Plug>ClojureReplUpHistory")
+		imap <buffer> <silent> <C-Up> <Plug>ClojureReplUpHistory
+	endif
+	if !hasmapto("<Plug>ClojureReplDownHistory")
+		imap <buffer> <silent> <C-Down> <Plug>ClojureReplDownHistory
+	endif
 
 	normal! G
 	startinsert!

@@ -717,7 +717,7 @@ function! vimclojure#Repl.Init(instance, namespace) dict
 
 	let b:vimclojure_repl = a:instance
 
-	setfiletype clojure
+	set filetype=clojure
 
 	if !hasmapto("<Plug>ClojureReplEnterHook")
 		imap <buffer> <silent> <CR> <Plug>ClojureReplEnterHook

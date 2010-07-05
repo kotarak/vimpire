@@ -13,19 +13,18 @@
 ;
 ; See also: http://en.wikibooks.org/wiki/Clojure_Programming
 
-(ns vimclojure.gencompletions
-  (:gen-class
-     :main true))
+(ns vimclojure.gencompletions)
 
 (defmacro with-out-file [pathname & body]
   `(with-open [stream# (new java.io.FileWriter ~pathname)]
      (binding [*out* stream#]
        ~@body)))
 
-(defn -main
-  [nspace]
-  (require (symbol nspace))
-  (let [completions (keys (ns-publics (symbol nspace)))]
-    (with-out-file (str nspace "-keys.txt")
-      (doseq [x (sort completions)]
-        (println x)))))
+(defn main
+  [& nspaces]
+  (doseq [nspace nspaces]
+    (require (symbol nspace))
+    (let [completions (keys (ns-publics (symbol nspace)))]
+      (with-out-file (str "completions-" nspace ".txt")
+        (doseq [x (sort completions)]
+          (println x))))))

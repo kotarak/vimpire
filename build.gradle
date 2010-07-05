@@ -48,6 +48,7 @@ task vimZip(type: Zip) {
         include 'ftdetect/**/*'
         include 'ftplugin/**/*'
         include 'indent/**/*'
+        include 'plugin/**/*'
         include 'syntax/**/*'
         include 'LICENSE.txt'
         include 'README.txt'

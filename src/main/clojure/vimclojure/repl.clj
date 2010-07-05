@@ -121,44 +121,44 @@
         line     (if (= line 0)
                    (the-repl :line)
                    line)]
-    (try
-      (Var/pushThreadBindings
-        {Compiler/LINE          line
-         Compiler/SOURCE        (.getName (java.io.File. file))
-         Compiler/SOURCE_PATH   file
-         #'*in*                 (make-reader *in* line)
-         #'*ns*                 (if nspace nspace (the-repl :ns))
-         #'*warn-on-reflection* (the-repl :warn-on-reflection)
-         #'*print-meta*         (the-repl :print-meta)
-         #'*print-length*       (the-repl :print-length)
-         #'*print-level*        (the-repl :print-level)
-         #'*compile-path*       (the-repl :compile-path)
-         #'*command-line-args*  (the-repl :command-line-args)
-         #'*1                   (the-repl :expr1)
-         #'*2                   (the-repl :expr2)
-         #'*3                   (the-repl :expr3)
-         #'*e                   (the-repl :exception)
-         #'vimclojure.repl/*print-pretty* (the-repl :print-pretty)})
-      (thunk)
-      (finally
-        (when (not= id -1)
-          (swap! *repls* assoc id
-                 (struct-map repl
-                             :id                 id
-                             :ns                 *ns*
-                             :warn-on-reflection *warn-on-reflection*
-                             :print-meta         *print-meta*
-                             :print-length       *print-length*
-                             :print-level        *print-level*
-                             :compile-path       *compile-path*
-                             :command-line-args  *command-line-args*
-                             :expr1              *1
-                             :expr2              *2
-                             :expr3              *3
-                             :exception          *e
-                             :print-pretty       vimclojure.repl/*print-pretty*
-                             :line               (dec (.getLineNumber *in*)))))
-        (Var/popThreadBindings)))))
+    (with-bindings
+      {Compiler/LINE          line
+       Compiler/SOURCE        (.getName (java.io.File. file))
+       Compiler/SOURCE_PATH   file
+       #'*in*                 (make-reader *in* line)
+       #'*ns*                 (if nspace nspace (the-repl :ns))
+       #'*warn-on-reflection* (the-repl :warn-on-reflection)
+       #'*print-meta*         (the-repl :print-meta)
+       #'*print-length*       (the-repl :print-length)
+       #'*print-level*        (the-repl :print-level)
+       #'*compile-path*       (the-repl :compile-path)
+       #'*command-line-args*  (the-repl :command-line-args)
+       #'*1                   (the-repl :expr1)
+       #'*2                   (the-repl :expr2)
+       #'*3                   (the-repl :expr3)
+       #'*e                   (the-repl :exception)
+       #'vimclojure.repl/*print-pretty* (the-repl :print-pretty)}
+      (try
+        (thunk)
+        (finally
+          (when (not= id -1)
+            (swap! *repls* assoc id
+                   (struct-map
+                     repl
+                     :id                 id
+                     :ns                 *ns*
+                     :warn-on-reflection *warn-on-reflection*
+                     :print-meta         *print-meta*
+                     :print-length       *print-length*
+                     :print-level        *print-level*
+                     :compile-path       *compile-path*
+                     :command-line-args  *command-line-args*
+                     :expr1              *1
+                     :expr2              *2
+                     :expr3              *3
+                     :exception          *e
+                     :print-pretty       vimclojure.repl/*print-pretty*
+                     :line               (dec (.getLineNumber *in*))))))))))
 
 (defmacro with-repl
   "Executes body in the context of the Repl with the given id. id may be -1

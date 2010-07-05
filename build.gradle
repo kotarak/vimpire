@@ -28,7 +28,7 @@ configurations {
 }
 
 dependencies {
-    clojure 'org.clojure:clojure:1.0.0'
+    clojure 'org.clojure:clojure:1.1.0'
 }
 
 sourceSets.main.compileClasspath = configurations.clojure

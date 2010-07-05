@@ -414,12 +414,6 @@
   [e]
   (pretty-print-stacktrace e))
 
-(defn run-tests-helper
-  "Run the unit tests of the given namespaces. This is just a helper for
-  run-tests from c.test/c.c.test-is."
-  [& namespaces]
-  (println "VimClojure could determine the location of run-tests."))
-
 ; Load optional libraries
 (defmacro defoptional
    [sym args & body]
@@ -446,26 +440,4 @@
     (load "optional/core_stacktrace")
     (catch Exception exc
       (when-not (re-find #"Could not locate clojure/stacktrace__init.class or clojure/stacktrace.clj on classpath" (str exc))
-        (throw exc)))))
-
-(when-not stacktrace-printer
-  (try
-    (load "optional/contrib_stacktrace")
-    (catch Exception exc
-      (when-not (re-find #"Could not locate clojure/contrib/stacktrace__init.class or clojure/contrib/stacktrace.clj on classpath" (str exc))
-        (throw exc)))))
-
-(def test-runner nil)
-
-(try
-  (load "optional/core_test")
-  (catch Exception exc
-    (when-not (re-find #"Could not locate clojure/test__init.class or clojure/test.clj on classpath" (str exc))
-      (throw exc))))
-
-(when-not test-runner
-  (try
-    (load "optional/contrib_test_is")
-    (catch Exception exc
-      (when-not (re-find #"Could not locate clojure/contrib/test_is__init.class or clojure/contrib/test_is.clj on classpath" (str exc))
         (throw exc)))))

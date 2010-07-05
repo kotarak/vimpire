@@ -22,9 +22,10 @@
 
 (ns vimclojure.nails
   (:require
-    (vimclojure [repl :as repl]
-                [util :as util]
-                [backend :as backend]))
+    [vimclojure.repl :as repl]
+    [vimclojure.util :as util]
+    [vimclojure.backend :as backend]
+    clojure.test)
   (:import
     java.io.BufferedReader
     java.io.ByteArrayOutputStream
@@ -292,6 +293,6 @@
     (if all
       (require :reload-all (symbol nspace))
       (require :reload (symbol nspace))))
-  (util/run-tests-helper (symbol nspace))
+  (binding [clojure.test/*test-out* *out*]
+    (clojure.test/run-tests (symbol nspace)))
   nil)
-

@@ -86,7 +86,7 @@ task installVim << {
     }
 
     // The Vim files:
-    [ 'autoload', 'indent', 'syntax', 'ftdetect', 'ftplugin' ].each {
+    [ 'autoload', 'indent', 'syntax', 'ftdetect', 'ftplugin', 'plugin' ].each {
         File subDir = new File(installDir, it)
         installFiles file(it), '**/*.vim', subDir
     }

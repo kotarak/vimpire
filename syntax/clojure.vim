@@ -141,7 +141,8 @@ if g:vimclojure#HighlightBuiltins != 0
 		\            . "reductions remove-all-methods restart-agent "
 		\            . "satisfies?  set-error-handler!  set-error-mode! "
 		\            . "short-array shorts shuffle sorted-set-by take-last "
-		\            . "thread-bound? transient vector-of with-bindings*"
+		\            . "thread-bound? transient vector-of with-bindings* fnil "
+		\            . "spit"
 		\ }
 
 	for category in keys(s:builtins_map)

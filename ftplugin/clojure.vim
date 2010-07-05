@@ -49,9 +49,12 @@ if has("gui_win32") && !exists("b:browsefilter")
 				\ "All Files (*.*)\t*.*\n"
 endif
 
-for ns in ['clojure.core', 'clojure.set', 'clojure.xml', 'clojure.zip',
-			\ 'clojure.walk', 'clojure.template', 'clojure.stacktrace',
-			\ 'clojure.inspector', 'clojure.test', 'clojure.test.tap']
+for ns in [ "clojure.core", "clojure.inspector", "clojure.java.browse",
+			\ "clojure.java.io", "clojure.java.javadoc", "clojure.java.shell",
+			\ "clojure.main", "clojure.pprint", "clojure.repl", "clojure.set",
+			\ "clojure.stacktrace", "clojure.string", "clojure.template",
+			\ "clojure.test", "clojure.test.tap", "clojure.test.junit",
+			\ "clojure.walk", "clojure.xml", "clojure.zip" ]
 	call vimclojure#AddCompletions(ns)
 endfor
 

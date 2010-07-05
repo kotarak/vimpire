@@ -98,6 +98,32 @@ task installVim << {
     }
 }
 
+task genCompletions(type: JavaExec.class) {
+    classpath = project.files([
+        sourceSets.main.clojure.srcDirs,
+        sourceSets.main.classesDir.path,
+        configurations.clojure
+    ])
+    main = "clojure.main"
+    args = [ "-e", "(require 'vimclojure.gencompletions)", "-e",
+        "(vimclojure.gencompletions/main " +
+            "'clojure.core " +
+            "'clojure.inspector " +
+            "'clojure.java.browse 'clojure.java.browse-ui 'clojure.java.io 'clojure.java.javadoc 'clojure.java.shell " +
+            "'clojure.main " +
+            "'clojure.pprint " +
+            "'clojure.repl " +
+            "'clojure.set " +
+            "'clojure.stacktrace " +
+            "'clojure.string " +
+            "'clojure.template " +
+            "'clojure.test 'clojure.test.tap 'clojure.test.junit " +
+            "'clojure.walk " +
+            "'clojure.xml " +
+            "'clojure.zip)"
+    ]
+}
+
 task runNailgun(type: JavaExec.class, dependsOn: classes) {
     classpath = project.files([
         sourceSets.main.clojure.srcDirs,

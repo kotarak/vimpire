@@ -21,6 +21,8 @@
 ; THE SOFTWARE.
 
 (ns vimclojure.repl
+  (:require
+    clojure.test)
   (:use
      [vimclojure.util :only (stream->seq pretty-print pretty-print-causetrace)])
   (:import
@@ -51,7 +53,8 @@
   invokations. The members correspond to the Vars as bound be with-binding."}
   repl
   :id :ns :warn-on-reflection :print-meta :print-length :print-level
-  :compile-path :command-line-args :expr1 :expr2 :expr3 :exception :line)
+  :compile-path :command-line-args :expr1 :expr2 :expr3 :exception :test-out
+  :line)
 
 (defn make-repl
   "Create a new Repl."
@@ -73,6 +76,7 @@
                :expr3              nil
                :exception          nil
                :print-pretty       vimclojure.repl/*print-pretty*
+               :test-out           nil
                :line               0)))
 
 (defn start
@@ -137,7 +141,10 @@
        #'*2                   (the-repl :expr2)
        #'*3                   (the-repl :expr3)
        #'*e                   (the-repl :exception)
-       #'vimclojure.repl/*print-pretty* (the-repl :print-pretty)}
+       #'vimclojure.repl/*print-pretty* (the-repl :print-pretty)
+       #'clojure.test/*test-out* (if-let [test-out (the-repl :test-out)]
+                                   test-out
+                                   *out*)}
       (try
         (thunk)
         (finally
@@ -158,6 +165,9 @@
                      :expr3              *3
                      :exception          *e
                      :print-pretty       vimclojure.repl/*print-pretty*
+                     :test-out           (let [test-out clojure.test/*test-out*]
+                                           (when-not (identical? test-out *out*)
+                                             test-out))
                      :line               (dec (.getLineNumber *in*))))))))))
 
 (defmacro with-repl

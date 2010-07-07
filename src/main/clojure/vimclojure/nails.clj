@@ -34,10 +34,10 @@
     java.io.PrintStream
     java.io.PrintWriter
     clojure.lang.LineNumberingPushbackReader
-    com.martiansoftware.nailgun.NGContext
-    com.martiansoftware.nailgun.NGServer
-    com.martiansoftware.nailgun.ThreadLocalInputStream
-    com.martiansoftware.nailgun.ThreadLocalPrintStream))
+    vimclojure.nailgun.NGContext
+    vimclojure.nailgun.NGServer
+    vimclojure.nailgun.ThreadLocalInputStream
+    vimclojure.nailgun.ThreadLocalPrintStream))
 
 (defn start-server-thread
   "Start a nailgun server in a dedicated daemon thread. host defaults

@@ -16,7 +16,7 @@
 
  */
 
-package com.martiansoftware.nailgun;
+package vimclojure.nailgun;
 
 import java.io.InputStream;
 import java.io.PrintStream;

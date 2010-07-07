@@ -1,7 +1,7 @@
-package com.martiansoftware.nailgun.builtins;
+package vimclojure.nailgun.builtins;
 
-import com.martiansoftware.nailgun.NGConstants;
-import com.martiansoftware.nailgun.NGContext;
+import vimclojure.nailgun.NGConstants;
+import vimclojure.nailgun.NGContext;
 
 /**
  * Displays the version of the NailGun server and exits.

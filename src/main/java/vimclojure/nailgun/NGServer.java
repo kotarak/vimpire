@@ -16,7 +16,7 @@
 
 */
 
-package com.martiansoftware.nailgun;
+package vimclojure.nailgun;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.lang.reflect.Method;
@@ -27,7 +27,7 @@ import java.net.UnknownHostException;
 import java.util.Iterator;
 import java.util.Map;
 
-import com.martiansoftware.nailgun.builtins.DefaultNail;
+import vimclojure.nailgun.builtins.DefaultNail;
 
 /**
  * <p>Listens for new connections from NailGun clients and launches
@@ -395,10 +395,10 @@ public class NGServer implements Runnable {
 	}
 	
 	private static void usage() {
-		System.err.println("Usage: java com.martiansoftware.nailgun.NGServer");
-		System.err.println("   or: java com.martiansoftware.nailgun.NGServer port");
-		System.err.println("   or: java com.martiansoftware.nailgun.NGServer IPAddress");
-		System.err.println("   or: java com.martiansoftware.nailgun.NGServer IPAddress:port");
+		System.err.println("Usage: java vimclojure.nailgun.NGServer");
+		System.err.println("   or: java vimclojure.nailgun.NGServer port");
+		System.err.println("   or: java vimclojure.nailgun.NGServer IPAddress");
+		System.err.println("   or: java vimclojure.nailgun.NGServer IPAddress:port");
 	}
 	
 	/**

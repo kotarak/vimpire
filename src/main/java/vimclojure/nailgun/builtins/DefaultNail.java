@@ -16,10 +16,10 @@ limitations under the License.
 
 */
 
-package com.martiansoftware.nailgun.builtins;
+package vimclojure.nailgun.builtins;
 
-import com.martiansoftware.nailgun.NGContext;
-import com.martiansoftware.nailgun.NGConstants;
+import vimclojure.nailgun.NGContext;
+import vimclojure.nailgun.NGConstants;
 
 /**
  * The default nail class used by the server when an invalid command (nonexisting

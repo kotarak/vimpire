@@ -16,7 +16,7 @@ limitations under the License.
 
 */
 
-package com.martiansoftware.nailgun;
+package vimclojure.nailgun;
 
 import  java.security.Permission;
 

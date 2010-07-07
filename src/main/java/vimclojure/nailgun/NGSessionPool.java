@@ -16,7 +16,7 @@
 
 */
 
-package com.martiansoftware.nailgun;
+package vimclojure.nailgun;
 
 /**
  * Provides NGSession pooling functionality.  One parameter, "maxIdle",

@@ -16,13 +16,13 @@
 
 */
 
-package com.martiansoftware.nailgun.builtins;
+package vimclojure.nailgun.builtins;
 
 import java.util.Iterator;
 import java.util.Map;
 
-import com.martiansoftware.nailgun.NGServer;
-import com.martiansoftware.nailgun.NGContext;
+import vimclojure.nailgun.NGServer;
+import vimclojure.nailgun.NGContext;
 
 /**
  * <p>Displays all <a href="NailStats.html">NailStats</a> tracked by the server.</p>

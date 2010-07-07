@@ -16,14 +16,14 @@
 
 */
 
-package com.martiansoftware.nailgun.builtins;
+package vimclojure.nailgun.builtins;
 
 import java.util.Iterator;
 import java.util.Set;
 
-import com.martiansoftware.nailgun.Alias;
-import com.martiansoftware.nailgun.NGContext;
-import com.martiansoftware.nailgun.NGServer;
+import vimclojure.nailgun.Alias;
+import vimclojure.nailgun.NGContext;
+import vimclojure.nailgun.NGServer;
 
 /**
  * <p>Provides a means to view and add aliases.  This is aliased by default

@@ -16,7 +16,7 @@
 
 */
 
-package com.martiansoftware.nailgun;
+package vimclojure.nailgun;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -45,7 +45,7 @@ public class AliasManager {
 		
 		try {
 			Properties props = new Properties();
-			props.load(getClass().getClassLoader().getResourceAsStream("com/martiansoftware/nailgun/builtins/builtins.properties"));
+			props.load(getClass().getClassLoader().getResourceAsStream("vimclojure/nailgun/builtins/builtins.properties"));
 			loadFromProperties(props);
 		} catch (java.io.IOException e) {
 			System.err.println("Unable to load builtins.properties: " + e.getMessage());

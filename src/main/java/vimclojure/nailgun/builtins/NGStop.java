@@ -16,9 +16,9 @@
 
 */
 
-package com.martiansoftware.nailgun.builtins;
+package vimclojure.nailgun.builtins;
 
-import com.martiansoftware.nailgun.NGContext;
+import vimclojure.nailgun.NGContext;
 
 /**
  * <p>Shuts down the currently running server.</p>  

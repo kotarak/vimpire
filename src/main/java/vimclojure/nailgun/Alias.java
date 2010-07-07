@@ -16,7 +16,7 @@
 
 */
 
-package com.martiansoftware.nailgun;
+package vimclojure.nailgun;
 
 /**
  * Provides a means to map memorable, short names to classes in order

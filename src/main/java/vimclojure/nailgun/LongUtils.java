@@ -16,7 +16,7 @@
   
 */
 
-package com.martiansoftware.nailgun;
+package vimclojure.nailgun;
 
 /**
  * Provides a couple of utility methods that help in reading/writin

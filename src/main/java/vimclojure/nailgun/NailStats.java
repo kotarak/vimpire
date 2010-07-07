@@ -16,7 +16,7 @@
 
 */
 
-package com.martiansoftware.nailgun;
+package vimclojure.nailgun;
 
 /**
  * <p>Collects and provides statistics on a nail.</p>

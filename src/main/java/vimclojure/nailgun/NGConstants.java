@@ -16,7 +16,7 @@
 
 */
 
-package com.martiansoftware.nailgun;
+package vimclojure.nailgun;
 
 import java.util.Properties;
 
@@ -98,7 +98,7 @@ public class NGConstants {
 	static {
 		Properties props = new Properties();
 		try {
-			props.load(NGConstants.class.getClassLoader().getResourceAsStream("com/martiansoftware/nailgun/nailgun-version.properties"));
+			props.load(NGConstants.class.getClassLoader().getResourceAsStream("vimclojure/nailgun/nailgun-version.properties"));
 		} catch (java.io.IOException e) {
 			System.err.println("Unable to load nailgun-version.properties.");
 		}

@@ -16,13 +16,13 @@
 
 */
 
-package com.martiansoftware.nailgun.builtins;
+package vimclojure.nailgun.builtins;
 
 import java.io.File;
 import java.net.URL;
 import java.net.URLClassLoader;
 
-import com.martiansoftware.nailgun.NGContext;
+import vimclojure.nailgun.NGContext;
 
 /**
  * <p>Provides a means to display and add to the system classpath at runtime.

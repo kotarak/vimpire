@@ -22,6 +22,12 @@ if !exists("g:vimclojure#HighlightBuiltins")
 	endif
 endif
 
+if exists("g:clj_highlight_contrib")
+	echohl WarningMsg
+	echomsg "clj_highlight_contrib is deprecated! It's removed without replacement!"
+	echohl None
+endif
+
 if !exists("g:vimclojure#DynamicHighlighting")
 	if exists("g:clj_dynamic_highlighting")
 		call vimclojure#WarnDeprecated("g:clj_dynamic_highlighting",

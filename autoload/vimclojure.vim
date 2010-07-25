@@ -34,7 +34,7 @@ endif
 
 if !exists("g:vimclojure#ParenRainbow")
 	if exists("g:clj_paren_rainbow")
-		call vimclojure#WarnDeprecated("g:clj_paren_rainbow"
+		call vimclojure#WarnDeprecated("g:clj_paren_rainbow",
 					\ "vimclojure#ParenRainbow")
 		let vimclojure#ParenRainbow = g:clj_paren_rainbow
 	else

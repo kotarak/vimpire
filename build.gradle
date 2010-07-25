@@ -32,7 +32,7 @@ task vimZip(type: Zip) {
 }
 
 task nailgunClientZip(type: Zip) {
-    archiveName = "vimclojure-nailgun-client.zip"
+    archiveName = "vimclojure-nailgun-client-" + project.version + ".zip"
     into("vimclojure-nailgun-client") {
         from('.') {
             include "ngclient/**/*"

@@ -57,14 +57,20 @@ in your .vimrc: `let vimclojure#WantNailgun = 1`
 
 ## Building the Nailgun interface
 
-After unzipping the Vim plugin part, simply type `make` in the `vimclojure`
-subdirectory. This will compile the nailgun client. For Windows the client
+You have to download and install the client program once. Unless there is
+a note in the release notes it will be compatible with future releases. The
+client can be downloaded from:
+http://kotka.de/projects/vimclojure/vimclojure-nailgun-client-<version>.zip.
+
+After unzipping the the archive, simply type `make` in the subdirectory from
+the zip archive. This will compile the nailgun client. For Windows the client
 is already pre-compiled as `ng.exe`.
+
+Configure the location of the nailgun client in your `.vimrc`:
 
     let vimclojure#NailgunClient = "/path/to/your/ng"
 
-It will default to `<home>/.vim/vimclojure/ng-client/ng` on Unix/Mac and
-`<home>/vimfiles/vimclojure/ng-client/ng.exe` on Windows.
+It will default to just `ng` which should work if the client is on your PATH.
 
 Note: You might need to check the Makefile for special lib requirements
 to compile the nailgun client, eg. on OpenSolaris.
@@ -100,7 +106,8 @@ dependencies.
         </dependency>
   
 
-For manual download: http://clojars.org/repo/vimclojure/vimclojure/<version>/vimclojure-<version>.jar
+For manual download:
+http://clojars.org/repo/vimclojure/vimclojure/<version>/vimclojure-<version>.jar
 
 There are also launcher scripts included in the vimclojure/bin subdirectory
 based on Stephen C. Gilardi's clj-env-dir launcher. See information on how

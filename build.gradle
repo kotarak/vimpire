@@ -1,84 +1,97 @@
-apply plugin: 'clojure'
+subprojects {
+    apply plugin: 'java-base'
 
-group = 'vimclojure'
-version = '2.2.0-SNAPSHOT'
+    group = 'vimclojure'
+    version = '2.2.0-SNAPSHOT'
 
-repositories {
-    clojureReleasesRepo()
+    defaultTasks 'build'
 }
 
-dependencies {
-    development 'org.clojure:clojure:1.1.0'
-}
+project(':server') {
+    apply plugin: 'clojure'
 
-compileClojure.dependsOn compileJava
-
-defaultTasks 'build'
-
-task vimZip(type: Zip) {
-    from('.') {
-        include 'autoload/**/*'
-        include 'bin/**/*'
-        exclude 'bin/kickoff.sh'
-        include 'doc/**/*'
-        include 'ftdetect/**/*'
-        include 'ftplugin/**/*'
-        include 'indent/**/*'
-        include 'plugin/**/*'
-        include 'syntax/**/*'
-        include 'LICENSE.txt'
-        include 'README.txt'
+    repositories {
+        clojureReleasesRepo()
     }
+
+    dependencies {
+        development 'org.clojure:clojure:1.1.0'
+    }
+
+    compileClojure.dependsOn compileJava
 }
 
-task nailgunClientZip(type: Zip) {
-    archiveName = "vimclojure-nailgun-client-" + project.version + ".zip"
-    into("vimclojure-nailgun-client") {
-        from('.') {
-            include "ngclient/**/*"
-            include "Makefile"
-            include "ng.exe"
+project(':client') {
+    task nailgunClientZip(type: Zip) {
+        archiveName = "vimclojure-nailgun-client-" + project.version + ".zip"
+        into("vimclojure-nailgun-client") {
+            from('.') {
+                include "ngclient/**/*"
+                include "Makefile"
+                include "ng.exe"
+            }
         }
     }
 }
 
-// Install the Vim part of the plugin
-void installFiles(File directory, String pattern, File destination) {
-    destination.mkdirs()
-    ant.copy(todir: destination) {
-        fileset dir: directory, includes: pattern
-    }
-}
-
-task installVim << {
-    File installDir
-
-    if (project.hasProperty('vimdir')) {
-        installDir = new File(project.vimdir)
-    } else if (System.getProperty('os.name').toLowerCase().startsWith("win")) {
-        installDir = new File(System.getProperty('user.home') + "/vimfiles")
-    } else {
-        installDir = new File(System.getProperty('user.home') + "/.vim")
-    }
-
-    // The Vim files:
-    [ 'autoload', 'indent', 'syntax', 'ftdetect', 'ftplugin', 'plugin' ].each {
-        File subDir = new File(installDir, it)
-        installFiles file(it), '**/*.vim', subDir
+project(':vim') {
+    task vimZip(type: Zip) {
+        archiveName = "vimclojure-" + project.version + ".zip"
+        from('.') {
+            include 'autoload/**/*'
+            include 'bin/**/*'
+            exclude 'bin/kickoff.sh'
+            include 'doc/**/*'
+            include 'ftdetect/**/*'
+            include 'ftplugin/**/*'
+            include 'indent/**/*'
+            include 'plugin/**/*'
+            include 'syntax/**/*'
+        }
+        from('..') {
+            include 'LICENSE.txt'
+            include 'README.markdown'
+        }
     }
 
-    // The Docs and other text files:
-    [ 'doc', 'ftplugin/clojure' ].each {
-        File subDir = new File(installDir, it)
-        installFiles file(it), '**/*.txt', subDir
+    // Install the Vim part of the plugin
+    def installFiles = { File directory, String pattern, File destination ->
+        destination.mkdirs()
+        ant.copy(todir: destination) {
+            fileset dir: directory, includes: pattern
+        }
+    }
+
+    task installVim << {
+        File installDir
+
+        if (project.hasProperty('vimdir')) {
+            installDir = new File(project.vimdir)
+        } else if (System.getProperty('os.name').toLowerCase().startsWith("win")) {
+            installDir = new File(System.getProperty('user.home') + "/vimfiles")
+        } else {
+            installDir = new File(System.getProperty('user.home') + "/.vim")
+        }
+
+        // The Vim files:
+        [ 'autoload', 'indent', 'syntax', 'ftdetect', 'ftplugin', 'plugin' ].each {
+            File subDir = new File(installDir, it)
+            installFiles file(it), '**/*.vim', subDir
+        }
+
+        // The Docs and other text files:
+        [ 'doc', 'ftplugin/clojure' ].each {
+            File subDir = new File(installDir, it)
+            installFiles file(it), '**/*.txt', subDir
+        }
     }
 }
 
 task genCompletions(type: JavaExec.class) {
     classpath = project.files(
-        sourceSets.main.clojure.sourceDir,
-        sourceSets.main.classesDir,
-        sourceSets.main.compileClasspath
+        project(':server').sourceSets.main.clojure.sourceDir,
+        project(':server').sourceSets.main.classesDir,
+        project(':server').sourceSets.main.compileClasspath
     )
     main = "clojure.main"
     args = [ "-e", "(require 'vimclojure.gencompletions)", "-e",
@@ -100,11 +113,11 @@ task genCompletions(type: JavaExec.class) {
     ]
 }
 
-task runNailgun(type: JavaExec.class, dependsOn: classes) {
+task runNailgun(type: JavaExec.class, dependsOn: project(':server').classes) {
     classpath = project.files(
-        sourceSets.main.clojure.sourceDir,
-        sourceSets.main.classesDir,
-        sourceSets.main.compileClasspath
+        project(':server').sourceSets.main.clojure.sourceDir,
+        project(':server').sourceSets.main.classesDir,
+        project(':server').sourceSets.main.compileClasspath
     )
     main = 'vimclojure.nailgun.NGServer'
     args = [ '127.0.0.1' ]

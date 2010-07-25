@@ -83,31 +83,31 @@ dependencies.
 * For Gradle (with Clojuresque):
   
       dependencies {
-          development 'vimclojure:vimclojure:<version>'
+          development 'vimclojure:server:<version>'
       }
   
 * For Leiningen:
   
       (defproject …
         :dev-dependencies […
-                           [vimclojure "<version>"]
+                           [vimclojure/server "<version>"]
                            …])
   
 * For Ivy:
   
-      <dependency org="vimclojure" name="vimclojure" rev="<version>"/>
+      <dependency org="vimclojure" name="server" rev="<version>"/>
   
 * For Maven:
   
         <dependency>
           <groupId>vimclojure</groupId>
-          <artifactId>vimclojure</artifactId>
+          <artifactId>server</artifactId>
           <version><version></version>
         </dependency>
   
 
 For manual download:
-http://clojars.org/repo/vimclojure/vimclojure/<version>/vimclojure-<version>.jar
+http://clojars.org/repo/vimclojure/server/<version>/server-<version>.jar
 
 There are also launcher scripts included in the vimclojure/bin subdirectory
 based on Stephen C. Gilardi's clj-env-dir launcher. See information on how

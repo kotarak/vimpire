@@ -1,43 +1,19 @@
-buildscript {
-    repositories {
-        flatDir name: 'gradleHome',
-                dirs: new File(System.getenv('GRADLE_HOME') + '/lib/plugins')
-    }
-    dependencies {
-        classpath 'clojuresque:clojuresque:1.4.0-SNAPSHOT'
-    }
-}
-
 apply plugin: 'clojure'
 
 group = 'vimclojure'
 version = '2.2.0-SNAPSHOT'
 
-aotCompile = false
-
 repositories {
-    gradleHomeRepo()
-    mavenCentral()
-}
-
-configurations {
-    clojure {
-        visible = false
-        description = 'Compile only configuration for clojure'
-    }
+    clojureReleasesRepo()
 }
 
 dependencies {
-    clojure 'org.clojure:clojure:1.1.0'
+    development 'org.clojure:clojure:1.1.0'
 }
-
-sourceSets.main.compileClasspath = configurations.clojure
 
 compileClojure.dependsOn compileJava
 
 defaultTasks 'build'
-
-configureClojarsDeploy(uploadArchives)
 
 task vimZip(type: Zip) {
     from('.') {
@@ -99,11 +75,11 @@ task installVim << {
 }
 
 task genCompletions(type: JavaExec.class) {
-    classpath = project.files([
-        sourceSets.main.clojure.srcDirs,
-        sourceSets.main.classesDir.path,
-        configurations.clojure
-    ])
+    classpath = project.files(
+        sourceSets.main.clojure.sourceDir,
+        sourceSets.main.classesDir,
+        sourceSets.main.compileClasspath
+    )
     main = "clojure.main"
     args = [ "-e", "(require 'vimclojure.gencompletions)", "-e",
         "(vimclojure.gencompletions/main " +
@@ -125,11 +101,11 @@ task genCompletions(type: JavaExec.class) {
 }
 
 task runNailgun(type: JavaExec.class, dependsOn: classes) {
-    classpath = project.files([
-        sourceSets.main.clojure.srcDirs,
-        sourceSets.main.classesDir.path,
-        configurations.clojure
-    ])
+    classpath = project.files(
+        sourceSets.main.clojure.sourceDir,
+        sourceSets.main.classesDir,
+        sourceSets.main.compileClasspath
+    )
     main = 'vimclojure.nailgun.NGServer'
     args = [ '127.0.0.1' ]
 }

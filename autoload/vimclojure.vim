@@ -8,6 +8,7 @@ set cpo&vim
 function! vimclojure#WarnDeprecated(old, new)
 	echohl WarningMsg
 	echomsg a:old . " is deprecated! Use " . a:new . "!"
+	echomsg "eg. let " . a:new . " = <desired value here>"
 	echohl None
 endfunction
 

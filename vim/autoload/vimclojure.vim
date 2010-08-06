@@ -422,7 +422,7 @@ function! vimclojure#ExecuteNailWithInput(nail, input, ...)
 		let output = system(cmd)
 
 		if v:shell_error
-			throw "Couldn't execute Nail!\n" . output
+			throw "Error executing Nail! (" . v:shell_error . ")\n" . output
 		endif
 	finally
 		call delete(inputfile)

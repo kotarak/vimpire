@@ -18,6 +18,10 @@ project(':server') {
         development 'org.clojure:clojure:1.1.0'
     }
 
+    uploadArchives {
+        clojarsDeploy()
+    }
+
     compileClojure.dependsOn compileJava
 }
 

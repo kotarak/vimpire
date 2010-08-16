@@ -377,6 +377,8 @@ public class NGServer implements Runnable {
 			while (!shutdown) {
 				sessionOnDeck = sessionPool.take();
 				Socket socket = serversocket.accept();
+				/* FIXME: Why is this necessary? */
+				Thread.sleep(50);
 				sessionOnDeck.run(socket);
 			}
 

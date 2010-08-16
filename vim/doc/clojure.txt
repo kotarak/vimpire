@@ -309,6 +309,13 @@ hyphens and (for namespaces) dots. So r-s<C-x><C-o> matches read-string.
 Note: Completion of symbols and keywords is also provided via the <C-N>
 functionality of Vim.
 
+Known Issues
+------------
+
+There seems to be a race condition in nailgun. At the moment there is
+no solution to this problem. In case you get errors with valid looking
+input for vim, please contact me.
+
 License
 -------
 

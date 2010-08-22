@@ -80,13 +80,13 @@ project(':vim') {
         // The Vim files:
         [ 'autoload', 'indent', 'syntax', 'ftdetect', 'ftplugin', 'plugin' ].each {
             File subDir = new File(installDir, it)
-            installFiles file(it), '**/*.vim', subDir
+            installFiles project.file(it), '**/*.vim', subDir
         }
 
         // The Docs and other text files:
         [ 'doc', 'ftplugin/clojure' ].each {
             File subDir = new File(installDir, it)
-            installFiles file(it), '**/*.txt', subDir
+            installFiles project.file(it), '**/*.txt', subDir
         }
     }
 }

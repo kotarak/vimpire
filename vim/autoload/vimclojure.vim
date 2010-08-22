@@ -372,7 +372,7 @@ function! s:InvalidateResultBufferIfNecessary(buf)
 endfunction
 
 augroup VimClojureResultBuffer
-	" au BufDelete * call s:InvalidateResultBufferIfNecessary(expand("<abuf>"))
+	au BufDelete * call s:InvalidateResultBufferIfNecessary(expand("<abuf>"))
 augroup END
 
 " A special result buffer for clojure output.

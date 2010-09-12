@@ -126,7 +126,7 @@
                    (the-repl :line)
                    line)]
     (with-bindings
-      {Compiler/LINE          line
+      {Compiler/LINE          (.intValue line) ; #64: Unbox to ensure int.
        Compiler/SOURCE        (.getName (java.io.File. file))
        Compiler/SOURCE_PATH   file
        #'*in*                 (make-reader *in* line)

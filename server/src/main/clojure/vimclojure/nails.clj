@@ -25,6 +25,7 @@
     [vimclojure.repl :as repl]
     [vimclojure.util :as util]
     [vimclojure.backend :as backend]
+    clojure.set
     clojure.test)
   (:import
     java.io.BufferedReader

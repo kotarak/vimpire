@@ -19,6 +19,10 @@ Please make sure that the following options are set in your .vimrc:
 
 Otherwise the filetype is not activated, and hence VimClojure doesn't work.
 
+The following assumes a standard installation. If you have installed Vim (or
+are installing VimClojure) in a non-standard way, I trust that you know what
+you are doing.
+
 # Online Documentation
 
 Please refer to the online documentation in the doc folder for further
@@ -48,7 +52,7 @@ Features of the interactive interface are:
 However: **This is not a requirement!** VimClojure works perfectly in
 _offline_ mode. That is: just unpack the distribution zip in your .vim
 directory and you are good to go! In fact I discourage newbies to use the
-server.
+server until being more comfortable with Clojure and/or the JVM.
 
 ## Configuration
 
@@ -62,9 +66,9 @@ a note in the release notes it will be compatible with future releases. The
 client can be downloaded from:
 http://kotka.de/projects/vimclojure/vimclojure-nailgun-client-<version>.zip.
 
-After unzipping the the archive, simply type `make` in the subdirectory from
-the zip archive. This will compile the nailgun client. For Windows the client
-is already pre-compiled as `ng.exe`.
+After unzipping the archive, simply type `make` in the subdirectory from the
+zip archive. This will compile the nailgun client. For Windows the client is
+already pre-compiled as `ng.exe`.
 
 Configure the location of the nailgun client in your `.vimrc`:
 

@@ -15,7 +15,7 @@ project(':server') {
     }
 
     dependencies {
-        development 'org.clojure:clojure:1.1.0'
+        development 'org.clojure:clojure:1.2.0'
     }
 
     uploadArchives {

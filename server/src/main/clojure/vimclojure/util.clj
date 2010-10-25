@@ -20,7 +20,10 @@
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 ; THE SOFTWARE.
 
-(ns vimclojure.util)
+(ns vimclojure.util
+  (:require
+    [clojure.pprint :as pprint]
+    [clojure.stacktrace :as stacktrace]))
 
 ; Common helpers
 (defn str-cut
@@ -392,52 +395,38 @@
   "Print the given form in a pretty way. If Tom Faulhaber's pretty printer is
   not installed simply defaults prn."
   [form]
-  (prn form))
+  (pprint/pprint form))
 
 (defn pretty-print-code
   "Print the given form in a pretty way. If Tom Faulhaber's pretty printer is
   not installed simply defaults prn. Uses the *code-dispatch* formatting."
   [form]
-  (prn form))
+  (pprint/with-pprint-dispatch pprint/code-dispatch
+    (pprint/pprint form)))
 
 (defn pretty-print-stacktrace
   "Print the stacktrace of the given Throwable. Tries clj-stacktrace,
   clojure.stacktrace and clojure.contrib.stacktrace in that order. Otherwise
   defaults to simple printing."
   [e]
-  (.printStackTrace e *out*))
+  (stacktrace/print-stack-trace e))
 
 (defn pretty-print-causetrace
   "Print the causetrace of the given Throwable. Tries clj-stacktrace,
   clojure.stacktrace and clojure.contrib.stacktrace in that order. Otherwise
   defaults to simple printing."
   [e]
-  (pretty-print-stacktrace e))
+  (stacktrace/print-cause-trace e))
 
 ; Load optional libraries
 (defmacro defoptional
-   [sym args & body]
-   `(let [docstring# (:doc (meta (var ~sym)))]
-      (defn ~sym ~args ~@body)
-      (alter-meta! (var ~sym) assoc :doc docstring#)))
-
-(try
-  (load "optional/prettyprint")
-  (catch Exception exc
-    (when-not (re-find #"Could not locate clojure/contrib/pprint__init.class or clojure/contrib/pprint.clj on classpath" (str exc))
-      (throw exc))))
-
-(def stacktrace-printer nil)
+  [sym args & body]
+  `(let [docstring# (:doc (meta (var ~sym)))]
+     (defn ~sym ~args ~@body)
+     (alter-meta! (var ~sym) assoc :doc docstring#)))
 
 (try
   (load "optional/clj_stacktrace")
   (catch Exception exc
     (when-not (re-find #"Could not locate clj_stacktrace/repl__init.class or clj_stacktrace/repl.clj on classpath" (str exc))
       (throw exc))))
-
-(when-not stacktrace-printer
-  (try
-    (load "optional/core_stacktrace")
-    (catch Exception exc
-      (when-not (re-find #"Could not locate clojure/stacktrace__init.class or clojure/stacktrace.clj on classpath" (str exc))
-        (throw exc)))))

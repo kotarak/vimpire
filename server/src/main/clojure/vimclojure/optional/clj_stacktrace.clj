@@ -22,14 +22,12 @@
 
 (clojure.core/in-ns 'vimclojure.util)
 
-(require '[clj-stacktrace.repl :as stacktrace])
+(require '[clj-stacktrace.repl :as clj-st])
 
 (defoptional pretty-print-stacktrace
   [e]
-  (stacktrace/pst e))
+  (clj-st/pst e))
 
 (defoptional pretty-print-causetrace
   [e]
-  (stacktrace/pst e))
-
-(def stacktrace-printer :clj-stacktrace)
+  (clj-st/pst e))

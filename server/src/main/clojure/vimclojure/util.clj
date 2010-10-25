@@ -390,6 +390,71 @@
         rdr (fn [] (read stream false eof))]
     (take-while #(not= % eof) (repeatedly rdr))))
 
+; Idea for this was taken from Shantanu Kumar.
+; http://bitumenframework.blogspot.com/2010/10/stack-traces-for-clojure-app.html
+; Code taken partly from Mark McGranaghans clj-stacktrace and
+; clojure.stacktrace.
+(def clojure-fn-subs
+  [["^[^$]*\\$" ""]
+   ["\\$.*"     ""]
+   ["__\\d+.*"  ""]
+   ["_QMARK_"   "?"]
+   ["_BANG_"    "!"]
+   ["_PLUS_"    "+"]
+   ["_GT_"      ">"]
+   ["_LT_"      "<"]
+   ["_EQ_"      "="]
+   ["_STAR_"    "*"]
+   ["_SLASH_"   "/"]
+   ["_"         "-"]])
+
+(defn print-stacktrace
+  [frames]
+  (when-let [frames (seq frames)]
+    (let [widths    [10 5 32 20]
+          sepline   (str "+"
+                         (->> widths
+                           (map #(repeat (+ % 2) "-"))
+                           (interpose [\+])
+                           (apply concat)
+                           (apply str))
+                         "+")
+          substr    (fnil subs "")
+          trim-strs (fn [v] (map #(substr %1 0 (min (count %1) %2)) v widths))
+          unmunge   #(reduce (fn [cname [pattern sub]]
+                               (.replaceAll cname pattern sub))
+                             % clojure-fn-subs)
+          frames    (map trim-strs frames)
+          fmt       (apply format "| ~%dA | ~%d@A | ~%dA | ~%dA |~%%" widths)]
+      (println sepline)
+      (pprint/cl-format *out* fmt
+                        "File" "Line#" "Namespace/Class" "Function/Method")
+      (println sepline)
+      (doseq [[fname lineno cname mname] frames]
+        (let [[_ nspace fnname :as match]
+              (re-matches #"^([A-Za-z0-9_.-]+)\$(\w+?)(__\d+)*$" cname)]
+          (if (and match (= "invoke" mname))
+            (pprint/cl-format *out* fmt fname lineno
+                              (unmunge nspace)
+                              (unmunge fnname))
+            (pprint/cl-format *out* fmt fname lineno cname mname))))
+      (println sepline))))
+
+(defn get-stacktrace
+  [e]
+  (let [noise ["clojure."
+               "java." "sun."
+               "vimclojure."]]
+    (letfn [(noise?
+              [[_fname _lineno cname _mname]]
+              (some #(.startsWith cname %) noise))]
+      (->> (.getStackTrace e)
+        (map (juxt #(.getFileName %)
+                   #(-> % .getLineNumber str)
+                   #(.getClassName %)
+                   #(.getMethodName %)))
+        (remove noise?)))))
+
 ; Pretty printing.
 (defn pretty-print
   "Print the given form in a pretty way. If Tom Faulhaber's pretty printer is
@@ -409,14 +474,19 @@
   clojure.stacktrace and clojure.contrib.stacktrace in that order. Otherwise
   defaults to simple printing."
   [e]
-  (stacktrace/print-stack-trace e))
+  (stacktrace/print-throwable e)
+  (newline)
+  (print-stacktrace (get-stacktrace e)))
 
 (defn pretty-print-causetrace
   "Print the causetrace of the given Throwable. Tries clj-stacktrace,
   clojure.stacktrace and clojure.contrib.stacktrace in that order. Otherwise
   defaults to simple printing."
   [e]
-  (stacktrace/print-cause-trace e))
+  (pretty-print-stacktrace e)
+  (when-let [c (.getCause e)]
+    (print "Caused by: ")
+    (recur c)))
 
 ; Load optional libraries
 (defmacro defoptional

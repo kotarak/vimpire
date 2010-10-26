@@ -25,6 +25,27 @@ project(':server') {
     compileClojure.dependsOn compileJava
 }
 
+project(':gradle') {
+    apply plugin: 'groovy'
+    apply plugin: 'clojure'
+
+    repositories {
+        mavenRepo urls: 'http://clojars.org/repo'
+    }
+
+    dependencies {
+        compile gradleApi()
+        compile 'clojuresque:clojuresque:1.4.0-SNAPSHOT'
+
+        groovy localGroovy()
+    }
+
+    uploadArchives {
+        clojarsDeploy()
+    }
+}
+
+
 project(':client') {
     task nailgunClientZip(type: Zip) {
         archiveName = "vimclojure-nailgun-client-" + project.version + ".zip"

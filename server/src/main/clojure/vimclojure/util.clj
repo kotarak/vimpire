@@ -455,6 +455,13 @@
                    #(.getMethodName %)))
         (remove noise?)))))
 
+(defn print-exception
+  [e]
+  (print "! ")
+  (stacktrace/print-throwable e)
+  (newline)
+  (print-stacktrace (get-stacktrace e)))
+
 ; Pretty printing.
 (defn pretty-print
   "Print the given form in a pretty way. If Tom Faulhaber's pretty printer is
@@ -474,19 +481,20 @@
   clojure.stacktrace and clojure.contrib.stacktrace in that order. Otherwise
   defaults to simple printing."
   [e]
-  (stacktrace/print-throwable e)
-  (newline)
-  (print-stacktrace (get-stacktrace e)))
+  (println "!! A crisis has arisen:")
+  (print-exception e))
 
 (defn pretty-print-causetrace
   "Print the causetrace of the given Throwable. Tries clj-stacktrace,
   clojure.stacktrace and clojure.contrib.stacktrace in that order. Otherwise
   defaults to simple printing."
   [e]
-  (pretty-print-stacktrace e)
-  (when-let [c (.getCause e)]
-    (print "Caused by: ")
-    (recur c)))
+  (println "!! A crisis has arisen:")
+  (loop [e e]
+    (print-exception e)
+    (when-let [c (.getCause e)]
+      (println "!! Caused by:")
+      (recur c))))
 
 ; Load optional libraries
 (defmacro defoptional

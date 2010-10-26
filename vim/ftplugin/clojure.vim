@@ -139,4 +139,10 @@ endif
 
 call vimclojure#MapPlug("n", "p", "CloseResultBuffer")
 
+if exists("b:vimclojure_repl") || exists("b:vimclojure_clojure_result_buffer")
+	setlocal foldexpr=vimclojure#GetExceptionFoldLevel(v:lnum)
+	setlocal foldmethod=expr
+	setlocal foldenable
+endif
+
 let &cpo = s:cpo_save

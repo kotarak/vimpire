@@ -410,6 +410,24 @@ function! vimclojure#ShellEscapeArguments(vals)
 	return vimclojure#WithSavedOption(closure)
 endfunction
 
+function! vimclojure#Stringify(text)
+	return '"' . escape(a:text, '\"') . '"'
+endfunction
+
+function! vimclojure#CreateFrame(options)
+	return "" . len(a:options) . "\n" .
+				\ join(
+				\   values(
+				\     map(copy(a:options),
+				\       'vimclojure#Stringify(v:key) . "\n"' .
+				\       '. vimclojure#Stringify(v:val)')),
+				\   "\n")
+endfunction
+
+function! vimclojure#StringifyArguments(args)
+	return join(map(copy(a:args), 'vimclojure#Stringify(v:val)'), " ")
+endfunction
+
 function! vimclojure#ExecuteNailWithInput(nail, input, ...)
 	if type(a:input) == type("")
 		let input = split(a:input, '\n', 1)

@@ -496,6 +496,27 @@ function! vimclojure#ReadFrames(input)
 	return frames
 endfunction
 
+function! vimclojure#ParseResponse(response)
+	let frames = vimclojure#ReadFrames(a:response)
+
+	let response = {'stdout': "", 'stderr': "", 'value': "", 'namespace': ""}
+	for frame in frames
+		for [k, v] in items(frame)
+			if k == "out"
+				let response.stdout .= v
+			elseif k == "err"
+				let response.stderr .= v
+			elseif k == "value"
+				let response.value .= v
+			elseif k == "ns"
+				let response.namespace = v
+			endif
+		endfor
+	endfor
+
+	return response
+endfunction
+
 function! vimclojure#StringifyArguments(args)
 	return join(map(copy(a:args), 'vimclojure#Stringify(v:val)'), " ")
 endfunction

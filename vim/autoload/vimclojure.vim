@@ -449,7 +449,7 @@ function! vimclojure#ReadItem(input)
 
 	if l[0] != '"' || vimclojure#ItemEnd(l)
 		execute "let result = " . l
-		return [l, input]
+		return [result, input]
 	endif
 
 	let item = [l]

@@ -424,6 +424,78 @@ function! vimclojure#CreateFrame(options)
 				\   "\n")
 endfunction
 
+function! vimclojure#ItemEnd(line)
+	let i = len(a:line) - 1
+
+	if a:line[i] != '"'
+		return 0
+	endif
+
+	let even = 1
+	while i > 0
+		let i -= 1
+		if a:line[i] != '\'
+			return even
+		endif
+
+		let even = (even + 1) % 2
+	endwhile
+
+	return even
+endfunction
+
+function! vimclojure#ReadItem(input)
+	let [l; input] = a:input
+
+	if l[0] != '"' || vimclojure#ItemEnd(l)
+		execute "let result = " . l
+		return [l, input]
+	endif
+
+	let item = [l]
+	while input != []
+		let [l; input] = input
+
+		call add(item, l)
+		if vimclojure#ItemEnd(l)
+			execute "let result = " . join(item, "\n")
+			return [result, input]
+		endif
+	endwhile
+
+	echoerr "Unexpected EOF while reading item"
+endfunction
+
+function! vimclojure#ReadFrame(input)
+	let frame = {}
+
+	let [ssize; input] = a:input
+	execute "let size = " . ssize
+	if size == 0
+		return [frame, input]
+	endif
+
+	for i in range(size)
+		let [k, input] = vimclojure#ReadItem(input)
+		let [v, input] = vimclojure#ReadItem(input)
+		let frame[k] = v
+	endfor
+
+	return [frame, input]
+endfunction
+
+function! vimclojure#ReadFrames(input)
+	let frames = []
+	let input = a:input
+
+	while input != []
+		let [frame, input] = vimclojure#ReadFrame(input)
+		call add(frames, frame)
+	endwhile
+
+	return frames
+endfunction
+
 function! vimclojure#StringifyArguments(args)
 	return join(map(copy(a:args), 'vimclojure#Stringify(v:val)'), " ")
 endfunction

@@ -30,7 +30,7 @@
 
 ; Documentation:
 ; Mirror this from clojure 1.3 to allow backwards compatibility.
-(def ^:private special-doc-map
+(def ^{:private true} special-doc-map
   '{. {:url "java_interop#dot"
        :forms [(.instanceMember instance args*)
                (.instanceMember Classname args*)
@@ -97,7 +97,7 @@ itself (not its value) is returned. The reader macro #'x expands to (var x)."}})
   [nspace]
   (assoc (meta nspace) :name (ns-name nspace)))
 
-(defn- print-doc [m]
+(defn- print-documentation [m]
   (println "-------------------------")
   (println (str (when-let [ns (:ns m)] (str (ns-name ns) "/")) (:name m)))
   (cond
@@ -124,16 +124,17 @@ itself (not its value) is returned. The reader macro #'x expands to (var x)."}})
   The documentation is returned as a string."
   [namespace symbol]
   (if-let [special-name ('{& fn catch try finally try} symbol)]
-    (print-doc (special-doc namespace special-name))
+    (print-documentation (special-doc namespace special-name))
     (condp #(%1 %2) symbol
       special-doc-map           :>> (fn [_]
-                                      (print-doc (special-doc namespace symbol)))
-      find-ns                   :>> #(print-doc (namespace-doc %))
-      #(ns-resolve namespace %) :>> #(print-doc (meta %))
+                                      (print-documentation
+                                        (special-doc namespace symbol)))
+      find-ns                   :>> #(print-documentation (namespace-doc %))
+      #(ns-resolve namespace %) :>> #(print-documentation (meta %))
       (println
         (str "'" symbol "' could not be found. Please check the spelling.")))))
 
-(defn find-doc
+(defn find-documentation
   "Prints documentation for any var whose documentation or name
   contains a match for re-string-or-pattern"
   [re-string-or-pattern]
@@ -146,7 +147,7 @@ itself (not its value) is returned. The reader macro #'x expands to (var x)."}})
               :when (and (:doc m)
                          (or (re-find (re-matcher re (:doc m)))
                              (re-find (re-matcher re (str (:name m))))))]
-               (print-doc m))))
+               (print-documentation m))))
 
 (defn javadoc-path-for-class
   "Translate the name of a Class to the path of its javadoc file."

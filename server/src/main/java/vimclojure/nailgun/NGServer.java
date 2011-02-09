@@ -27,6 +27,11 @@ import java.net.UnknownHostException;
 import java.util.Iterator;
 import java.util.Map;
 
+
+import clojure.lang.RT;
+import clojure.lang.Symbol;
+import clojure.lang.Var;
+
 import vimclojure.nailgun.builtins.DefaultNail;
 
 /**
@@ -40,6 +45,20 @@ import vimclojure.nailgun.builtins.DefaultNail;
  * @author <a href="http://www.martiansoftware.com/contact.html">Marty Lamb</a>
  */
 public class NGServer implements Runnable {
+
+	/* Load up vimclojure */
+	static {
+		try {
+			RT.var("clojure.core", "require").invoke(
+				Symbol.create("vimclojure.core")
+			);
+			RT.var("vimclojure.core", "init-server").invoke();
+		} catch (Exception exc) {
+			Throwable e = exc;
+			System.err.println("A crisis has arisen:");
+			e.printStackTrace();
+		}
+	}
 
 	/**
 	 * The address on which to listen, or null to listen on all

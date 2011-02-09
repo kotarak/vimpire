@@ -504,7 +504,8 @@ if !exists("vimclojure#Browser")
 	elseif has("mac")
 		let vimclojure#Browser = "open"
 	else
-		let vimclojure#Browser = "firefox -new-window"
+		" some freedesktop thing, whatever, issue #67
+		let vimclojure#Browser = "xdg-open"
 	endif
 endif
 

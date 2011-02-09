@@ -29,7 +29,7 @@
      (clojure.lang Var Compiler LineNumberingPushbackReader)))
 
 (def
-  #^{:doc
+  ^{:dynamic true :doc
   "A map holding the references to all running repls indexed by their repl id."}
   *repls*
   (atom {}))
@@ -41,7 +41,7 @@
     (swap! id inc)))
 
 (def
-  #^{:doc
+  ^{:dynamic true :doc
   "Set to true in the Repl if you want pretty printed results. Has no effect
   if clojure.contrib.pprint is not available."}
   *print-pretty*

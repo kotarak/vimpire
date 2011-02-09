@@ -125,7 +125,7 @@
 (defnail FindDoc
   "Usage: ng vimclojure.nails.FindDoc"
   []
-  (find-doc (.readLine *in*)))
+  (backend/find-doc (.readLine *in*)))
 
 (defnail JavadocPath
   "Usage: ng vimclojure.nails.JavadocPath [options]"

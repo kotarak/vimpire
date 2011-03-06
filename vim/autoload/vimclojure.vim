@@ -156,14 +156,30 @@ endfunction
 
 " Nailgun part:
 function! vimclojure#ExtractSexpr(toplevel)
-	let closure = { "flag" : (a:toplevel ? "r" : "") }
+	let closure = {
+				\ "flag"  : (a:toplevel ? "r" : ""),
+				\ "level" : (a:toplevel ? "0" : '\d')
+				\ }
 
 	function closure.f() dict
-		if searchpairpos('(', '', ')', 'bW' . self.flag,
-					\ 'vimclojure#SynIdName() !~ "clojureParen\\d"') != [0, 0]
-			return vimclojure#Yank('l', 'normal! "ly%')
-		end
-		return ""
+		let pos = [0, 0]
+		let start = getpos(".")
+
+		if getline(start[1])[start[2] - 1] == "("
+					\ && vimclojure#SynIdName() =~ 'clojureParen' . self.level
+			let pos = [start[1], start[2]]
+		endif
+
+		if pos == [0, 0]
+			let pos = searchpairpos('(', '', ')', 'bW' . self.flag,
+						\ 'vimclojure#SynIdName() !~ "clojureParen\\d"')
+		endif
+
+		if pos == [0, 0]
+			throw "Error: Not in a s-expression!"
+		endif
+
+		return [pos, vimclojure#Yank('l', 'normal! "ly%')]
 	endfunction
 
 	return vimclojure#WithSavedPosition(closure)
@@ -580,7 +596,7 @@ endfunction
 
 " Evaluators
 function! vimclojure#MacroExpand(firstOnly)
-	let sexp = vimclojure#ExtractSexpr(0)
+	let [unused, sexp] = vimclojure#ExtractSexpr(0)
 	let ns = b:vimclojure_namespace
 
 	let cmd = ["MacroExpand", sexp, "-n", ns]
@@ -660,15 +676,8 @@ endfunction
 function! vimclojure#EvalToplevel()
 	let file = vimclojure#BufferName()
 	let ns = b:vimclojure_namespace
+	let [pos, expr] = vimclojure#ExtractSexpr(1)
 
-	let pos = searchpairpos('(', '', ')', 'bWnr',
-					\ 'vimclojure#SynIdName() !~ "clojureParen\\d"')
-
-	if pos == [0, 0]
-		throw "Error: Not in toplevel expression!"
-	endif
-
-	let expr = vimclojure#ExtractSexpr(1)
 	let result = vimclojure#ExecuteNailWithInput("Repl", expr,
 				\ "-r", "-n", ns, "-f", file, "-l", pos[0] - 1)
 

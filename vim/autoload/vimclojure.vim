@@ -458,15 +458,6 @@ function! vimclojure#ExecuteNail(nail, ...)
 	return call(function("vimclojure#ExecuteNailWithInput"), [a:nail, ""] + a:000)
 endfunction
 
-function! vimclojure#FilterNail(nail, rngStart, rngEnd, ...)
-	let cmdline = [g:vimclojure#NailgunClient,
-				\ "vimclojure.Nail", a:nail]
-				\ + vimclojure#ShellEscapeArguments(a:000)
-	let cmd = a:rngStart . "," . a:rngEnd . "!" . join(cmdline, " ")
-
-	silent execute cmd
-endfunction
-
 function! vimclojure#DocLookup(word)
 	if a:word == ""
 		return

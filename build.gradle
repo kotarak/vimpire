@@ -29,14 +29,8 @@ project(':gradle') {
     apply plugin: 'groovy'
     apply plugin: 'clojure'
 
-    repositories {
-        mavenRepo urls: 'http://clojars.org/repo'
-    }
-
     dependencies {
         compile gradleApi()
-        compile 'clojuresque:clojuresque:1.4.0-SNAPSHOT'
-
         groovy localGroovy()
     }
 

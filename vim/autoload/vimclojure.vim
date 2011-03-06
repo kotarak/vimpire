@@ -59,6 +59,14 @@ if !exists("g:vimclojure#WantNailgun")
 	endif
 endif
 
+if !exists("g:vimclojure#NailgunServer")
+	let vimclojure#NailgunServer = "127.0.0.1"
+endif
+
+if !exists("g:vimclojure#NailgunPort")
+	let vimclojure#NailgunPort = "2113"
+endif
+
 if !exists("g:vimclojure#UseErrorBuffer")
 	let vimclojure#UseErrorBuffer = 1
 endif
@@ -422,7 +430,10 @@ function! vimclojure#ExecuteNailWithInput(nail, input, ...)
 		call writefile(input, inputfile)
 
 		let cmdline = vimclojure#ShellEscapeArguments(
-					\ [g:vimclojure#NailgunClient, "vimclojure.Nail", a:nail]
+					\ [g:vimclojure#NailgunClient,
+					\   '--nailgun-server', g:vimclojure#NailgunServer,
+					\   '--nailgun-port', g:vimclojure#NailgunPort,
+					\   'vimclojure.Nail', a:nail]
 					\ + a:000)
 		let cmd = join(cmdline, " ") . " <" . inputfile
 		" Add hardcore quoting for Windows

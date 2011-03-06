@@ -1,5 +1,5 @@
 /*-
- * Copyright 2009,2010 © Meikel Brandmeyer.
+ * Copyright 2011 © Meikel Brandmeyer.
  * All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -27,26 +27,28 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.tasks.JavaExec
 
-import clojuresque.ClojurePlugin
-
 public class VimClojurePlugin implements Plugin<Project> {
+    class Convention {
+        def String nailgunServer = "127.0.0.1"
+        def String nailgunPort = "2113"
+    }
+
     public void apply(Project project) {
-        project.apply plugin: ClojurePlugin.class
+        project.convention.plugins.vimclojure = new Convention()
 
-        project.dependencies {
-            development 'vimclojure:server:2.3.0-SNAPSHOT'
-        }
-
-        project.tasks.add(name: 'runNailgun', type: JavaExec.class,
-                dependsOn: project.classes) {
-            classpath = project.files(
-                project.sourceSets.main.clojure.sourceDir,
-                project.sourceSets.main.classesDir,
-                project.configurations.testRuntime,
-                project.configurations.development
-            )
-            main = 'vimclojure.nailgun.NGServer'
-            args = [ '127.0.0.1' ]
+        project.tasks.add(name: 'runNailgun') {
+            dependsOn project.classes
+        } << {
+            project.javaexec {
+                classpath = project.files(
+                    project.sourceSets.main.clojure.srcDirs,
+                    project.sourceSets.main.classesDir,
+                    project.configurations.testRuntime,
+                    project.configurations.development
+                )
+                main = 'vimclojure.nailgun.NGServer'
+                args = [ project.nailgunServer + ":" + project.nailgunPort ]
+            }
         }
     }
 }

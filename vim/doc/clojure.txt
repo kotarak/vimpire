@@ -31,6 +31,12 @@ Set the vimclojure#WantNailgun variable in your vimrc.
 >
         let vimclojure#WantNailgun = 1
 <
+The actual server to connect to and the port of said server can be given
+via configuration variables. The defaults are:
+>
+        let vimclojure#NailgunServer = "127.0.0.1"
+        let vimclojure#NailgunPort = "2113"
+<
 Note: Should there be an error when executing an interactive command
 and the error message goes away to quickly, you can use |:messages| to
 recall the message and read it conveniently without time pressure.

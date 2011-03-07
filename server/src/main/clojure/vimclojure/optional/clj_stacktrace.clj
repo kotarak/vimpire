@@ -1,5 +1,5 @@
 ;-
-; Copyright 2010 (c) Meikel Brandmeyer.
+; Copyright 2010-2011 (c) Meikel Brandmeyer.
 ; All rights reserved.
 ;
 ; Permission is hereby granted, free of charge, to any person obtaining a copy

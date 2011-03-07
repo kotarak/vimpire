@@ -39,7 +39,7 @@ if g:vimclojure#HighlightBuiltins != 0
 		\            . "*print-meta* *print-readably* *print-length* "
 		\            . "*allow-unresolved-args* *compile-files* "
 		\            . "*compile-path* *file* *flush-on-newline* "
-		\            . "*math-context* *print-dup* "
+		\            . "*math-context* *unchecked-math* *print-dup* "
 		\            . "*print-level* *use-context-classloader* "
 		\            . "*source-path* *clojure-version* *read-eval* "
 		\            . "*1 *2 *3 *e",

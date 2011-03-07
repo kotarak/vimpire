@@ -15,6 +15,7 @@ set cpo&vim
 command! -nargs=0 ClojureRepl call vimclojure#StartRepl()
 
 call vimclojure#MakeProtectedPlug("n", "AddToLispWords", "vimclojure#AddToLispWords", "expand(\"<cword>\")")
+call vimclojure#MakeProtectedPlug("n", "ToggleParenRainbow", "vimclojure#ToggleParenRainbow", "")
 
 call vimclojure#MakeProtectedPlug("n", "DocLookupWord", "vimclojure#DocLookup", "expand(\"<cword>\")")
 call vimclojure#MakeProtectedPlug("n", "DocLookupInteractive", "vimclojure#DocLookup", "input(\"Symbol to look up: \")")

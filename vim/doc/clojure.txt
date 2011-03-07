@@ -244,6 +244,11 @@ turned off.
                         of the buffer. This modifies the way the form is
                         indented.
 
+<LocalLeader>tr                                 *tr* *ToggleParenRainbow*
+                        Toggle the paren rainbow option. Note: After
+                        toggling the default colors will be used. Not any
+                        customised ones.
+
 Vim Repl
 --------
 

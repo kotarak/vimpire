@@ -991,5 +991,53 @@ function! vimclojure#AddToLispWords(word)
 	execute "setlocal lw+=" . a:word
 endfunction
 
+function! vimclojure#ToggleParenRainbow()
+	highlight clear clojureParen1
+	highlight clear clojureParen2
+	highlight clear clojureParen3
+	highlight clear clojureParen4
+	highlight clear clojureParen5
+	highlight clear clojureParen6
+	highlight clear clojureParen7
+	highlight clear clojureParen8
+	highlight clear clojureParen9
+
+	let g:vimclojure#ParenRainbow = !g:vimclojure#ParenRainbow
+
+	if g:vimclojure#ParenRainbow != 0
+		if &background == "dark"
+			highlight clojureParen1 ctermfg=yellow      guifg=orange1
+			highlight clojureParen2 ctermfg=green       guifg=yellow1
+			highlight clojureParen3 ctermfg=cyan        guifg=greenyellow
+			highlight clojureParen4 ctermfg=magenta     guifg=green1
+			highlight clojureParen5 ctermfg=red         guifg=springgreen1
+			highlight clojureParen6 ctermfg=yellow      guifg=cyan1
+			highlight clojureParen7 ctermfg=green       guifg=slateblue1
+			highlight clojureParen8 ctermfg=cyan        guifg=magenta1
+			highlight clojureParen9 ctermfg=magenta     guifg=purple1
+		else
+			highlight clojureParen1 ctermfg=darkyellow  guifg=orangered3
+			highlight clojureParen2 ctermfg=darkgreen   guifg=orange2
+			highlight clojureParen3 ctermfg=blue        guifg=yellow3
+			highlight clojureParen4 ctermfg=darkmagenta guifg=olivedrab4
+			highlight clojureParen5 ctermfg=red         guifg=green4
+			highlight clojureParen6 ctermfg=darkyellow  guifg=paleturquoise3
+			highlight clojureParen7 ctermfg=darkgreen   guifg=deepskyblue4
+			highlight clojureParen8 ctermfg=blue        guifg=darkslateblue
+			highlight clojureParen9 ctermfg=darkmagenta guifg=darkviolet
+		endif
+	else
+		highlight link clojureParen1 clojureParen0
+		highlight link clojureParen2 clojureParen0
+		highlight link clojureParen3 clojureParen0
+		highlight link clojureParen4 clojureParen0
+		highlight link clojureParen5 clojureParen0
+		highlight link clojureParen6 clojureParen0
+		highlight link clojureParen7 clojureParen0
+		highlight link clojureParen8 clojureParen0
+		highlight link clojureParen9 clojureParen0
+	endif
+endfunction
+
 " Epilog
 let &cpo = s:save_cpo

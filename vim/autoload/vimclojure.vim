@@ -205,6 +205,13 @@ function! vimclojure#MakeProtectedPlug(mode, plug, f, args)
 				\ . a:f . "\"), [ " . a:args . " ])<CR>"
 endfunction
 
+function! vimclojure#MakeCommandPlug(mode, plug, f, args)
+	execute a:mode . "noremap <Plug>Clojure" . a:plug
+				\ . " :call vimclojure#ProtectedPlug("
+				\ . " function(\"vimclojure#CommandPlug\"),"
+				\ . " [ function(\"" . a:f . "\"), [ " . a:args . " ]])<CR>"
+endfunction
+
 function! vimclojure#MapPlug(mode, keys, plug)
 	if !hasmapto("<Plug>Clojure" . a:plug)
 		execute a:mode . "map <buffer> <unique> <silent> <LocalLeader>" . a:keys
@@ -212,21 +219,29 @@ function! vimclojure#MapPlug(mode, keys, plug)
 	endif
 endfunction
 
-function! vimclojure#MapCommandPlug(mode, keys, plug)
-	if exists("b:vimclojure_namespace")
-		call vimclojure#MapPlug(a:mode, a:keys, a:plug)
-	elseif g:vimclojure#WantNailgun == 1
-		let msg = ':call vimclojure#ReportError("VimClojure could not initialise the server connection.\n'
-					\ . 'That means you will not be able to use the interactive features.\n'
-					\ . 'Reasons might be that the server is not running or that there is\n'
-					\ . 'some trouble with the classpath.\n\n'
-					\ . 'VimClojure will *not* start the server for you or handle the classpath.\n'
-					\ . 'There is a plethora of tools like ivy, maven, gradle and leiningen,\n'
-					\ . 'which do this better than VimClojure could ever do it.")'
-		execute a:mode . "map <buffer> <silent> <LocalLeader>" . a:keys
-					\ . " " . msg . "<CR>"
-	endif
-endfunction
+if !exists("*vimclojure#CommandPlug")
+	function vimclojure#CommandPlug(f, args)
+		if exists("b:vimclojure_loaded")
+					\ && !exists("b:vimclojure_namespace")
+					\ && g:vimclojure#WantNailgun == 1
+			unlet b:vimclojure_loaded
+			call vimclojure#InitBuffer("silent")
+		endif
+
+		if exists("b:vimclojure_namespace")
+			call call(a:f, a:args)
+		elseif g:vimclojure#WantNailgun == 1
+			let msg = "VimClojure could not initialise the server connection.\n"
+						\ . "That means you will not be able to use the interactive features.\n"
+						\ . "Reasons might be that the server is not running or that there is\n"
+						\ . "some trouble with the classpath.\n\n"
+						\ . "VimClojure will *not* start the server for you or handle the classpath.\n"
+						\ . "There is a plethora of tools like ivy, maven, gradle and leiningen,\n"
+						\ . "which do this better than VimClojure could ever do it."
+			throw msg
+		endif
+	endfunction
+endif
 
 if !exists("*vimclojure#ProtectedPlug")
 	function vimclojure#ProtectedPlug(f, args)
@@ -953,7 +968,7 @@ function! vimclojure#OmniCompletion(findstart, base)
 	endif
 endfunction
 
-function! vimclojure#InitBuffer()
+function! vimclojure#InitBuffer(...)
 	if exists("b:vimclojure_loaded")
 		return
 	endif
@@ -975,12 +990,14 @@ function! vimclojure#InitBuffer()
 					endif
 					let b:vimclojure_namespace = namespace.value
 				catch /.*/
-					call vimclojure#ReportError(
-								\ "Could not determine the Namespace of the file.\n\n"
-								\ . "This might have different reasons. Please check, that the ng server\n"
-								\ . "is running with the correct classpath and that the file does not contain\n"
-								\ . "syntax errors. The interactive features will not be enabled, ie. the\n"
-								\ . "keybindings will not be mapped.\n\nReason:\n" . v:exception)
+					if a:000 == []
+						call vimclojure#ReportError(
+									\ "Could not determine the Namespace of the file.\n\n"
+									\ . "This might have different reasons. Please check, that the ng server\n"
+									\ . "is running with the correct classpath and that the file does not contain\n"
+									\ . "syntax errors. The interactive features will not be enabled, ie. the\n"
+									\ . "keybindings will not be mapped.\n\nReason:\n" . v:exception)
+					endif
 				endtry
 			endif
 		endif

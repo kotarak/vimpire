@@ -59,7 +59,7 @@
 (def bindable-vars
   `[*warn-on-reflection* *print-meta* *print-length*
     *print-level* *compile-path* *command-line-args*
-    *unchecked-math* *1 *2 *3 *e
+    *unchecked-math* *math-context* *1 *2 *3 *e
     ; VimClojure specific.
     *print-pretty*])
 

@@ -98,6 +98,23 @@ highlighting using ctermfg and guifg, thereby bypassing the usual colorscheme
 control using standard highlighting groups. The actual highlighting used
 depends on the dark/bright setting (see |'bg'|).
 
+Indenting                           *ft-clj-indent*
+---------
+
+VimClojure provides the (hopefully) correct indentation rules for
+the standard forms and macros. However user code might define also
+forms for which the indentation should follow the indentation according
+to the 'lispwords' option. The names of these forms often follow a
+pattern like "defsomething" or "with-something".
+
+By setting the fuzzy indent option, you can tell VimClojure, that you
+want names beginning in "def" or "with" to be indented as if they
+were included in the 'lispwords' option.
+>
+        let vimclojure#FuzzyIndent = 1
+<
+This option is disabled by default.
+
 Preview Window
 --------------
 

@@ -13,6 +13,10 @@ function! vimclojure#WarnDeprecated(old, new)
 endfunction
 
 " Configuration
+if !exists("g:vimclojure#FuzzyIndent")
+	let vimclojure#FuzzyIndent = 0
+endif
+
 if !exists("g:vimclojure#HighlightBuiltins")
 	if exists("g:clj_highlight_builtins")
 		call vimclojure#WarnDeprecated("g:clj_highlight_builtins",

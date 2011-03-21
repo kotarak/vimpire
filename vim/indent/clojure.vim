@@ -163,7 +163,7 @@ function! GetClojureIndent()
 		return paren[1] + &shiftwidth - 1
 	endif
 
-	if g:vimclojure#FuzzyIndent && w =~ '^\(def\|with\)'
+	if g:vimclojure#FuzzyIndent && w =~ '\(^\|/\)\(def\|with\)'
 		return paren[1] + &shiftwidth - 1
 	endif
 

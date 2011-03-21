@@ -270,7 +270,7 @@
               (recur (read *in* false eof)))))
         (catch clojure.lang.LispReader$ReaderException exc
           (let [e (.getCause exc)]
-            (if (= "EOF while reading" (.getMessage e))
+            (if (.startsWith (.getMessage e) "EOF while reading")
               false
               (throw exc))))))))
 

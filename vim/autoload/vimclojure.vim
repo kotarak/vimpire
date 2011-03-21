@@ -679,13 +679,13 @@ function! vimclojure#EvalLine()
 	wincmd p
 endfunction
 
-function! vimclojure#EvalBlock() range
+function! vimclojure#EvalBlock()
 	let file = vimclojure#BufferName()
 	let ns = b:vimclojure_namespace
 
-	let content = getbufline(bufnr("%"), a:firstline, a:lastline)
+	let content = getbufline(bufnr("%"), line("'<"), line("'>"))
 	let result = vimclojure#ExecuteNailWithInput("Repl", content,
-				\ "-r", "-n", ns, "-f", file, "-l", a:firstline - 1)
+				\ "-r", "-n", ns, "-f", file, "-l", line("'<") - 1)
 
 	let resultBuffer = g:vimclojure#ClojureResultBuffer.New()
 	call resultBuffer.showOutput(result)

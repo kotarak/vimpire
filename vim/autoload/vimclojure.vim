@@ -848,7 +848,22 @@ function! vimclojure#Repl.getCommand() dict
 	return cmd
 endfunction
 
+function! vimclojure#ReplDoEnter()
+	execute "normal! a\<CR>x"
+	normal! ==x
+	if getline(".") =~ '^\s*$'
+		startinsert!
+	else
+		startinsert
+	endif
+endfunction
+
 function! vimclojure#Repl.enterHook() dict
+	if line(".") < line("$") || col(".") + 1 < col("$")
+		call vimclojure#ReplDoEnter()
+		return
+	endif
+
 	let cmd = self.getCommand()
 
 	" Special Case: Showed prompt (or user just hit enter).
@@ -864,9 +879,7 @@ function! vimclojure#Repl.enterHook() dict
 	let result = vimclojure#ExecuteNailWithInput("CheckSyntax", cmd,
 				\ "-n", b:vimclojure_namespace)
 	if result.value == 0 && result.stderr == ""
-		execute "normal! GA\<CR>x"
-		normal! ==x
-		startinsert!
+		call vimclojure#ReplDoEnter()
 	elseif result.stderr != ""
 		let buf = g:vimclojure#ResultBuffer.New()
 		call buf.showOutput(result)

@@ -1,3 +1,13 @@
+def File local = project.file("local.gradle")
+
+allprojects {
+    useDefaultRepos = true
+
+    if (local.exists()) {
+        apply from: local
+    }
+}
+
 subprojects {
     apply plugin: 'java-base'
 
@@ -9,16 +19,20 @@ subprojects {
 
 apply plugin: 'clojure'
 
-repositories {
-    clojarsRepo()
+if (useDefaultRepos) {
+    repositories {
+        clojarsRepo()
+    }
 }
 
 project(':server') {
     apply plugin: 'clojure'
 
-    repositories {
-        clojureReleasesRepo()
-        clojarsRepo()
+    if (useDefaultRepos) {
+        repositories {
+            clojureReleasesRepo()
+            clojarsRepo()
+        }
     }
 
     dependencies {

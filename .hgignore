@@ -4,3 +4,4 @@ syntax: glob
 build
 ng
 .gradle
+local.gradle

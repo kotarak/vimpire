@@ -776,6 +776,9 @@ function! vimclojure#Repl.Init(instance, namespace) dict
 	if !hasmapto("<Plug>ClojureReplEnterHook")
 		imap <buffer> <silent> <CR> <Plug>ClojureReplEnterHook
 	endif
+	if !hasmapto("<Plug>ClojureReplEvaluate")
+		imap <buffer> <silent> <C-CR> <Plug>ClojureReplEvaluate
+	endif
 	if !hasmapto("<Plug>ClojureReplUpHistory")
 		imap <buffer> <silent> <C-Up> <Plug>ClojureReplUpHistory
 	endif

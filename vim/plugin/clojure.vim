@@ -50,6 +50,7 @@ call vimclojure#MakeCommandPlug("n", "StartRepl", "vimclojure#StartRepl", "")
 call vimclojure#MakeCommandPlug("n", "StartLocalRepl", "vimclojure#StartRepl", "b:vimclojure_namespace")
 
 inoremap <Plug>ClojureReplEnterHook <Esc>:call b:vimclojure_repl.enterHook()<CR>
+imap <Plug>ClojureReplEvaluate <Esc>GA<CR>
 inoremap <Plug>ClojureReplUpHistory <C-O>:call b:vimclojure_repl.upHistory()<CR>
 inoremap <Plug>ClojureReplDownHistory <C-O>:call b:vimclojure_repl.downHistory()<CR>
 

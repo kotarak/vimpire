@@ -18,6 +18,7 @@ project(':server') {
 
     repositories {
         clojureReleasesRepo()
+        clojarsRepo()
     }
 
     dependencies {

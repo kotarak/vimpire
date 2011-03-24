@@ -274,6 +274,12 @@ Hitting enter will determine, whether the expression is complete and
 will send it to the Clojure instance. In case the expression is incomplete,
 eg. after "(defn foo" will result in a newline for multiline expressions.
 
+A newline will also be inserted if you are inside of the expression. The
+expression will only be submitted to the Repl when you hit enter after
+the last character of the buffer. If you are inside the expression and
+want to start the evaluation immediately you may use <C-CR> instead of
+the plain <CR>.
+
 Previously sent expressions may be recalled via <C-Up> and <C-Down>.
 Note: sending multiple expressions will save them in the same history
 entry. So playing back with <C-Up> will again send all of the contained
@@ -281,6 +287,7 @@ expressions.
 
 The Plugs are:
  - <Plug>ClojureReplEnterHook for the enter key
+ - <Plug>ClojureReplEvaluate for immediate evaluation (<C-CR>)
  - <Plug>ClojureReplUpHistory for going backwards in history (<C-Up>)
  - <Plug>ClojureReplDownHistory for going forwards in history (<C-Down>)
 

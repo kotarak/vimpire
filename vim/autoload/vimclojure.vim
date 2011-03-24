@@ -867,7 +867,9 @@ function! vimclojure#Repl.enterHook() dict
 	let cmd = self.getCommand()
 
 	" Special Case: Showed prompt (or user just hit enter).
-	if cmd == ""
+	if cmd =~ '^\(\s\|\n\)*$'
+		execute "normal! a\<CR>"
+		startinsert!
 		return
 	endif
 

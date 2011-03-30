@@ -862,7 +862,14 @@ function! vimclojure#ReplDoEnter()
 endfunction
 
 function! vimclojure#Repl.enterHook() dict
-	if line(".") < line("$") || col(".") + 1 < col("$")
+	let lastCol = {}
+
+	function lastCol.f() dict
+		normal! g_
+		return col(".")
+	endfunction
+
+	if line(".") < line("$") || col(".") < vimclojure#WithSavedPosition(lastCol)
 		call vimclojure#ReplDoEnter()
 		return
 	endif

@@ -1,11 +1,16 @@
-def File local = project.file("local.gradle")
+buildscript {
+    repositories {
+        mavenRepo urls: "http://clojars.org/repo"
+    }
+    dependencies {
+        classpath "clojuresque:clojuresque:1.4.0"
+        classpath "local-dotgradle:local-dotgradle:1.0.0"
+    }
+}
 
 allprojects {
-    useDefaultRepos = true
-
-    if (local.exists()) {
-        apply from: local
-    }
+    localDotGradle = project(':').file("local.gradle")
+    apply plugin: 'local-dotgradle'
 }
 
 subprojects {
@@ -19,20 +24,16 @@ subprojects {
 
 apply plugin: 'clojure'
 
-if (useDefaultRepos) {
-    repositories {
-        clojarsRepo()
-    }
+defaultRepositories {
+    clojarsRepo()
 }
 
 project(':server') {
     apply plugin: 'clojure'
 
-    if (useDefaultRepos) {
-        repositories {
-            clojureReleasesRepo()
-            clojarsRepo()
-        }
+    defaultRepositories {
+        clojureReleasesRepo()
+        clojarsRepo()
     }
 
     dependencies {

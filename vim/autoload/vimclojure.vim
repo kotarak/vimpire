@@ -779,6 +779,9 @@ function! vimclojure#Repl.Init(instance, namespace) dict
 	if !hasmapto("<Plug>ClojureReplEvaluate")
 		imap <buffer> <silent> <C-CR> <Plug>ClojureReplEvaluate
 	endif
+	if !hasmapto("<Plug>ClojureReplHatHook")
+		nmap <buffer> <silent> ^ <Plug>ClojureReplHatHook
+	endif
 	if !hasmapto("<Plug>ClojureReplUpHistory")
 		imap <buffer> <silent> <C-Up> <Plug>ClojureReplUpHistory
 	endif
@@ -909,6 +912,17 @@ function! vimclojure#Repl.enterHook() dict
 		let self._prompt = namespace.value . "=>"
 
 		call self.showPrompt()
+	endif
+endfunction
+
+function! vimclojure#Repl.hatHook() dict
+	let l = getline(".")
+
+	if l =~ "^" . self._prompt
+		let [buf, line, col, off] = getpos(".")
+		call setpos(".", [buf, line, len(self._prompt) + 2, off])
+	else
+		normal! ^
 	endif
 endfunction
 

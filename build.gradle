@@ -3,7 +3,7 @@ buildscript {
         mavenRepo urls: "http://clojars.org/repo"
     }
     dependencies {
-        classpath "clojuresque:clojuresque:1.4.0"
+        classpath "clojuresque:clojuresque:1.4.1"
         classpath "local-dotgradle:local-dotgradle:1.0.0"
     }
 }

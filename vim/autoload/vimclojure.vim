@@ -272,16 +272,20 @@ if !exists("g:vimclojure#SplitSize")
 	let vimclojure#SplitSize = ""
 endif
 
-let vimclojure#Buffer = {}
+let vimclojure#Object = {}
 
-function! vimclojure#Buffer.New() dict
+function! vimclojure#Object.New(...) dict
 	let instance = copy(self)
 
-	call self.MakeBuffer()
-	call self.Init(instance)
+	call call(instance.Init, a:000, instance)
 
 	return instance
 endfunction
+
+function! vimclojure#Object.Init() dict
+endfunction
+
+let vimclojure#Buffer = copy(vimclojure#Object)
 
 function! vimclojure#Buffer.MakeBuffer()
 	if g:vimclojure#SplitPos == "left" || g:vimclojure#SplitPos == "right"
@@ -305,8 +309,9 @@ function! vimclojure#Buffer.MakeBuffer()
 	endif
 endfunction
 
-function! vimclojure#Buffer.Init(instance)
-	let a:instance._buffer = bufnr("%")
+function! vimclojure#Buffer.Init() dict
+	call self.MakeBuffer()
+	let self._buffer = bufnr("%")
 endfunction
 
 function! vimclojure#Buffer.goHere() dict
@@ -361,6 +366,7 @@ endfunction
 
 " The transient buffer, used to display results.
 let vimclojure#ResultBuffer = copy(vimclojure#Buffer)
+let vimclojure#ResultBuffer["__superBufferNew"] = vimclojure#ResultBuffer["New"]
 let vimclojure#ResultBuffer["__superBufferInit"] = vimclojure#ResultBuffer["Init"]
 let vimclojure#ResultBuffer.__instance = []
 
@@ -381,28 +387,24 @@ function! vimclojure#ResultBuffer.New() dict
 		return vimclojure#WithSavedOption(closure)
 	endif
 
-	let instance = copy(self)
+	let instance = self.__superBufferNew()
 	let g:vimclojure#ResultBuffer.__instance = [ instance ]
-
-	call g:vimclojure#Buffer.MakeBuffer()
-	call self.__superBufferInit(instance)
-	call self.Init(instance)
 
 	return instance
 endfunction
 
-function! vimclojure#ResultBuffer.Init(instance) dict
+function! vimclojure#ResultBuffer.Init() dict
+	call self.__superBufferInit()
+
 	setlocal noswapfile
 	setlocal buftype=nofile
 	setlocal bufhidden=wipe
 
 	call vimclojure#MapPlug("n", "p", "CloseResultBuffer")
 
-	call a:instance.clear()
+	call self.clear()
 	let leader = exists("g:maplocalleader") ? g:maplocalleader : "\\"
 	call append(0, "; Use " . leader . "p to close this buffer!")
-
-	return a:instance
 endfunction
 
 function! vimclojure#ResultBuffer.CloseBuffer() dict
@@ -431,11 +433,9 @@ let vimclojure#ClojureResultBuffer["__superResultBufferInit"] =
 let vimclojure#ClojureResultBuffer["__superResultBufferShowOutput"] =
 			\ vimclojure#ResultBuffer["showOutput"]
 
-function! vimclojure#ClojureResultBuffer.Init(instance) dict
-	call self.__superResultBufferInit(a:instance)
-	setfiletype clojure
-
-	return a:instance
+function! vimclojure#ClojureResultBuffer.Init() dict
+	call self.__superResultBufferInit()
+	set filetype=clojure
 endfunction
 
 function! vimclojure#ClojureResultBuffer.showOutput(text) dict
@@ -748,33 +748,24 @@ function! vimclojure#StartRepl(...)
 	call g:vimclojure#Repl.New(ns)
 endfunction
 
-function! vimclojure#Repl.New(namespace) dict
-	let instance = copy(self)
+function! vimclojure#Repl.Init(namespace) dict
+	call self.__superBufferInit()
 
-	call g:vimclojure#Buffer.MakeBuffer()
-	call self.Init(instance, a:namespace)
-
-	return instance
-endfunction
-
-function! vimclojure#Repl.Init(instance, namespace) dict
-	call self.__superBufferInit(a:instance)
-
-	let a:instance._prompt = a:namespace . "=>"
+	let self._prompt = a:namespace . "=>"
 
 	setlocal buftype=nofile
 	setlocal noswapfile
 
-	call append(line("$"), ["Clojure", a:instance._prompt . " "])
+	call append(line("$"), ["Clojure", self._prompt . " "])
 
 	let replStart = vimclojure#ExecuteNail("Repl", "-s",
 				\ "-n", a:namespace)
-	let a:instance._id = replStart.value.id
+	let self._id = replStart.value.id
 	call vimclojure#ExecuteNailWithInput("Repl",
 				\ "(require 'clojure.stacktrace)",
-				\ "-r", "-i", a:instance._id)
+				\ "-r", "-i", self._id)
 
-	let b:vimclojure_repl = a:instance
+	let b:vimclojure_repl = self
 
 	set filetype=clojure
 	let b:vimclojure_namespace = a:namespace

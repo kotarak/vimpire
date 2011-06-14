@@ -90,50 +90,71 @@ function! vimclojure#SynIdName()
 endfunction
 
 function! vimclojure#WithSaved(closure)
-	let v = a:closure.get(a:closure.tosafe)
+	let v = a:closure.save()
 	try
 		let r = a:closure.f()
 	finally
-		call a:closure.set(a:closure.tosafe, v)
+		call a:closure.restore(v)
 	endtry
 	return r
 endfunction
 
 function! vimclojure#WithSavedPosition(closure)
-	let a:closure['tosafe'] = "."
-	let a:closure['get'] = function("getpos")
-	let a:closure['set'] = function("setpos")
-	return vimclojure#WithSaved(a:closure)
-endfunction
-
-function! vimclojure#WithSavedRegister(closure)
-	let a:closure['get'] = function("getreg")
-	let a:closure['set'] = function("setreg")
-	return vimclojure#WithSaved(a:closure)
-endfunction
-
-function! vimclojure#WithSavedOption(closure)
-	function a:closure.get(option)
-		execute "let val = &" . a:option
-		return val
+	function a:closure.save() dict
+		let [ _b, l, c, _o ] = getpos(".")
+		let b = bufnr("%")
+		return [b, l, c]
 	endfunction
 
-	function a:closure.set(option, value)
-		execute "let &" . a:option . " = a:value"
+	function a:closure.restore(value) dict
+		let [b, l, c] = a:value
+
+		if bufnr("%") != b
+			execute b "buffer!"
+		endif
+		call setpos(".", [0, l, c, 0])
+	endfunction
+
+	return vimclojure#WithSaved(a:closure)
+endfunction
+
+function! vimclojure#WithSavedRegister(reg, closure)
+	let a:closure._register = a:reg
+
+	function a:closure.save() dict
+		return [getreg(self._register, 1), getregtype(self._register)]
+	endfunction
+
+	function a:closure.restore(value) dict
+		call call(function("setreg"), [self._register] + a:value)
+	endfunction
+
+	return vimclojure#WithSaved(a:closure)
+endfunction
+
+function! vimclojure#WithSavedOption(option, closure)
+	let a:closure._option = a:option
+
+	function a:closure.save() dict
+		return eval("&" . self._option)
+	endfunction
+
+	function a:closure.restore(value) dict
+		execute "let &" . self._option . " = a:value"
 	endfunction
 
 	return vimclojure#WithSaved(a:closure)
 endfunction
 
 function! vimclojure#Yank(r, how)
-	let closure = {'tosafe': a:r, 'yank': a:how}
+	let closure = {'reg': a:r, 'yank': a:how}
 
 	function closure.f() dict
 		silent execute self.yank
-		return getreg(self.tosafe)
+		return getreg(self.reg)
 	endfunction
 
-	return vimclojure#WithSavedRegister(closure)
+	return vimclojure#WithSavedRegister(a:r, closure)
 endfunction
 
 function! vimclojure#EscapePathForOption(path)
@@ -376,7 +397,6 @@ function! vimclojure#ResultBuffer.New(...) dict
 	if g:vimclojure#ResultBuffer.__instance != []
 		let closure = {
 					\ 'instance' : g:vimclojure#ResultBuffer.__instance[0],
-					\ 'tosafe'   : 'switchbuf'
 					\ }
 		function closure.f() dict
 			set switchbuf=useopen
@@ -386,7 +406,7 @@ function! vimclojure#ResultBuffer.New(...) dict
 			return self.instance
 		endfunction
 
-		return vimclojure#WithSavedOption(closure)
+		return vimclojure#WithSavedOption('switchbuf', closure)
 	endif
 
 	let b:vimclojure_result_buffer = 1
@@ -452,14 +472,14 @@ if !exists("vimclojure#NailgunClient")
 endif
 
 function! vimclojure#ShellEscapeArguments(vals)
-	let closure = { 'vals': a:vals, 'tosafe': 'shellslash' }
+	let closure = { 'vals': a:vals }
 
 	function closure.f() dict
 		set noshellslash
 		return map(copy(self.vals), 'shellescape(v:val)')
 	endfunction
 
-	return vimclojure#WithSavedOption(closure)
+	return vimclojure#WithSavedOption('shellslash', closure)
 endfunction
 
 function! vimclojure#ExecuteNailWithInput(nail, input, ...)

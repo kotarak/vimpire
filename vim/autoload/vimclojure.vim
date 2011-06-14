@@ -286,8 +286,9 @@ function! vimclojure#Object.Init() dict
 endfunction
 
 let vimclojure#Buffer = copy(vimclojure#Object)
+let vimclojure#Buffer["__superObjectNew"] = vimclojure#Buffer["New"]
 
-function! vimclojure#Buffer.MakeBuffer()
+function! vimclojure#Buffer.New(...) dict
 	if g:vimclojure#SplitPos == "left" || g:vimclojure#SplitPos == "right"
 		let o_sr = &splitright
 		if g:vimclojure#SplitPos == "left"
@@ -307,10 +308,11 @@ function! vimclojure#Buffer.MakeBuffer()
 		execute printf("%snew", g:vimclojure#SplitSize)
 		let &splitbelow = o_sb
 	endif
+
+	return call(self.__superObjectNew, a:000, self)
 endfunction
 
 function! vimclojure#Buffer.Init() dict
-	call self.MakeBuffer()
 	let self._buffer = bufnr("%")
 endfunction
 

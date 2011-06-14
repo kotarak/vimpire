@@ -372,24 +372,25 @@ let vimclojure#ResultBuffer["__superBufferNew"] = vimclojure#ResultBuffer["New"]
 let vimclojure#ResultBuffer["__superBufferInit"] = vimclojure#ResultBuffer["Init"]
 let vimclojure#ResultBuffer.__instance = []
 
-function! vimclojure#ResultBuffer.New() dict
+function! vimclojure#ResultBuffer.New(...) dict
 	if g:vimclojure#ResultBuffer.__instance != []
 		let closure = {
 					\ 'instance' : g:vimclojure#ResultBuffer.__instance[0],
-					\ 'tosafe'   : 'switchbuf',
-					\ 'class'    : self
+					\ 'tosafe'   : 'switchbuf'
 					\ }
 		function closure.f() dict
 			set switchbuf=useopen
 			call self.instance.goHereWindow()
-			call self.instance.clear()
-			return self.class.Init(self.instance)
+			call self.instance.Init()
+
+			return self.instance
 		endfunction
 
 		return vimclojure#WithSavedOption(closure)
 	endif
 
-	let instance = self.__superBufferNew()
+	let b:vimclojure_result_buffer = 1
+	let instance = call(self.__superBufferNew, a:000, self)
 	let g:vimclojure#ResultBuffer.__instance = [ instance ]
 
 	return instance

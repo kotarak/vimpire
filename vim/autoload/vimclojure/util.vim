@@ -77,5 +77,13 @@ function! vimclojure#util#Yank(r, how)
 	return vimclojure#util#WithSavedRegister(a:r, closure)
 endfunction
 
+function! vimclojure#util#MoveBackward()
+	call search('\S', 'Wb')
+endfunction
+
+function! vimclojure#util#MoveForward()
+	call search('\S', 'W')
+endfunction
+
 " Epilog
 let &cpo = s:save_cpo

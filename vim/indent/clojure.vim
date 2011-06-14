@@ -74,6 +74,40 @@ function! VimClojureCheckForString()
 	return vimclojure#util#WithSavedPosition({'f': function("VimClojureCheckForStringWorker")})
 endfunction
 
+function! s:IsMethodSpecialCase(position)
+	let closure = { 'pos': a:position }
+
+	function closure.f() dict
+		" Find the next enclosing form.
+		call vimclojure#util#MoveBackward()
+
+		" Special case: we are at a '(('.
+		if vimclojure#util#Yank('l', '"lyl') == '('
+			return 0
+		endif
+		call cursor(self.pos)
+
+		let nextParen = s:MatchPairs('(', ')', 0)
+
+		" Special case: we are now at toplevel.
+		if nextParen == [0, 0]
+			return 0
+		endif
+		call cursor(nextParen)
+
+		call vimclojure#util#MoveForward()
+		let keyword = vimclojure#util#Yank('l', '"lye')
+		for kw in [ 'deftype', 'defrecord', 'reify', 'proxy', 'letfn' ]
+			if kw == keyword
+				return 1
+			endif
+		endfor
+		return 0
+	endfunction
+
+	return vimclojure#util#WithSavedPosition(closure)
+endfunction
+
 function! GetClojureIndent()
 	" Get rid of special case.
 	if line(".") == 1
@@ -119,6 +153,8 @@ function! GetClojureIndent()
 	" Now we have to reimplement lispindent. This is surprisingly easy, as
 	" soon as one has access to syntax items.
 	"
+	" - Check whether we are in a special position after deftype, defrecord,
+	"   reify, proxy or letfn. These are special cases.
 	" - Get the next keyword after the (.
 	" - If its first character is also a (, we have another sexp and align
 	"   one column to the right of the unmatched (.
@@ -127,7 +163,11 @@ function! GetClojureIndent()
 	" - If not, we check whether it is last word in the line. In that case
 	"   we again use ( + sw for indent.
 	" - In any other case we use the column of the end of the word + 2.
-	call cursor(paren[0] , paren[1])
+	call cursor(paren)
+
+	if s:IsMethodSpecialCase(paren)
+		return paren[1] + &shiftwidth - 1
+	endif
 
 	" In case we are at the last character, we use the paren position.
 	if col("$") - 1 == paren[1]

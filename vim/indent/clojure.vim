@@ -178,12 +178,9 @@ function! GetClojureIndent()
 
 	" In case after the paren is a whitespace, we search for the next word.
 	normal! l
-	let reg = getreg("l")
-	normal! "lyl
-	if getreg("l") == ' '
+	if vimclojure#util#Yank('l', '"lyl') == ' '
 		normal! w
 	endif
-	call setreg("l", reg)
 
 	" If we moved to another line, there is no word after the (. We
 	" use the ( position for indent.
@@ -193,10 +190,7 @@ function! GetClojureIndent()
 
 	" We still have to check, whether the keyword starts with a (, [ or {.
 	" In that case we use the ( position for indent.
-	let reg = getreg("l")
-	normal! "lye
-	let w = getreg("l")
-	call setreg("l", reg)
+	let w = vimclojure#util#Yank('l', '"lye')
 	if stridx('([{', w[0]) > 0
 		return paren[1]
 	endif

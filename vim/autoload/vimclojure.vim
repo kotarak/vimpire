@@ -85,78 +85,6 @@ function! vimclojure#ReportError(msg)
 	endif
 endfunction
 
-function! vimclojure#SynIdName()
-	return synIDattr(synID(line("."), col("."), 0), "name")
-endfunction
-
-function! vimclojure#WithSaved(closure)
-	let v = a:closure.save()
-	try
-		let r = a:closure.f()
-	finally
-		call a:closure.restore(v)
-	endtry
-	return r
-endfunction
-
-function! vimclojure#WithSavedPosition(closure)
-	function a:closure.save() dict
-		let [ _b, l, c, _o ] = getpos(".")
-		let b = bufnr("%")
-		return [b, l, c]
-	endfunction
-
-	function a:closure.restore(value) dict
-		let [b, l, c] = a:value
-
-		if bufnr("%") != b
-			execute b "buffer!"
-		endif
-		call setpos(".", [0, l, c, 0])
-	endfunction
-
-	return vimclojure#WithSaved(a:closure)
-endfunction
-
-function! vimclojure#WithSavedRegister(reg, closure)
-	let a:closure._register = a:reg
-
-	function a:closure.save() dict
-		return [getreg(self._register, 1), getregtype(self._register)]
-	endfunction
-
-	function a:closure.restore(value) dict
-		call call(function("setreg"), [self._register] + a:value)
-	endfunction
-
-	return vimclojure#WithSaved(a:closure)
-endfunction
-
-function! vimclojure#WithSavedOption(option, closure)
-	let a:closure._option = a:option
-
-	function a:closure.save() dict
-		return eval("&" . self._option)
-	endfunction
-
-	function a:closure.restore(value) dict
-		execute "let &" . self._option . " = a:value"
-	endfunction
-
-	return vimclojure#WithSaved(a:closure)
-endfunction
-
-function! vimclojure#Yank(r, how)
-	let closure = {'reg': a:r, 'yank': a:how}
-
-	function closure.f() dict
-		silent execute self.yank
-		return getreg(self.reg)
-	endfunction
-
-	return vimclojure#WithSavedRegister(a:r, closure)
-endfunction
-
 function! vimclojure#EscapePathForOption(path)
 	let path = fnameescape(a:path)
 
@@ -191,23 +119,23 @@ function! vimclojure#ExtractSexpr(toplevel)
 		let start = getpos(".")
 
 		if getline(start[1])[start[2] - 1] == "("
-					\ && vimclojure#SynIdName() =~ 'clojureParen' . self.level
+					\ && vimclojure#util#SynIdName() =~ 'clojureParen' . self.level
 			let pos = [start[1], start[2]]
 		endif
 
 		if pos == [0, 0]
 			let pos = searchpairpos('(', '', ')', 'bW' . self.flag,
-						\ 'vimclojure#SynIdName() !~ "clojureParen\\d"')
+						\ 'vimclojure#util#SynIdName() !~ "clojureParen\\d"')
 		endif
 
 		if pos == [0, 0]
 			throw "Error: Not in a s-expression!"
 		endif
 
-		return [pos, vimclojure#Yank('l', 'normal! "ly%')]
+		return [pos, vimclojure#util#Yank('l', 'normal! "ly%')]
 	endfunction
 
-	return vimclojure#WithSavedPosition(closure)
+	return vimclojure#util#WithSavedPosition(closure)
 endfunction
 
 function! vimclojure#BufferName()
@@ -406,7 +334,7 @@ function! vimclojure#ResultBuffer.New(...) dict
 			return self.instance
 		endfunction
 
-		return vimclojure#WithSavedOption('switchbuf', closure)
+		return vimclojure#util#WithSavedOption('switchbuf', closure)
 	endif
 
 	let b:vimclojure_result_buffer = 1
@@ -479,7 +407,7 @@ function! vimclojure#ShellEscapeArguments(vals)
 		return map(copy(self.vals), 'shellescape(v:val)')
 	endfunction
 
-	return vimclojure#WithSavedOption('shellslash', closure)
+	return vimclojure#util#WithSavedOption('shellslash', closure)
 endfunction
 
 function! vimclojure#ExecuteNailWithInput(nail, input, ...)
@@ -746,7 +674,7 @@ function! vimclojure#EvalParagraph()
 		return line(".")
 	endfunction
 
-	let endPosition = vimclojure#WithSavedPosition(closure)
+	let endPosition = vimclojure#util#WithSavedPosition(closure)
 
 	let content = getbufline(bufnr("%"), startPosition, endPosition)
 	let result = vimclojure#ExecuteNailWithInput("Repl", content,
@@ -867,7 +795,7 @@ function! vimclojure#Repl.getCommand() dict
 		return ""
 	endif
 
-	let cmd = vimclojure#Yank("l", ln . "," . line("$") . "yank l")
+	let cmd = vimclojure#util#Yank("l", ln . "," . line("$") . "yank l")
 
 	let cmd = substitute(cmd, "^" . self._prompt . "\\s*", "", "")
 	let cmd = substitute(cmd, "\n$", "", "")
@@ -892,7 +820,7 @@ function! vimclojure#Repl.enterHook() dict
 		return col(".")
 	endfunction
 
-	if line(".") < line("$") || col(".") < vimclojure#WithSavedPosition(lastCol)
+	if line(".") < line("$") || col(".") < vimclojure#util#WithSavedPosition(lastCol)
 		call vimclojure#ReplDoEnter()
 		return
 	endif

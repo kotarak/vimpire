@@ -27,7 +27,7 @@ function! s:MatchPairs(open, close, stopat)
 	" Stop only on vector and map [ resp. {. Ignore the ones in strings and
 	" comments.
 	return searchpairpos(a:open, '', a:close, 'bWn',
-				\ 'vimclojure#SynIdName() !~ "clojureParen\\d"',
+				\ 'vimclojure#util#SynIdName() !~ "clojureParen\\d"',
 				\ a:stopat)
 endfunction
 
@@ -45,17 +45,17 @@ function! VimClojureCheckForStringWorker()
 
 	call cursor(nb, 0)
 	call cursor(0, col("$") - 1)
-	if vimclojure#SynIdName() != "clojureString"
+	if vimclojure#util#SynIdName() != "clojureString"
 		return -1
 	endif
 
 	" This will not work for a " in the first column...
-	if vimclojure#Yank('l', 'normal! "lyl') == '"'
+	if vimclojure#util#Yank('l', 'normal! "lyl') == '"'
 		call cursor(0, col("$") - 2)
-		if vimclojure#SynIdName() != "clojureString"
+		if vimclojure#util#SynIdName() != "clojureString"
 			return -1
 		endif
-		if vimclojure#Yank('l', 'normal! "lyl') != '\\'
+		if vimclojure#util#Yank('l', 'normal! "lyl') != '\\'
 			return -1
 		endif
 		call cursor(0, col("$") - 1)
@@ -71,7 +71,7 @@ function! VimClojureCheckForStringWorker()
 endfunction
 
 function! VimClojureCheckForString()
-	return vimclojure#WithSavedPosition({'f': function("VimClojureCheckForStringWorker")})
+	return vimclojure#util#WithSavedPosition({'f': function("VimClojureCheckForStringWorker")})
 endfunction
 
 function! GetClojureIndent()

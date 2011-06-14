@@ -31,47 +31,49 @@ function! s:MatchPairs(open, close, stopat)
 				\ a:stopat)
 endfunction
 
-function! VimClojureCheckForStringWorker()
-	" Check whether there is the last character of the previous line is
-	" highlighted as a string. If so, we check whether it's a ". In this
-	" case we have to check also the previous character. The " might be the
-	" closing one. In case the we are still in the string, we search for the
-	" opening ". If this is not found we take the indent of the line.
-	let nb = prevnonblank(v:lnum - 1)
+function! s:CheckForString()
+	let closure = {}
 
-	if nb == 0
-		return -1
-	endif
+	function closure.f() dict
+		" Check whether there is the last character of the previous line is
+		" highlighted as a string. If so, we check whether it's a ". In this
+		" case we have to check also the previous character. The " might be the
+		" closing one. In case the we are still in the string, we search for the
+		" opening ". If this is not found we take the indent of the line.
+		let nb = prevnonblank(v:lnum - 1)
 
-	call cursor(nb, 0)
-	call cursor(0, col("$") - 1)
-	if vimclojure#util#SynIdName() != "clojureString"
-		return -1
-	endif
+		if nb == 0
+			return -1
+		endif
 
-	" This will not work for a " in the first column...
-	if vimclojure#util#Yank('l', 'normal! "lyl') == '"'
-		call cursor(0, col("$") - 2)
+		call cursor(nb, 0)
+		call cursor(0, col("$") - 1)
 		if vimclojure#util#SynIdName() != "clojureString"
 			return -1
 		endif
-		if vimclojure#util#Yank('l', 'normal! "lyl') != '\\'
-			return -1
+
+		" This will not work for a " in the first column...
+		if vimclojure#util#Yank('l', 'normal! "lyl') == '"'
+			call cursor(0, col("$") - 2)
+			if vimclojure#util#SynIdName() != "clojureString"
+				return -1
+			endif
+			if vimclojure#util#Yank('l', 'normal! "lyl') != '\\'
+				return -1
+			endif
+			call cursor(0, col("$") - 1)
 		endif
-		call cursor(0, col("$") - 1)
-	endif
 
-	let p = searchpos('\(^\|[^\\]\)\zs"', 'bW')
+		let p = searchpos('\(^\|[^\\]\)\zs"', 'bW')
 
-	if p != [0, 0]
-		return p[1] - 1
-	endif
+		if p != [0, 0]
+			return p[1] - 1
+		endif
 
-	return indent(".")
-endfunction
+		return indent(".")
+	endfunction
 
-function! VimClojureCheckForString()
-	return vimclojure#util#WithSavedPosition({'f': function("VimClojureCheckForStringWorker")})
+	return vimclojure#util#WithSavedPosition(closure)
 endfunction
 
 function! s:IsMethodSpecialCase(position)
@@ -116,7 +118,7 @@ function! GetClojureIndent()
 
 	" We have to apply some heuristics here to figure out, whether to use
 	" normal lisp indenting or not.
-	let i = VimClojureCheckForString()
+	let i = s:CheckForString()
 	if i > -1
 		return i
 	endif

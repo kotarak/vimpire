@@ -24,7 +24,7 @@
   (:require
     clojure.test)
   (:use
-    [vimclojure.util :only [safe-var-get stream->seq
+    [vimclojure.util :only [resolve-and-load-namespace safe-var-get stream->seq
                             pretty-print pretty-print-causetrace]])
   (:import
     clojure.lang.Var
@@ -65,10 +65,10 @@
 
 (defn make-repl
   "Create a new Repl."
-  ([id] (make-repl id (the-ns 'user)))
+  ([id] (make-repl id nil))
   ([id namespace]
    {:id        id
-    :ns        namespace
+    :ns        (or namespace (resolve-and-load-namespace 'user))
     :test-out  nil
     :line      1
     :bindings  (-> (reduce add-binding {} bindable-vars)
@@ -79,7 +79,6 @@
 (defn start
   "Start a new Repl and register it in the system."
   [nspace]
-  ; Make sure user namespace exists.
   (let [id       (repl-id)
         the-repl (make-repl id nspace)]
     (swap! *repls* assoc id the-repl)

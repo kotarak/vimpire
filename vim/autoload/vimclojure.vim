@@ -687,6 +687,7 @@ endfunction
 
 " The Repl
 let vimclojure#Repl = copy(vimclojure#Buffer)
+let vimclojure#Repl.__superBufferNew = vimclojure#Repl.New
 let vimclojure#Repl.__superBufferInit = vimclojure#Repl.Init
 
 let vimclojure#Repl._history = []
@@ -699,6 +700,25 @@ function! vimclojure#StartRepl(...)
 	call g:vimclojure#Repl.New(ns)
 endfunction
 
+" FIXME: Ugly hack. But easier than cleaning up the buffer
+" mess in case something goes wrong with repl start.
+function! vimclojure#Repl.New(namespace) dict
+	let replStart = vimclojure#ExecuteNail("Repl", "-s",
+				\ "-n", a:namespace)
+	if replStart.stderr != ""
+		call vimclojure#ReportError(replStart.stderr)
+		return
+	endif
+
+	let instance = call(self.__superBufferNew, [a:namespace], self)
+	let instance._id = replStart.value.id
+	call vimclojure#ExecuteNailWithInput("Repl",
+				\ "(require 'clojure.stacktrace)",
+				\ "-r", "-i", instance._id)
+
+	return instance
+endfunction
+
 function! vimclojure#Repl.Init(namespace) dict
 	call self.__superBufferInit()
 
@@ -708,13 +728,6 @@ function! vimclojure#Repl.Init(namespace) dict
 	setlocal noswapfile
 
 	call append(line("$"), ["Clojure", self._prompt . " "])
-
-	let replStart = vimclojure#ExecuteNail("Repl", "-s",
-				\ "-n", a:namespace)
-	let self._id = replStart.value.id
-	call vimclojure#ExecuteNailWithInput("Repl",
-				\ "(require 'clojure.stacktrace)",
-				\ "-r", "-i", self._id)
 
 	let b:vimclojure_repl = self
 

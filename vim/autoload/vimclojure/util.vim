@@ -70,7 +70,7 @@ function! vimclojure#util#Yank(r, how)
 	let closure = {'reg': a:r, 'yank': a:how}
 
 	function closure.f() dict
-		silent execute "normal!" self.yank
+		silent execute self.yank
 		return getreg(self.reg)
 	endfunction
 

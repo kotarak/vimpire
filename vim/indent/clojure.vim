@@ -84,7 +84,7 @@ function! s:IsMethodSpecialCase(position)
 		call vimclojure#util#MoveBackward()
 
 		" Special case: we are at a '(('.
-		if vimclojure#util#Yank('l', '"lyl') == '('
+		if vimclojure#util#Yank('l', 'normal! "lyl') == '('
 			return 0
 		endif
 		call cursor(self.pos)
@@ -98,7 +98,7 @@ function! s:IsMethodSpecialCase(position)
 		call cursor(nextParen)
 
 		call vimclojure#util#MoveForward()
-		let keyword = vimclojure#util#Yank('l', '"lye')
+		let keyword = vimclojure#util#Yank('l', 'normal! "lye')
 		for kw in [ 'deftype', 'defrecord', 'reify', 'proxy', 'letfn' ]
 			if kw == keyword
 				return 1
@@ -178,7 +178,7 @@ function! GetClojureIndent()
 
 	" In case after the paren is a whitespace, we search for the next word.
 	normal! l
-	if vimclojure#util#Yank('l', '"lyl') == ' '
+	if vimclojure#util#Yank('l', 'normal! "lyl') == ' '
 		normal! w
 	endif
 
@@ -190,7 +190,7 @@ function! GetClojureIndent()
 
 	" We still have to check, whether the keyword starts with a (, [ or {.
 	" In that case we use the ( position for indent.
-	let w = vimclojure#util#Yank('l', '"lye')
+	let w = vimclojure#util#Yank('l', 'normal! "lye')
 	if stridx('([{', w[0]) > 0
 		return paren[1]
 	endif

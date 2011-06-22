@@ -14,7 +14,7 @@ set cpo&vim
 
 let b:undo_indent = "setlocal ai< si< lw< et< sts< sw< inde< indk<"
 
-setlocal autoindent expandtab nosmartindent
+setlocal noautoindent expandtab nosmartindent
 
 setlocal softtabstop=2
 setlocal shiftwidth=2

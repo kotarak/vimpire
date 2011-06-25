@@ -99,11 +99,10 @@ function! s:IsMethodSpecialCase(position)
 
 		call vimclojure#util#MoveForward()
 		let keyword = vimclojure#util#Yank('l', 'normal! "lye')
-		for kw in [ 'deftype', 'defrecord', 'reify', 'proxy', 'letfn' ]
-			if kw == keyword
-				return 1
-			endif
-		endfor
+		if index([ 'deftype', 'defrecord', 'reify', 'proxy', 'letfn' ], keyword) >= 0
+			return 1
+		endif
+
 		return 0
 	endfunction
 

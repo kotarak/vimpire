@@ -99,7 +99,9 @@ function! s:IsMethodSpecialCase(position)
 
 		call vimclojure#util#MoveForward()
 		let keyword = vimclojure#util#Yank('l', 'normal! "lye')
-		if index([ 'deftype', 'defrecord', 'reify', 'proxy', 'letfn' ], keyword) >= 0
+		if index([ 'deftype', 'defrecord', 'reify', 'proxy',
+					\ 'extend', 'extend-type', 'extend-protocol',
+					\ 'letfn' ], keyword) >= 0
 			return 1
 		endif
 

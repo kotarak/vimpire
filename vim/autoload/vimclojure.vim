@@ -325,11 +325,12 @@ function! vimclojure#ResultBuffer.New(...) dict
 	if g:vimclojure#ResultBuffer.__instance != []
 		let closure = {
 					\ 'instance' : g:vimclojure#ResultBuffer.__instance[0],
+					\ 'args'     : a:000
 					\ }
 		function closure.f() dict
 			set switchbuf=useopen
 			call self.instance.goHereWindow()
-			call self.instance.Init()
+			call call(self.instance.Init, self.args, self.instance)
 
 			return self.instance
 		endfunction
@@ -384,9 +385,10 @@ let vimclojure#ClojureResultBuffer["__superResultBufferInit"] =
 let vimclojure#ClojureResultBuffer["__superResultBufferShowOutput"] =
 			\ vimclojure#ResultBuffer["showOutput"]
 
-function! vimclojure#ClojureResultBuffer.Init() dict
+function! vimclojure#ClojureResultBuffer.Init(ns) dict
 	call self.__superResultBufferInit()
 	set filetype=clojure
+	let b:vimclojure_namespace = a:ns
 endfunction
 
 function! vimclojure#ClojureResultBuffer.showOutput(text) dict
@@ -533,7 +535,7 @@ endfunction
 function! vimclojure#SourceLookup(word)
 	let source = vimclojure#ExecuteNailWithInput("SourceLookup", a:word,
 				\ "-n", b:vimclojure_namespace)
-	let buf = g:vimclojure#ClojureResultBuffer.New()
+	let buf = g:vimclojure#ClojureResultBuffer.New(b:vimclojure_namespace)
 	call buf.showOutput(source)
 	wincmd p
 endfunction
@@ -541,7 +543,7 @@ endfunction
 function! vimclojure#MetaLookup(word)
 	let meta = vimclojure#ExecuteNailWithInput("MetaLookup", a:word,
 				\ "-n", b:vimclojure_namespace)
-	let buf = g:vimclojure#ClojureResultBuffer.New()
+	let buf = g:vimclojure#ClojureResultBuffer.New(b:vimclojure_namespace)
 	call buf.showOutput(meta)
 	wincmd p
 endfunction
@@ -582,7 +584,7 @@ function! vimclojure#MacroExpand(firstOnly)
 
 	let expanded = call(function("vimclojure#ExecuteNailWithInput"), cmd)
 
-	let buf = g:vimclojure#ClojureResultBuffer.New()
+	let buf = g:vimclojure#ClojureResultBuffer.New(ns)
 	call buf.showOutput(expanded)
 	wincmd p
 endfunction
@@ -594,7 +596,7 @@ function! vimclojure#RequireFile(all)
 	let require = "(require :reload" . all . " :verbose '". ns. ")"
 	let result = vimclojure#ExecuteNailWithInput("Repl", require, "-r")
 
-	let resultBuffer = g:vimclojure#ClojureResultBuffer.New()
+	let resultBuffer = g:vimclojure#ClojureResultBuffer.New(ns)
 	call resultBuffer.showOutput(result)
 	wincmd p
 endfunction
@@ -604,7 +606,7 @@ function! vimclojure#RunTests(all)
 
 	let result = call(function("vimclojure#ExecuteNailWithInput"),
 				\ [ "RunTests", "", "-n", ns ] + (a:all ? [ "-a" ] : []))
-	let resultBuffer = g:vimclojure#ClojureResultBuffer.New()
+	let resultBuffer = g:vimclojure#ClojureResultBuffer.New(ns)
 	call resultBuffer.showOutput(result)
 	wincmd p
 endfunction
@@ -617,7 +619,7 @@ function! vimclojure#EvalFile()
 	let result = vimclojure#ExecuteNailWithInput("Repl", content,
 				\ "-r", "-n", ns, "-f", file)
 
-	let resultBuffer = g:vimclojure#ClojureResultBuffer.New()
+	let resultBuffer = g:vimclojure#ClojureResultBuffer.New(ns)
 	call resultBuffer.showOutput(result)
 	wincmd p
 endfunction
@@ -631,7 +633,7 @@ function! vimclojure#EvalLine()
 	let result = vimclojure#ExecuteNailWithInput("Repl", content,
 				\ "-r", "-n", ns, "-f", file, "-l", theLine)
 
-	let resultBuffer = g:vimclojure#ClojureResultBuffer.New()
+	let resultBuffer = g:vimclojure#ClojureResultBuffer.New(ns)
 	call resultBuffer.showOutput(result)
 	wincmd p
 endfunction
@@ -644,7 +646,7 @@ function! vimclojure#EvalBlock()
 	let result = vimclojure#ExecuteNailWithInput("Repl", content,
 				\ "-r", "-n", ns, "-f", file, "-l", line("'<") - 1)
 
-	let resultBuffer = g:vimclojure#ClojureResultBuffer.New()
+	let resultBuffer = g:vimclojure#ClojureResultBuffer.New(ns)
 	call resultBuffer.showOutput(result)
 	wincmd p
 endfunction
@@ -657,7 +659,7 @@ function! vimclojure#EvalToplevel()
 	let result = vimclojure#ExecuteNailWithInput("Repl", expr,
 				\ "-r", "-n", ns, "-f", file, "-l", pos[0] - 1)
 
-	let resultBuffer = g:vimclojure#ClojureResultBuffer.New()
+	let resultBuffer = g:vimclojure#ClojureResultBuffer.New(ns)
 	call resultBuffer.showOutput(result)
 	wincmd p
 endfunction
@@ -680,7 +682,7 @@ function! vimclojure#EvalParagraph()
 	let result = vimclojure#ExecuteNailWithInput("Repl", content,
 				\ "-r", "-n", ns, "-f", file, "-l", startPosition - 1)
 
-	let resultBuffer = g:vimclojure#ClojureResultBuffer.New()
+	let resultBuffer = g:vimclojure#ClojureResultBuffer.New(ns)
 	call resultBuffer.showOutput(result)
 	wincmd p
 endfunction

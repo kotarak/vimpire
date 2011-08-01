@@ -196,6 +196,7 @@ for radix in range(2, 36)
 endfor
 
 syn match   clojureNumber "\<-\=[0-9]\+\(\.[0-9]*\)\=\(M\|\([eE][-+]\?[0-9]\+\)\)\?\>"
+syn match   clojureNumber "\<-\=[0-9]\+N\?\>"
 syn match   clojureNumber "\<-\=0x[0-9a-fA-F]\+\>"
 syn match   clojureNumber "\<-\=[0-9]\+/[0-9]\+\>"
 

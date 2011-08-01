@@ -98,6 +98,18 @@ highlighting using ctermfg and guifg, thereby bypassing the usual colorscheme
 control using standard highlighting groups. The actual highlighting used
 depends on the dark/bright setting (see |'bg'|).
 
+To customise the paren rainbow colors provide a from levels to the desired
+color definitions.
+>
+        let vimclojure#ParenRainbowColors = {
+                        \ '1': 'guifg=green',
+                        \ ...
+                        \ }
+<
+This will be used for all settings of 'bg'. If you want to specify only
+for light resp. dark backgrounds, just add "Light" resp. "Dark" to the
+option name.
+
 Indenting                           *ft-clj-indent*
 ---------
 

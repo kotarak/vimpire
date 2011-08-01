@@ -267,28 +267,62 @@ HiLink clojureError     Error
 
 HiLink clojureParen0    Delimiter
 
-if vimclojure#ParenRainbow != 0
-	if &background == "dark"
-		highlight default clojureParen1 ctermfg=yellow      guifg=orange1
-		highlight default clojureParen2 ctermfg=green       guifg=yellow1
-		highlight default clojureParen3 ctermfg=cyan        guifg=greenyellow
-		highlight default clojureParen4 ctermfg=magenta     guifg=green1
-		highlight default clojureParen5 ctermfg=red         guifg=springgreen1
-		highlight default clojureParen6 ctermfg=yellow      guifg=cyan1
-		highlight default clojureParen7 ctermfg=green       guifg=slateblue1
-		highlight default clojureParen8 ctermfg=cyan        guifg=magenta1
-		highlight default clojureParen9 ctermfg=magenta     guifg=purple1
+if !exists("g:vimclojure#ParenRainbowColorsDark")
+	if exists("g:vimclojure#ParenRainbowColors")
+		let g:vimclojure#ParenRainbowColorsDark =
+					\ g:vimclojure#ParenRainbowColors
 	else
-		highlight default clojureParen1 ctermfg=darkyellow  guifg=orangered3
-		highlight default clojureParen2 ctermfg=darkgreen   guifg=orange2
-		highlight default clojureParen3 ctermfg=blue        guifg=yellow3
-		highlight default clojureParen4 ctermfg=darkmagenta guifg=olivedrab4
-		highlight default clojureParen5 ctermfg=red         guifg=green4
-		highlight default clojureParen6 ctermfg=darkyellow  guifg=paleturquoise3
-		highlight default clojureParen7 ctermfg=darkgreen   guifg=deepskyblue4
-		highlight default clojureParen8 ctermfg=blue        guifg=darkslateblue
-		highlight default clojureParen9 ctermfg=darkmagenta guifg=darkviolet
+		let g:vimclojure#ParenRainbowColorsDark = {
+					\ '1': 'ctermfg=yellow      guifg=orange1',
+					\ '2': 'ctermfg=green       guifg=yellow1',
+					\ '3': 'ctermfg=cyan        guifg=greenyellow',
+					\ '4': 'ctermfg=magenta     guifg=green1',
+					\ '5': 'ctermfg=red         guifg=springgreen1',
+					\ '6': 'ctermfg=yellow      guifg=cyan1',
+					\ '7': 'ctermfg=green       guifg=slateblue1',
+					\ '8': 'ctermfg=cyan        guifg=magenta1',
+					\ '9': 'ctermfg=magenta     guifg=purple1'
+					\ }
 	endif
+endif
+
+if !exists("g:vimclojure#ParenRainbowColorsLight")
+	if exists("g:vimclojure#ParenRainbowColors")
+		let g:vimclojure#ParenRainbowColorsLight =
+					\ g:vimclojure#ParenRainbowColors
+	else
+		let g:vimclojure#ParenRainbowColorsLight = {
+					\ '1': 'ctermfg=darkyellow  guifg=orangered3',
+					\ '2': 'ctermfg=darkgreen   guifg=orange2',
+					\ '3': 'ctermfg=blue        guifg=yellow3',
+					\ '4': 'ctermfg=darkmagenta guifg=olivedrab4',
+					\ '5': 'ctermfg=red         guifg=green4',
+					\ '6': 'ctermfg=darkyellow  guifg=paleturquoise3',
+					\ '7': 'ctermfg=darkgreen   guifg=deepskyblue4',
+					\ '8': 'ctermfg=blue        guifg=darkslateblue',
+					\ '9': 'ctermfg=darkmagenta guifg=darkviolet'
+					\ }
+	endif
+endif
+
+function! VimClojureSetupParenRainbow()
+	if &background == "dark"
+		let colors = g:vimclojure#ParenRainbowColorsDark
+	else
+		let colors = g:vimclojure#ParenRainbowColorsLight
+	endif
+
+	for [level, color] in items(colors)
+		execute "highlight clojureParen" . level . " " . color
+	endfor
+endfunction
+
+if vimclojure#ParenRainbow != 0
+	call VimClojureSetupParenRainbow()
+
+	augroup VimClojureSyntax
+		autocmd ColorScheme * if &ft == "clojure" | call VimClojureSetupParenRainbow() | endif
+	augroup END
 else
 	HiLink clojureParen1 clojureParen0
 	HiLink clojureParen2 clojureParen0

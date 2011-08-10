@@ -1,9 +1,9 @@
 buildscript {
     repositories {
-        mavenRepo urls: "http://clojars.org/repo"
+        flatDir dirs: project(':').file('lib/build')
     }
     dependencies {
-        classpath "clojuresque:clojuresque:1.4.1"
+        classpath "clojuresque:clojuresque:1.4.2"
         classpath "local-dotgradle:local-dotgradle:1.0.0"
     }
 }
@@ -32,6 +32,7 @@ project(':server') {
     apply plugin: 'clojure'
 
     defaultRepositories {
+        flatDir dirs: project(':').file('lib/build')
         clojureReleasesRepo()
         clojarsRepo()
     }
@@ -131,7 +132,7 @@ project(':vim') {
 task genCompletions(type: clojuresque.ClojureExec) {
     classpath = project.files(
         project(':server').sourceSets.main.clojure.srcDirs,
-        project(':server').sourceSets.main.classesDir,
+        project(':server').sourceSets.main.output.classesDir,
         project(':server').sourceSets.main.compileClasspath
     )
     main = "vimclojure.gencompletions/main"
@@ -162,7 +163,7 @@ task genCompletions(type: clojuresque.ClojureExec) {
 task runNailgun(type: JavaExec, dependsOn: project(':server').classes) {
     classpath = project.files(
         project(':server').sourceSets.main.clojure.srcDirs,
-        project(':server').sourceSets.main.classesDir,
+        project(':server').sourceSets.main.output.classesDir,
         project(':server').sourceSets.main.compileClasspath
     )
     main = 'vimclojure.nailgun.NGServer'

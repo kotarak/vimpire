@@ -138,6 +138,7 @@ task genCompletions(type: clojuresque.ClojureExec) {
     main = "vimclojure.gencompletions/main"
     args = [
         "clojure.core",
+        "clojure.data",
         "clojure.inspector",
         "clojure.java.browse",
         "clojure.java.browse-ui",

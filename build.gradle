@@ -33,8 +33,7 @@ project(':server') {
 
     defaultRepositories {
         flatDir dirs: project(':').file('lib/build')
-        clojureReleasesRepo()
-        clojarsRepo()
+        mavenCentral()
     }
 
     dependencies {

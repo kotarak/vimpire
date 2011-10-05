@@ -21,34 +21,21 @@
  * IN THE SOFTWARE.
  */
 
-package vimclojure
+package vimclojure.gradle
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.tasks.JavaExec
 
 public class VimClojurePlugin implements Plugin<Project> {
-    class Convention {
-        def String nailgunServer = "127.0.0.1"
-        def String nailgunPort = "2113"
-    }
-
     public void apply(Project project) {
-        project.convention.plugins.vimclojure = new Convention()
-
-        project.tasks.add(name: 'runNailgun') {
+        project.tasks.add(name: 'runNailgun', type: NailgunTask) {
             dependsOn project.classes
-        } << {
-            project.javaexec {
-                classpath = project.files(
-                    project.sourceSets.main.clojure.srcDirs,
-                    project.sourceSets.main.classesDir,
-                    project.configurations.testRuntime,
-                    project.configurations.development
-                )
-                main = 'vimclojure.nailgun.NGServer'
-                args = [ project.nailgunServer + ":" + project.nailgunPort ]
-            }
+            classpath = project.files(
+                project.sourceSets.main.clojure.srcDirs,
+                project.sourceSets.main.classesDir,
+                project.configurations.testRuntime,
+                project.configurations.development
+            )
         }
     }
 }

@@ -63,7 +63,7 @@ if g:vimclojure#HighlightBuiltins != 0
 		\            . "eval find-doc file-seq flush hash load load-file "
 		\            . "read read-line scan slurp subs sync test "
 		\            . "format printf loaded-libs use require load-reader "
-		\            . "load-string + +' -' *' /' < <= == >= > dec dec' "
+		\            . "load-string + - * / +' -' *' /' < <= == >= > dec dec' "
 		\            . "inc inc' min max "
 		\            . "neg? pos? quot rem zero? rand rand-int decimal? even? "
 		\            . "odd? float? integer? number? ratio? rational? "

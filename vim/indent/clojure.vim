@@ -200,7 +200,14 @@ function! GetClojureIndent()
 		return paren[1] + &shiftwidth - 1
 	endif
 
-	if g:vimclojure#FuzzyIndent && w =~ '\(^\|/\)\(def\|with\)'
+	" XXX: Slight glitch here with special cases. However it's only
+	" a heureustic. Offline we can't do more.
+	if g:vimclojure#FuzzyIndent
+				\ && w != 'with-meta'
+				\ && w != 'clojure.core/with-meta'
+				\ && w =~ '\(^\|/\)\(def\|with\)'
+				\ && w !~ '\(^\|/\)\(def\|with\).*\*$'
+				\ && w !~ '\(^\|/\)\(def\|with\).*-fn$'
 		return paren[1] + &shiftwidth - 1
 	endif
 

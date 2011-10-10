@@ -38,15 +38,23 @@ function! vimclojure#util#WithSavedPosition(closure)
 	return vimclojure#util#WithSaved(a:closure)
 endfunction
 
+function! vimclojure#util#SafeRegister(reg)
+	return [a:reg, getreg(a:reg, 1), getregtype(a:reg)]
+endfunction
+
 function! vimclojure#util#WithSavedRegister(reg, closure)
 	let a:closure._register = a:reg
 
 	function a:closure.save() dict
-		return [getreg(self._register, 1), getregtype(self._register)]
+		return map([self._register, "", "/", "-",
+					\ "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+					\ "vimclojure#util#SafeRegister(v:val)")
 	endfunction
 
-	function a:closure.restore(value) dict
-		call call(function("setreg"), [self._register] + a:value)
+	function a:closure.restore(registers) dict
+		for register in a:registers
+			call call(function("setreg"), register)
+		endfor
 	endfunction
 
 	return vimclojure#util#WithSaved(a:closure)

@@ -2,7 +2,7 @@ subprojects {
     apply plugin: 'java-base'
 
     group = 'vimclojure'
-    version = '2.3.0-nrepl-SNAPSHOT'
+    version = '2.3.0-SNAPSHOT'
 
     defaultTasks 'build'
 }
@@ -12,12 +12,10 @@ project(':server') {
 
     repositories {
         clojureReleasesRepo()
-        clojarsRepo()
     }
 
     dependencies {
-        development 'org.clojure:clojure:1.2.+'
-        development 'org.clojars.kotarak:nrepl:0.0.2-SNAPSHOT'
+        development 'org.clojure:clojure:1.2.0'
     }
 
     uploadArchives {
@@ -119,12 +117,12 @@ task genCompletions(type: JavaExec.class) {
     ]
 }
 
-task runRepl(type: JavaExec.class, dependsOn: project(':server').classes) {
+task runNailgun(type: JavaExec.class, dependsOn: project(':server').classes) {
     classpath = project.files(
         project(':server').sourceSets.main.clojure.sourceDir,
         project(':server').sourceSets.main.classesDir,
         project(':server').sourceSets.main.compileClasspath
     )
-    main = 'clojure.tools.nrepl.main'
-    args = [ "--port", "2187" ]
+    main = 'vimclojure.nailgun.NGServer'
+    args = [ '127.0.0.1' ]
 }

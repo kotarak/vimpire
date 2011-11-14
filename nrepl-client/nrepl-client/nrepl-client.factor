@@ -19,8 +19,14 @@
 ! OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 ! THE SOFTWARE.
 
-USING: accessors combinators io kernel math math.parser sequences uuid ;
+USING: accessors combinators io io.encodings.utf8 io.sockets kernel
+    math math.parser sequences strings uuid ;
 IN: nrepl-client
+
+: stringify ( string -- newstring )
+    [ { { [ dup CHAR: " = ] [ drop { CHAR: \ CHAR: " } >string ] }
+        { [ dup CHAR: \ = ] [ drop { CHAR: \ CHAR: \ } >string ] }
+        [ 1string ] } cond ] { } map-as "" concat-as ;
 
 TUPLE: message id code stdin ;
 : <message> ( code stdin -- message )
@@ -64,7 +70,8 @@ TUPLE: response id stdout stderr value nspace status ;
 
 : send-message ( message -- response )
     "3"        print
-    "\"id\""   print "\"" write dup id>>    write "\"" print
-    "\"code\"" print "\"" write dup code>>  write "\"" print
-    "\"in\""   print "\"" write dup stdin>> write "\"" print
+    "\"id\""   print "\"" write dup id>>    stringify write "\"" print
+    "\"code\"" print "\"" write dup code>>  stringify write "\"" print
+    "\"in\""   print "\"" write dup stdin>> stringify write "\"" print
+    flush
     id>> <response> ;

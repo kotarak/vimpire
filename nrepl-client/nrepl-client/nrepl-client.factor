@@ -61,3 +61,10 @@ TUPLE: response id stdout stderr value nspace status ;
    "}" print
    flush
    drop ;
+
+: send-message ( message -- response )
+    "3"        print
+    "\"id\""   print "\"" write dup id>>    write "\"" print
+    "\"code\"" print "\"" write dup code>>  write "\"" print
+    "\"in\""   print "\"" write dup stdin>> write "\"" print
+    id>> <response> ;

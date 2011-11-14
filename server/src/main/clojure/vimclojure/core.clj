@@ -1,5 +1,5 @@
 ;-
-; Copyright 2010-2011 (c) Meikel Brandmeyer.
+; Copyright 2011 (c) Meikel Brandmeyer.
 ; All rights reserved.
 ;
 ; Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,14 +20,13 @@
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 ; THE SOFTWARE.
 
-(clojure.core/in-ns 'vimclojure.util)
+(ns vimclojure.core)
 
-(require '[clj-stacktrace.repl :as clj-st])
-
-(defoptional pretty-print-stacktrace
-  [e]
-  (clj-st/pst e))
-
-(defoptional pretty-print-causetrace
-  [e]
-  (clj-st/pst e))
+(defn init-server
+  []
+  ; Check for doc macro. 1.2 in c.core, 1.3 in c.repl
+  (when-not (ns-resolve 'clojure.core 'doc)
+    (binding [*ns* *ns*]
+      (in-ns 'user)
+      (refer-clojure)
+      (use 'clojure.repl))))

@@ -1,5 +1,5 @@
 ; Copyright (c) 2008 Parth Malwankar
-; Copyright (c) 2008 Meikel Brandmeyer
+; Copyright (c) 2008-2011 Meikel Brandmeyer
 ; All rights reserved.
 ;
 ; A small script to generate a dictionary of Clojure's core

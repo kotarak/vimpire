@@ -1,21 +1,43 @@
+buildscript {
+    repositories {
+        flatDir dirs: project(':').file('lib/build')
+    }
+    dependencies {
+        classpath "clojuresque:clojuresque:1.4.1"
+        classpath "local-dotgradle:local-dotgradle:1.0.0"
+    }
+}
+
+allprojects {
+    localDotGradle = project(':').file("local.gradle").absoluteFile
+    apply plugin: 'local-dotgradle'
+}
+
 subprojects {
     apply plugin: 'java-base'
 
     group = 'vimclojure'
-    version = '2.3.0-SNAPSHOT'
+    version = '2.4.0-SNAPSHOT'
 
     defaultTasks 'build'
+}
+
+apply plugin: 'clojure'
+
+defaultRepositories {
+    clojarsRepo()
 }
 
 project(':server') {
     apply plugin: 'clojure'
 
-    repositories {
-        clojureReleasesRepo()
+    defaultRepositories {
+        flatDir dirs: project(':').file('lib/build')
+        mavenCentral()
     }
 
     dependencies {
-        development 'org.clojure:clojure:1.2.0'
+        compile 'org.clojure:clojure:1.+'
     }
 
     uploadArchives {
@@ -24,6 +46,21 @@ project(':server') {
 
     compileClojure.dependsOn compileJava
 }
+
+project(':gradle') {
+    apply plugin: 'groovy'
+    apply plugin: 'clojure'
+
+    dependencies {
+        compile gradleApi()
+        groovy localGroovy()
+    }
+
+    uploadArchives {
+        clojarsDeploy()
+    }
+}
+
 
 project(':client') {
     task nailgunClientZip(type: Zip) {
@@ -91,35 +128,43 @@ project(':vim') {
     }
 }
 
-task genCompletions(type: JavaExec.class) {
+task genCompletions(type: clojuresque.ClojureExec) {
     classpath = project.files(
-        project(':server').sourceSets.main.clojure.sourceDir,
+        project(':server').sourceSets.main.clojure.srcDirs,
         project(':server').sourceSets.main.classesDir,
         project(':server').sourceSets.main.compileClasspath
     )
-    main = "clojure.main"
-    args = [ "-e", "(require 'vimclojure.gencompletions)", "-e",
-        "(vimclojure.gencompletions/main " +
-            "'clojure.core " +
-            "'clojure.inspector " +
-            "'clojure.java.browse 'clojure.java.browse-ui 'clojure.java.io 'clojure.java.javadoc 'clojure.java.shell " +
-            "'clojure.main " +
-            "'clojure.pprint " +
-            "'clojure.repl " +
-            "'clojure.set " +
-            "'clojure.stacktrace " +
-            "'clojure.string " +
-            "'clojure.template " +
-            "'clojure.test 'clojure.test.tap 'clojure.test.junit " +
-            "'clojure.walk " +
-            "'clojure.xml " +
-            "'clojure.zip)"
+    main = "vimclojure.gencompletions/main"
+    args = [
+        "clojure.core",
+        "clojure.data",
+        "clojure.inspector",
+        "clojure.java.browse",
+        "clojure.java.browse-ui",
+        "clojure.java.io",
+        "clojure.java.javadoc",
+        "clojure.java.shell",
+        "clojure.main",
+        "clojure.pprint",
+        "clojure.repl",
+        "clojure.set",
+        "clojure.stacktrace",
+        "clojure.string",
+        "clojure.template",
+        "clojure.test",
+        "clojure.test.tap",
+        "clojure.test.junit",
+        "clojure.walk",
+        "clojure.xml",
+        "clojure.zip"
     ]
 }
 
-task runNailgun(type: JavaExec.class, dependsOn: project(':server').classes) {
+task runNailgun(type: JavaExec) {
+    dependsOn project(':server').classes
+    dependsOn project(':server').processResources
     classpath = project.files(
-        project(':server').sourceSets.main.clojure.sourceDir,
+        project(':server').sourceSets.main.clojure.srcDirs,
         project(':server').sourceSets.main.classesDir,
         project(':server').sourceSets.main.compileClasspath
     )

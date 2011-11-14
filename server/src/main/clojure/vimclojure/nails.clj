@@ -1,5 +1,5 @@
 ;-
-; Copyright 2009 (c) Meikel Brandmeyer.
+; Copyright 2009-2011 (c) Meikel Brandmeyer.
 ; All rights reserved.
 ;
 ; Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -51,10 +51,10 @@
      (.start))))
 
 (defn- make-stream-set
-  [in out err]
-  [(-> in InputStreamReader. LineNumberingPushbackReader.)
-   (-> out OutputStreamWriter.)
-   (-> err OutputStreamWriter. PrintWriter.)])
+  [in out err encoding]
+  [(-> in (InputStreamReader. encoding) LineNumberingPushbackReader.)
+   (-> out (OutputStreamWriter. encoding))
+   (-> err (OutputStreamWriter. encoding) PrintWriter.)])
 
 (defn- set-input-stream
   [#^ThreadLocalInputStream sys local]
@@ -73,10 +73,8 @@
   [#^NGContext ctx nail]
   (let [out          (ByteArrayOutputStream.)
         err          (ByteArrayOutputStream.)
-        [clj-in clj-out clj-err] (make-stream-set (.in ctx) out err)
-        encoding     (if-let [encoding (System/getProperty "clojure.vim.encoding")]
-                       encoding
-                       "UTF-8")
+        encoding     (System/getProperty "clojure.vim.encoding" "UTF-8")
+        [clj-in clj-out clj-err] (make-stream-set (.in ctx) out err encoding)
         sys-in       (set-input-stream System/in (.in ctx))
         sys-out      (set-output-stream System/out (PrintStream. out))
         sys-err      (set-output-stream System/err (PrintStream. err))
@@ -92,12 +90,14 @@
     (set-input-stream System/in sys-in)
     (set-output-stream System/out sys-out)
     (set-output-stream System/err sys-err)
-    (.print (.out ctx)
-            (print-str
-              (util/clj->vim
-                {:value  result
-                 :stdout (.toString out encoding)
-                 :stderr (.toString err encoding)})))
+    (let [output (.getBytes
+                   (print-str
+                     (util/clj->vim
+                       {:value  result
+                        :stdout (.toString out encoding)
+                        :stderr (.toString err encoding)}))
+                   encoding)]
+      (.write (.out ctx) output 0 (alength output)))
     (.flush (.out ctx))))
 
 (defmacro defnail
@@ -125,7 +125,7 @@
 (defnail FindDoc
   "Usage: ng vimclojure.nails.FindDoc"
   []
-  (find-doc (.readLine *in*)))
+  (backend/find-documentation (.readLine *in*)))
 
 (defnail JavadocPath
   "Usage: ng vimclojure.nails.JavadocPath [options]"
@@ -270,7 +270,7 @@
               (recur (read *in* false eof)))))
         (catch clojure.lang.LispReader$ReaderException exc
           (let [e (.getCause exc)]
-            (if (= "EOF while reading" (.getMessage e))
+            (if (.startsWith (.getMessage e) "EOF while reading")
               false
               (throw exc))))))))
 

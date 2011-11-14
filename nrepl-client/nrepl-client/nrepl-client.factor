@@ -19,9 +19,31 @@
 ! OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 ! THE SOFTWARE.
 
-USING: kernel ;
+USING: accessors combinators io kernel math math.parser sequences ;
 IN: nrepl-client
 
 TUPLE: response id stdout stderr value nspace status ;
 : <response> ( id -- response )
     "" "" "" "" "more" response boa ;
+
+: read-response-chunk-count ( -- count )
+    readln string>number ;
+
+: read-trimmed-line ( -- line )
+    readln rest but-last ;
+
+: read-response-chunk ( response -- response )
+    read-trimmed-line
+    { { "id"     [ readln drop ] }
+      { "out"    [ [ read-trimmed-line append ] change-stdout ] }
+      { "err"    [ [ read-trimmed-line append ] change-stderr ] }
+      { "value"  [ read-trimmed-line >>value ] }
+      { "ns"     [ read-trimmed-line >>nspace ] }
+      { "status" [ read-trimmed-line >>status ] }
+    } case ;
+
+: read-response-chunks ( response -- response )
+    read-response-chunk-count [ read-response-chunk ] times ;
+
+: read-response ( response -- response )
+    [ dup status>> "done" = not ] [ read-response-chunks ] while ;

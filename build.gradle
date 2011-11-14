@@ -38,6 +38,7 @@ project(':server') {
 
     dependencies {
         compile 'org.clojure:clojure:1.+'
+        compile 'org.clojure:tools.nrepl:0.0.5'
     }
 
     uploadArchives {
@@ -160,7 +161,9 @@ task genCompletions(type: clojuresque.ClojureExec) {
     ]
 }
 
-task runNailgun(type: JavaExec) {
+task runRepl(type: clojuresque.ClojureExec) {
+    main = "clojure.tools.nrepl.cmdline/-main"
+    args = [ "--port", "12345" ]
     dependsOn project(':server').classes
     dependsOn project(':server').processResources
     classpath = project.files(
@@ -168,6 +171,4 @@ task runNailgun(type: JavaExec) {
         project(':server').sourceSets.main.classesDir,
         project(':server').sourceSets.main.compileClasspath
     )
-    main = 'vimclojure.nailgun.NGServer'
-    args = [ '127.0.0.1' ]
 }

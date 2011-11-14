@@ -75,3 +75,11 @@ TUPLE: response id stdout stderr value nspace status ;
     "\"in\""   print "\"" write dup stdin>> stringify write "\"" print
     flush
     id>> <response> ;
+
+: nrepl-session ( -- )
+    readln lines <message>
+    "localhost" 12345 <inet> utf8 [
+        send-message
+        read-response
+    ] with-client
+    print-response ;

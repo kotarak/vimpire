@@ -19,8 +19,12 @@
 ! OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 ! THE SOFTWARE.
 
-USING: accessors combinators io kernel math math.parser sequences ;
+USING: accessors combinators io kernel math math.parser sequences uuid ;
 IN: nrepl-client
+
+TUPLE: message id code stdin ;
+: <message> ( code stdin -- message )
+    uuid1 2over message boa swap drop swap drop ;
 
 TUPLE: response id stdout stderr value nspace status ;
 : <response> ( id -- response )

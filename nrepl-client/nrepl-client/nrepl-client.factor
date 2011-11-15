@@ -60,10 +60,10 @@ TUPLE: response id stdout stderr value nspace status ;
 
 : print-response ( response -- )
    "{" write
-   " \"stdout\" : \""    write dup stdout>> write "\"," write
-   " \"stderr\" : \""    write dup stderr>> write "\"," write
-   " \"value\" : \""     write dup value>>  write "\"," write
-   " \"namespace\" : \"" write dup nspace>> write "\" " write
+   """ "stdout" : """"    write dup stdout>> write """",""" write
+   """ "stderr" : """"    write dup stderr>> write """",""" write
+   """ "value" : """"     write dup value>>  write """",""" write
+   """ "namespace" : """" write dup nspace>> write """" """ write
    "}" print
    flush
    drop ;

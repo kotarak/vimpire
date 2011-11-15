@@ -19,8 +19,8 @@
 ! OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 ! THE SOFTWARE.
 
-USING: accessors combinators io io.encodings.utf8 io.sockets kernel
-    math math.parser prettyprint sequences strings uuid ;
+USING: accessors combinators command-line io io.encodings.utf8 io.sockets
+    kernel math math.parser namespaces prettyprint sequences strings uuid ;
 IN: nrepl-client
 
 TUPLE: message id code stdin ;
@@ -73,7 +73,8 @@ TUPLE: response id stdout stderr value nspace status ;
 
 : nrepl-session ( -- )
     readln lines <message>
-    "localhost" 12345 <inet> utf8 [
+    command-line get first2 string>number
+    <inet> utf8 [
         send-message
         read-response
     ] with-client

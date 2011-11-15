@@ -20,13 +20,8 @@
 ! THE SOFTWARE.
 
 USING: accessors combinators io io.encodings.utf8 io.sockets kernel
-    math math.parser sequences strings uuid ;
+    math math.parser prettyprint sequences strings uuid ;
 IN: nrepl-client
-
-: stringify ( string -- newstring )
-    [ { { [ dup CHAR: " = ] [ drop { CHAR: \ CHAR: " } >string ] }
-        { [ dup CHAR: \ = ] [ drop { CHAR: \ CHAR: \ } >string ] }
-        [ 1string ] } cond ] { } map-as "" concat-as ;
 
 TUPLE: message id code stdin ;
 : <message> ( code stdin -- message )
@@ -69,10 +64,10 @@ TUPLE: response id stdout stderr value nspace status ;
    drop ;
 
 : send-message ( message -- response )
-    "3"        print
-    "\"id\""   print "\"" write dup id>>    stringify write "\"" print
-    "\"code\"" print "\"" write dup code>>  stringify write "\"" print
-    "\"in\""   print "\"" write dup stdin>> stringify write "\"" print
+    "3"          print
+    """"id""""   print dup id>>    .
+    """"code"""" print dup code>>  .
+    """"in""""   print dup stdin>> .
     flush
     id>> <response> ;
 

@@ -78,3 +78,5 @@ TUPLE: response id stdout stderr value nspace status ;
         read-response
     ] with-client
     print-response ;
+
+MAIN: nrepl-session

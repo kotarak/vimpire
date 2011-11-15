@@ -72,9 +72,8 @@ TUPLE: response id stdout stderr value nspace status ;
     id>> <response> ;
 
 : nrepl-session ( -- )
-    readln lines <message>
-    command-line get first2 string>number
-    <inet> utf8 [
+    readln contents <message>
+    command-line get first2 string>number <inet> utf8 [
         send-message
         read-response
     ] with-client

@@ -21,8 +21,9 @@ function! vimclojure#bencode#ReadString(input, pos)
 	endwhile
 	let cnt = eval(cntS)
 	let s = strpart(a:input, pos, cnt)
+	let s = iconv(s, "utf-8", &enc)
 
-	return [ [s], pos + strchars(s) ]
+	return [ [s], pos + cnt ]
 endfunction
 
 function! vimclojure#bencode#ReadNumber(input, pos)

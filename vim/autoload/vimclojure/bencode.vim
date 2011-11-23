@@ -99,5 +99,47 @@ function! vimclojure#bencode#ReadBencode(input)
 	return vimclojure#bencode#ReadToken(a:input, 0)[0][0]
 endfunction
 
+function! vimclojure#bencode#WriteString(string)
+	let encoded = iconv(a:string, &enc, "utf-8")
+	return strlen(encoded) . ":" . encoded
+endfunction
+
+function! vimclojure#bencode#WriteNumber(number)
+	return "i" . string(a:number) . "e"
+endfunction
+
+function! vimclojure#bencode#WriteList(list)
+	let encoded = "l"
+	for elt in map(copy(a:list), '[ v:val ]')
+		let encoded .= vimclojure#bencode#WriteBencode(elt[0])
+	endfor
+	let encoded .= "e"
+
+	return encoded
+endfunction
+
+function! vimclojure#bencode#WriteMap(map)
+	let encoded = "d"
+	for kv in items(a:map)
+		let encoded .= vimclojure#bencode#WriteBencode(kv[0])
+		let encoded .= vimclojure#bencode#WriteBencode(kv[1])
+	endfor
+	let encoded .= "e"
+
+	return encoded
+endfunction
+
+function! vimclojure#bencode#WriteBencode(thing)
+	if type("") == type(a:thing)
+		return vimclojure#bencode#WriteString(a:thing)
+	elseif type(0) == type(a:thing)
+		return vimclojure#bencode#WriteNumber(a:thing)
+	elseif type([]) == type(a:thing)
+		return vimclojure#bencode#WriteList(a:thing)
+	elseif type({}) == type(a:thing)
+		return vimclojure#bencode#WriteMap(a:thing)
+	endif
+endfunction
+
 " Epilog
 let &cpo = s:save_cpo

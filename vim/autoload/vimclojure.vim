@@ -226,6 +226,7 @@ let vimclojure#Object = {}
 
 function! vimclojure#Object.New(...) dict
 	let instance = copy(self)
+	let instance.prototype = self
 
 	call call(instance.Init, a:000, instance)
 

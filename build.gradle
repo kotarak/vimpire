@@ -169,6 +169,7 @@ task runNailgun(type: JavaExec) {
     classpath = project.files(
         project(':server').sourceSets.main.clojure.srcDirs,
         project(':server').sourceSets.main.output.classesDir,
+        project(':server').sourceSets.main.output.resourcesDir,
         project(':server').sourceSets.main.compileClasspath
     )
     main = 'vimclojure.nailgun.NGServer'

@@ -11,6 +11,10 @@ buildscript {
 allprojects {
     localDotGradle = project(':').file("local.gradle").absoluteFile
     apply plugin: 'local-dotgradle'
+
+    repositories {
+        flatDir { dirs project(':').file('lib/build') }
+    }
 }
 
 subprojects {
@@ -32,7 +36,6 @@ project(':server') {
     apply plugin: 'clojure'
 
     defaultRepositories {
-        flatDir { dirs project(':').file('lib/build') }
         mavenCentral()
     }
 

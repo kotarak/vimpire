@@ -24,9 +24,11 @@
 
 (defn init-server
   []
-  ; Check for doc macro. 1.2 in c.core, 1.3 in c.repl
-  (when-not (ns-resolve 'clojure.core 'doc)
-    (binding [*ns* *ns*]
-      (in-ns 'user)
-      (refer-clojure)
-      (use 'clojure.repl))))
+  (binding [*ns* *ns*]
+    (in-ns 'user)
+    (refer-clojure)
+    ; Check for doc macro. 1.2 in c.core, 1.3 in c.repl
+    (when-not (ns-resolve 'clojure.core 'doc)
+      (use 'clojure.repl))
+    (when (io/resource "user.clj")
+      (load "user"))))

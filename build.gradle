@@ -40,7 +40,7 @@ project(':server') {
     }
 
     dependencies {
-        compile 'org.clojure:clojure:1.+'
+        compile 'org.clojure:clojure:[1.2,1.5)'
     }
 
     uploadArchives {

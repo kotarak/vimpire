@@ -333,13 +333,19 @@ endfunction
 
 function! vimclojure#ResultBuffer.New(...) dict
 	if g:vimclojure#ResultBuffer.__instance != []
-		let closure = {
-					\ 'instance' : g:vimclojure#ResultBuffer.__instance[0],
-					\ 'args'     : a:000
-					\ 'f'        : function("ClojureResultBufferNewWorker")
-					\ }
+		let oldInstance = g:vimclojure#ResultBuffer.__instance[0]
 
-		return vimclojure#util#WithSavedOption('switchbuf', closure)
+		if oldInstance.prototype is self
+			let closure = {
+						\ 'instance' : oldInstance,
+						\ 'args'     : a:000,
+						\ 'f'        : function("ClojureResultBufferNewWorker")
+						\ }
+
+			return vimclojure#util#WithSavedOption('switchbuf', closure)
+		else
+			call oldInstance.close()
+		endif
 	endif
 
 	let b:vimclojure_result_buffer = 1

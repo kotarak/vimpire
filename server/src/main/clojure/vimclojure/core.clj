@@ -20,7 +20,9 @@
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 ; THE SOFTWARE.
 
-(ns vimclojure.core)
+(ns vimclojure.core
+  (:require
+    [clojure.java.io :as io]))
 
 (defn init-server
   []

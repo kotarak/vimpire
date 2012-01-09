@@ -287,7 +287,9 @@ endfunction
 function! vimclojure#Buffer.showText(text) dict
 	call self.goHere()
 	if type(a:text) == type("")
-		let text = split(a:text, '\n')
+		" XXX: Opening the box of the pandora.
+		" 2012-01-09: Adding Carriage Returns here.
+		let text = split(a:text, '\r\?\n')
 	else
 		let text = a:text
 	endif

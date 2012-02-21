@@ -21,13 +21,17 @@
 -- THE SOFTWARE.
 
 module VimClojure.Bencode (
-readBencode
+readBencode,
+writeBencode,
+toBencode,
+fromBencode
 ) where
 
 import Prelude hiding (readList)
 import System.IO
-import Data.Map as M
-import Data.ByteString.Char8 as B hiding (readInt)
+import Data.Map as M hiding (map)
+import Data.String
+import Data.ByteString.Char8 as B hiding (readInt, map, replicate, hPutStr, head)
 
 data Bencode = BString B.ByteString
     | BInt Int
@@ -86,3 +90,49 @@ readBencode stream = do
         _   -> do
             s <- readByteString stream
             return $ BString s
+
+class IsBencodeWritable a where
+    toBencode     :: a -> Bencode
+    toBencodeList :: [a] -> Bencode
+    toBencodeList l = BList $ map toBencode l
+
+instance IsBencodeWritable Char where
+    toBencode     = BString . B.pack . replicate 1
+    toBencodeList = BString . B.pack
+
+instance IsBencodeWritable Integer where
+    toBencode = BInt . fromInteger
+
+instance (IsBencodeWritable a) => IsBencodeWritable [a] where
+    toBencode = toBencodeList
+
+mapEntryToBencode (k, v) = (B.pack k, toBencode v)
+
+instance (IsBencodeWritable b) => IsBencodeWritable (M.Map [Char] b) where
+    toBencode = BMap . fromList . map mapEntryToBencode . toList
+
+doWriteBencode stream (BString s) = do
+    hPutStr stream $ show $ B.length s
+    hPutChar stream ':'
+    hPut stream s
+
+doWriteBencode stream (BInt n) = do
+    hPutChar stream 'i'
+    hPutStr stream $ show n
+    hPutChar stream 'e'
+
+doWriteBencode stream (BList l) = do
+    hPutChar stream 'l'
+    mapM_ (doWriteBencode stream) l
+    hPutChar stream 'e'
+
+doWriteBencode stream (BMap m) = do
+    hPutChar stream 'd'
+    mapM_ (doWriteMapEntry stream) $ toList m
+    hPutChar stream 'e'
+
+doWriteMapEntry stream (k, v) = do
+    doWriteBencode stream $ BString k
+    doWriteBencode stream v
+
+writeBencode stream x = doWriteBencode stream $ toBencode x

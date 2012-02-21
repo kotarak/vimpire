@@ -50,6 +50,15 @@ instance IsBencodeReadable ResponseMap where
                  (fromBencode $ findWithDefault emptyString nsKey this)
                  (fromBencode $ findWithDefault emptyList statusKey this)
 
+instance IsBencodeWritable ResponseMap where
+    toBencode (Response out err value ns status) =
+        BMap $
+        fromList [(outKey,    toBencode out),
+                  (errKey,    toBencode err),
+                  (valueKey,  toBencode value),
+                  (nsKey,     toBencode ns),
+                  (statusKey, toBencode status)]
+
 emptyResponse = Response "" "" "" "" []
 
 readToken stream = do

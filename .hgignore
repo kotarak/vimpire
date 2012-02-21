@@ -5,3 +5,5 @@ build
 ng
 .gradle
 local.gradle
+*.hi
+*.o

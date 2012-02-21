@@ -24,7 +24,9 @@ module VimClojure.Bencode (
 readBencode,
 writeBencode,
 toBencode,
-fromBencode
+fromBencode,
+IsBencodeReadable,
+IsBencodeWritable
 ) where
 
 import Prelude hiding (readList)
@@ -37,6 +39,26 @@ data Bencode = BString B.ByteString
     | BInt Int
     | BList [Bencode]
     | BMap (M.Map B.ByteString Bencode)
+
+class IsBencodeReadable a where
+    fromBencode     :: Bencode -> a
+    fromBencodeList :: Bencode -> [a]
+    fromBencodeList (BList l) = map fromBencode l
+
+instance IsBencodeReadable Char where
+    fromBencode     (BString s) = head $ B.unpack s
+    fromBencodeList (BString s) = B.unpack s
+
+instance IsBencodeReadable Int where
+    fromBencode (BInt n) = n
+
+instance (IsBencodeReadable a) => IsBencodeReadable [a] where
+    fromBencode = fromBencodeList
+
+mapEntryFromBencode (k, v) = (B.unpack k, fromBencode v)
+
+instance (IsBencodeReadable a) => IsBencodeReadable (M.Map [Char] a) where
+    fromBencode (BMap m) = M.fromList $ map mapEntryFromBencode $ toList m
 
 readUntil delim readToken stream = do
     ch <- hLookAhead stream

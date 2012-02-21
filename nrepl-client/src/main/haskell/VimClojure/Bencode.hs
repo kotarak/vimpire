@@ -26,7 +26,8 @@ writeBencode,
 toBencode,
 fromBencode,
 IsBencodeReadable,
-IsBencodeWritable
+IsBencodeWritable,
+Bencode(BString, BInt, BList, BMap)
 ) where
 
 import Prelude hiding (readList)

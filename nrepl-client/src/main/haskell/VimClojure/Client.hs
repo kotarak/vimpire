@@ -84,4 +84,5 @@ readResponse stream response = do
 
 processMessage msg stream = do
     hPutStr stream msg
+    hFlush stream
     readResponse stream $ emptyResponse

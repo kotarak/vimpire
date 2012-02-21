@@ -82,6 +82,6 @@ readResponse stream response = do
     else do
         readResponse stream updatedResponse
 
-processMessage stream msg = do
+processMessage msg stream = do
     hPutStr stream msg
     readResponse stream $ emptyResponse

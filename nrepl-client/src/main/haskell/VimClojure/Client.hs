@@ -36,28 +36,22 @@ data ResponseMap = Response String String String String [String]
 emptyString = toBencode ""
 emptyList   = toBencode ([] :: [[Char]])
 
-outKey    = B.pack "out"
-errKey    = B.pack "err"
-valueKey  = B.pack "value"
-nsKey     = B.pack "ns"
-statusKey = B.pack "status"
-
 instance IsBencodeReadable ResponseMap where
     fromBencode (BMap this) =
-        Response (fromBencode $ findWithDefault emptyString outKey this)
-                 (fromBencode $ findWithDefault emptyString errKey this)
-                 (fromBencode $ findWithDefault emptyString valueKey this)
-                 (fromBencode $ findWithDefault emptyString nsKey this)
-                 (fromBencode $ findWithDefault emptyList statusKey this)
+        Response (fromBencode $ findWithDefault emptyString "out" this)
+                 (fromBencode $ findWithDefault emptyString "err" this)
+                 (fromBencode $ findWithDefault emptyString "value" this)
+                 (fromBencode $ findWithDefault emptyString "ns" this)
+                 (fromBencode $ findWithDefault emptyList "status" this)
 
 instance IsBencodeWritable ResponseMap where
     toBencode (Response out err value ns status) =
         BMap $
-        fromList [(outKey,    toBencode out),
-                  (errKey,    toBencode err),
-                  (valueKey,  toBencode value),
-                  (nsKey,     toBencode ns),
-                  (statusKey, toBencode status)]
+        fromList [("out",    toBencode out),
+                  ("err",    toBencode err),
+                  ("value",  toBencode value),
+                  ("ns",     toBencode ns),
+                  ("status", toBencode status)]
 
 emptyResponse = Response "" "" "" "" []
 

@@ -39,7 +39,7 @@ import Data.ByteString.Char8 as B hiding (readInt, map, replicate, hPutStr, head
 data Bencode = BString B.ByteString
     | BInt Int
     | BList [Bencode]
-    | BMap (M.Map B.ByteString Bencode)
+    | BMap (M.Map [Char] Bencode)
 
 class IsBencodeReadable a where
     fromBencode     :: Bencode -> a
@@ -56,7 +56,7 @@ instance IsBencodeReadable Int where
 instance (IsBencodeReadable a) => IsBencodeReadable [a] where
     fromBencode = fromBencodeList
 
-mapEntryFromBencode (k, v) = (B.unpack k, fromBencode v)
+mapEntryFromBencode (k, v) = (k, fromBencode v)
 
 instance (IsBencodeReadable a) => IsBencodeReadable (M.Map [Char] a) where
     fromBencode (BMap m) = M.fromList $ map mapEntryFromBencode $ toList m
@@ -79,6 +79,10 @@ readByteString stream = do
     byteCount <- readByteCount stream
     B.hGet stream byteCount
 
+readString stream = do
+    bytes <- readByteString stream
+    return $ B.unpack bytes
+
 readInt stream = do
     _      <- hGetChar stream
     digits <- readUntil 'e' hGetChar stream
@@ -89,7 +93,7 @@ readList stream = do
     readUntil 'e' readBencode stream
 
 readMapEntry stream = do
-    k <- readByteString stream
+    k <- readString stream
     v <- readBencode stream
     return (k, v)
 
@@ -129,7 +133,7 @@ instance IsBencodeWritable Integer where
 instance (IsBencodeWritable a) => IsBencodeWritable [a] where
     toBencode = toBencodeList
 
-mapEntryToBencode (k, v) = (B.pack k, toBencode v)
+mapEntryToBencode (k, v) = (k, toBencode v)
 
 instance (IsBencodeWritable b) => IsBencodeWritable (M.Map [Char] b) where
     toBencode = BMap . fromList . map mapEntryToBencode . toList
@@ -155,7 +159,7 @@ doWriteBencode stream (BMap m) = do
     hPutChar stream 'e'
 
 doWriteMapEntry stream (k, v) = do
-    doWriteBencode stream $ BString k
+    doWriteBencode stream $ toBencode k
     doWriteBencode stream v
 
 writeBencode stream x = doWriteBencode stream $ toBencode x

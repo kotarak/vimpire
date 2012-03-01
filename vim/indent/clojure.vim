@@ -208,7 +208,7 @@ function! GetClojureIndent()
 	if g:vimclojure#FuzzyIndent
 				\ && w != 'with-meta'
 				\ && w != 'clojure.core/with-meta'
-				\ && w =~ '\(^\|/\)\(def\|with\)'
+				\ && w =~ '\(^\|/\)\(def\|with\|let\)'
 				\ && w !~ '\(^\|/\)\(def\|with\).*\*$'
 				\ && w !~ '\(^\|/\)\(def\|with\).*-fn$'
 		return paren[1] + &shiftwidth - 1

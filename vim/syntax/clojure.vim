@@ -337,6 +337,7 @@ if vimclojure#ParenRainbow != 0
 	call VimClojureSetupParenRainbow()
 
 	augroup VimClojureSyntax
+		au!
 		autocmd ColorScheme * if &ft == "clojure" | call VimClojureSetupParenRainbow() | endif
 	augroup END
 else

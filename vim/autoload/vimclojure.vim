@@ -75,6 +75,10 @@ if !exists("g:vimclojure#UseErrorBuffer")
 	let vimclojure#UseErrorBuffer = 1
 endif
 
+if !exists("g:vimclojure#SetupKeyMap")
+	let vimclojure#SetupKeyMap = 1
+endif
+
 function! vimclojure#ReportError(msg)
 	if g:vimclojure#UseErrorBuffer
 		let buf = g:vimclojure#ResultBuffer.New()
@@ -173,7 +177,15 @@ function! vimclojure#MakeCommandPlug(mode, plug, f, args)
 endfunction
 
 function! vimclojure#MapPlug(mode, keys, plug)
-	if !hasmapto("<Plug>Clojure" . a:plug, a:mode)
+	if exists("g:vimclojure#SetupKeyMap" . a:plug)
+		execute "let doSetup = g:vimclojure#SetupKeyMap" . a:plug
+	else
+		let doSetup = 1
+	endif
+
+	if g:vimclojure#SetupKeyMap
+				\ && doSetup
+				\ && !hasmapto("<Plug>Clojure" . a:plug, a:mode)
 		execute a:mode . "map <buffer> <unique> <silent> <LocalLeader>" . a:keys
 					\ . " <Plug>Clojure" . a:plug
 	endif

@@ -180,12 +180,10 @@ function! vimclojure#MapPlug(mode, keys, plug)
 	if exists("g:vimclojure#SetupKeyMap" . a:plug)
 		execute "let doSetup = g:vimclojure#SetupKeyMap" . a:plug
 	else
-		let doSetup = 1
+		let doSetup = g:vimclojure#SetupKeyMap
 	endif
 
-	if g:vimclojure#SetupKeyMap
-				\ && doSetup
-				\ && !hasmapto("<Plug>Clojure" . a:plug, a:mode)
+	if doSetup && !hasmapto("<Plug>Clojure" . a:plug, a:mode)
 		execute a:mode . "map <buffer> <unique> <silent> <LocalLeader>" . a:keys
 					\ . " <Plug>Clojure" . a:plug
 	endif

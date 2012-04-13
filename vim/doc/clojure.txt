@@ -159,6 +159,13 @@ To inhibit only single mappings append the plug name:
 >
         let vimclojure#SetupKeyMapEvalToplevel = 0
 <
+To enable only single mappings first turn off all flags, and then
+whitelist the ones you want to be enabled:
+>
+        let vimclojure#SetupKeyMap = 0
+        let vimclojure#SetupKeyMapEvalToplevel = 1
+<
+Whatever setting: it will still honor any key mapping made by yourself.
 
 <LocalLeader>et                                 *et* *EvalToplevel*
                         Send off the toplevel sexpression currently

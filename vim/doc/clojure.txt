@@ -127,6 +127,17 @@ were included in the 'lispwords' option.
 <
 This option is disabled by default.
 
+To be able to properly indent a given line there is some searching
+necessary to determine the surroundings of the cursor. In big files
+this my result in a slow down when entering a new line. So there is
+an option to basically limit the horizon which is searched for the
+indentation to synchronise. By default this is 100 lines backwards in
+the file. However you may specify whatever value works best for you.
+Higher values mean more searching.
+>
+        let vimclojure#SearchThreshold = 100
+<
+
 Preview Window
 --------------
 

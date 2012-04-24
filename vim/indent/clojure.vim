@@ -26,9 +26,15 @@ if exists("*searchpairpos")
 function! s:MatchPairs(open, close, stopat)
 	" Stop only on vector and map [ resp. {. Ignore the ones in strings and
 	" comments.
+	if a:stopat == 0
+		let stopat = max([line(".") - g:vimclojure#SearchThreshold, 0])
+	else
+		let stopat = a:stopat
+	endif
+
 	return searchpairpos(a:open, '', a:close, 'bWn',
 				\ 'vimclojure#util#SynIdName() !~ "clojureParen\\d"',
-				\ a:stopat)
+				\ stopat)
 endfunction
 
 function! ClojureCheckForStringWorker() dict

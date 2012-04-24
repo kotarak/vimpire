@@ -79,6 +79,10 @@ if !exists("g:vimclojure#SetupKeyMap")
 	let vimclojure#SetupKeyMap = 1
 endif
 
+if !exists("g:vimclojure#SearchThreshold")
+	let vimclojure#SearchThreshold = 100
+endif
+
 function! vimclojure#ReportError(msg)
 	if g:vimclojure#UseErrorBuffer
 		let buf = g:vimclojure#ResultBuffer.New()

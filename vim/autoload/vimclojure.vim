@@ -160,18 +160,18 @@ function! vimclojure#MakePlug(mode, plug, f, args)
 	endif
 
 	execute a:mode . "noremap <Plug>Clojure" . a:plug
-				\ . " " . esc . ":call " . a:f . "(" . a:args . ")<CR>"
+				\ . " " . esc . ":<C-U>call " . a:f . "(" . a:args . ")<CR>"
 endfunction
 
 function! vimclojure#MakeProtectedPlug(mode, plug, f, args)
 	execute a:mode . "noremap <Plug>Clojure" . a:plug
-				\ . " :call vimclojure#ProtectedPlug(function(\""
+				\ . " :<C-U>call vimclojure#ProtectedPlug(function(\""
 				\ . a:f . "\"), [ " . a:args . " ])<CR>"
 endfunction
 
 function! vimclojure#MakeCommandPlug(mode, plug, f, args)
 	execute a:mode . "noremap <Plug>Clojure" . a:plug
-				\ . " :call vimclojure#ProtectedPlug("
+				\ . " :<C-U>call vimclojure#ProtectedPlug("
 				\ . " function(\"vimclojure#CommandPlug\"),"
 				\ . " [ function(\"" . a:f . "\"), [ " . a:args . " ]])<CR>"
 endfunction

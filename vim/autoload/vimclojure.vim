@@ -705,6 +705,7 @@ endfunction
 let vimclojure#Repl = copy(vimclojure#Buffer)
 let vimclojure#Repl.__superBufferNew = vimclojure#Repl.New
 let vimclojure#Repl.__superBufferInit = vimclojure#Repl.Init
+let vimclojure#Repl.__superBufferClear = vimclojure#Repl.clear
 
 let vimclojure#Repl._history = []
 let vimclojure#Repl._historyDepth = 0
@@ -809,6 +810,11 @@ function! vimclojure#Repl.showPrompt() dict
 	call self.showText(self._prompt . " ")
 	normal! G
 	startinsert!
+endfunction
+
+function! vimclojure#Repl.clear() dict
+	call self.__superBufferClear()
+	call self.showPrompt()
 endfunction
 
 function! vimclojure#Repl.getCommand() dict

@@ -667,7 +667,7 @@ function! vimclojure#EvalBlock()
 	let file = vimclojure#BufferName()
 	let ns = b:vimclojure_namespace
 
-	let content = getbufline(bufnr("%"), line("'<"), line("'>"))
+	let content = vimclojure#util#Yank("l", 'normal! gv"ly')
 	let result = vimclojure#ExecuteNailWithInput("Repl", content,
 				\ "-r", "-n", ns, "-f", file, "-l", line("'<") - 1)
 

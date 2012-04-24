@@ -152,17 +152,6 @@ function! vimclojure#BufferName()
 endfunction
 
 " Key mappings and Plugs
-function! vimclojure#MakePlug(mode, plug, f, args)
-	if a:mode == "i"
-		let esc = "<ESC>"
-	else
-		let esc = ""
-	endif
-
-	execute a:mode . "noremap <Plug>Clojure" . a:plug
-				\ . " " . esc . ":<C-U>call " . a:f . "(" . a:args . ")<CR>"
-endfunction
-
 function! vimclojure#MakeProtectedPlug(mode, plug, f, args)
 	execute a:mode . "noremap <Plug>Clojure" . a:plug
 				\ . " :<C-U>call vimclojure#ProtectedPlug(function(\""

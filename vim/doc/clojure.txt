@@ -157,10 +157,10 @@ Note: <LocalLeader> is a Vim feature. More information can be found
 under the |maplocalleader| help topic.
 
 You can redefine any key mapping using some autocommand in your .vimrc file.
-All mappings use so-called Plugs. Simply prepend <Plug>Clojure to the given
-Plug name and your setting will override the default mapping.
+All mappings use so-called Plugs. Simply prepend "<Plug>Clojure" to the given
+Plug name, append a "." and your setting will override the default mapping.
 >
-        aucmd BufRead,BufNewFile *.clj nmap xyz <Plug>ClojureEvalToplevel
+        aucmd BufRead,BufNewFile *.clj nmap xyz <Plug>ClojureEvalToplevel.
 <
 To inhibit all mappings set the global flag to zero:
 >

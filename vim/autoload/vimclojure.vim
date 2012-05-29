@@ -157,13 +157,13 @@ endfunction
 
 " Key mappings and Plugs
 function! vimclojure#MakeProtectedPlug(mode, plug, f, args)
-	execute a:mode . "noremap <Plug>Clojure" . a:plug
+	execute a:mode . "noremap <Plug>Clojure" . a:plug . "."
 				\ . " :<C-U>call vimclojure#ProtectedPlug(function(\""
 				\ . a:f . "\"), [ " . a:args . " ])<CR>"
 endfunction
 
 function! vimclojure#MakeCommandPlug(mode, plug, f, args)
-	execute a:mode . "noremap <Plug>Clojure" . a:plug
+	execute a:mode . "noremap <Plug>Clojure" . a:plug . "."
 				\ . " :<C-U>call vimclojure#ProtectedPlug("
 				\ . " function(\"vimclojure#CommandPlug\"),"
 				\ . " [ function(\"" . a:f . "\"), [ " . a:args . " ]])<CR>"
@@ -178,7 +178,7 @@ function! vimclojure#MapPlug(mode, keys, plug)
 
 	if doSetup && !hasmapto("<Plug>Clojure" . a:plug, a:mode)
 		execute a:mode . "map <buffer> <unique> <silent> <LocalLeader>" . a:keys
-					\ . " <Plug>Clojure" . a:plug
+					\ . " <Plug>Clojure" . a:plug . "."
 	endif
 endfunction
 

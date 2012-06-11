@@ -176,7 +176,7 @@ function! vimclojure#MapPlug(mode, keys, plug)
 		let doSetup = g:vimclojure#SetupKeyMap
 	endif
 
-	if doSetup && !hasmapto("<Plug>Clojure" . a:plug, a:mode)
+	if doSetup && !hasmapto("<Plug>Clojure" . a:plug . ".", a:mode)
 		execute a:mode . "map <buffer> <unique> <silent> <LocalLeader>" . a:keys
 					\ . " <Plug>Clojure" . a:plug . "."
 	endif
@@ -755,20 +755,20 @@ function! vimclojure#Repl.Init(namespace) dict
 	set filetype=clojure
 	let b:vimclojure_namespace = a:namespace
 
-	if !hasmapto("<Plug>ClojureReplEnterHook", "i")
-		imap <buffer> <silent> <CR> <Plug>ClojureReplEnterHook
+	if !hasmapto("<Plug>ClojureReplEnterHook.", "i")
+		imap <buffer> <silent> <CR> <Plug>ClojureReplEnterHook.
 	endif
-	if !hasmapto("<Plug>ClojureReplEvaluate", "i")
-		imap <buffer> <silent> <C-CR> <Plug>ClojureReplEvaluate
+	if !hasmapto("<Plug>ClojureReplEvaluate.", "i")
+		imap <buffer> <silent> <C-CR> <Plug>ClojureReplEvaluate.
 	endif
-	if !hasmapto("<Plug>ClojureReplHatHook", "n")
-		nmap <buffer> <silent> ^ <Plug>ClojureReplHatHook
+	if !hasmapto("<Plug>ClojureReplHatHook.", "n")
+		nmap <buffer> <silent> ^ <Plug>ClojureReplHatHook.
 	endif
-	if !hasmapto("<Plug>ClojureReplUpHistory", "i")
-		imap <buffer> <silent> <C-Up> <Plug>ClojureReplUpHistory
+	if !hasmapto("<Plug>ClojureReplUpHistory.", "i")
+		imap <buffer> <silent> <C-Up> <Plug>ClojureReplUpHistory.
 	endif
-	if !hasmapto("<Plug>ClojureReplDownHistory", "i")
-		imap <buffer> <silent> <C-Down> <Plug>ClojureReplDownHistory
+	if !hasmapto("<Plug>ClojureReplDownHistory.", "i")
+		imap <buffer> <silent> <C-Down> <Plug>ClojureReplDownHistory.
 	endif
 
 	normal! G

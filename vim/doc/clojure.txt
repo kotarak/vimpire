@@ -327,11 +327,11 @@ If the current line starts with a repl prompt, the *^* command moves to
 the end of the prompt and to the beginning of the line.
 
 The Plugs are:
- - <Plug>ClojureReplEnterHook for the enter key
- - <Plug>ClojureReplEvaluate for immediate evaluation (<C-CR>)
- - <Plug>ClojureReplHatHook for ^ navigation
- - <Plug>ClojureReplUpHistory for going backwards in history (<C-Up>)
- - <Plug>ClojureReplDownHistory for going forwards in history (<C-Down>)
+ - <Plug>ClojureReplEnterHook. for the enter key
+ - <Plug>ClojureReplEvaluate. for immediate evaluation (<C-CR>)
+ - <Plug>ClojureReplHatHook. for ^ navigation
+ - <Plug>ClojureReplUpHistory. for going backwards in history (<C-Up>)
+ - <Plug>ClojureReplDownHistory. for going forwards in history (<C-Down>)
 
 The following convenience commands are provided:
 

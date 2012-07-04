@@ -406,7 +406,7 @@ let vimclojure#ClojureResultBuffer["__superResultBufferShowOutput"] =
 
 function! vimclojure#ClojureResultBuffer.Init(ns) dict
 	call self.__superResultBufferInit()
-	set filetype=clojure
+	set filetype=vimclojure.clojure
 	let b:vimclojure_namespace = a:ns
 endfunction
 
@@ -756,7 +756,7 @@ function! vimclojure#Repl.Init(namespace) dict
 
 	let b:vimclojure_repl = self
 
-	set filetype=clojure
+	set filetype=vimclojure.clojure
 	let b:vimclojure_namespace = a:namespace
 
 	if !hasmapto("<Plug>ClojureReplEnterHook.", "i")

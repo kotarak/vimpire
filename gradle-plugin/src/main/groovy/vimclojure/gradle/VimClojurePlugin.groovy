@@ -30,6 +30,7 @@ public class VimClojurePlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.tasks.add(name: 'runNailgun', type: NailgunTask) {
             dependsOn project.classes
+            dependsOn project.processResources
             classpath = project.files(
                 project.sourceSets.main.clojure.srcDirs,
                 project.sourceSets.main.output.classesDir,
@@ -41,6 +42,7 @@ public class VimClojurePlugin implements Plugin<Project> {
 
         project.tasks.add(name: 'runNRepl', type: NReplTask) {
             dependsOn project.classes
+            dependsOn project.processResources
             classpath = project.files(
                 project.sourceSets.main.clojure.srcDirs,
                 project.sourceSets.main.output.classesDir,

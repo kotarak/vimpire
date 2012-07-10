@@ -3,13 +3,13 @@ buildscript {
         flatDir dirs: project(':').file('lib/build')
     }
     dependencies {
-        classpath "clojuresque:clojuresque:1.4.1"
+        classpath "clojuresque:clojuresque:1.5.0"
         classpath "local-dotgradle:local-dotgradle:1.0.0"
     }
 }
 
 allprojects {
-    localDotGradle = project(':').file("local.gradle").absoluteFile
+    ext.localDotGradle = project(':').file("local.gradle").absoluteFile
     apply plugin: 'local-dotgradle'
 }
 
@@ -149,7 +149,7 @@ project(':vim') {
 task genCompletions(type: clojuresque.ClojureExec) {
     classpath = project.files(
         project(':server').sourceSets.main.clojure.srcDirs,
-        project(':server').sourceSets.main.classesDir,
+        project(':server').sourceSets.main.output.classesDir,
         project(':server').sourceSets.main.compileClasspath
     )
     main = "vimclojure.gencompletions/main"
@@ -185,7 +185,7 @@ task runRepl(type: clojuresque.ClojureExec) {
     dependsOn project(':server').processResources
     classpath = project.files(
         project(':server').sourceSets.main.clojure.srcDirs,
-        project(':server').sourceSets.main.classesDir,
+        project(':server').sourceSets.main.output.classesDir,
         project(':server').sourceSets.main.compileClasspath
     )
 }

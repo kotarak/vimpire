@@ -1,5 +1,5 @@
 /*-
- * Copyright 2011 © Meikel Brandmeyer.
+ * Copyright 2012 © Meikel Brandmeyer.
  * All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -23,31 +23,22 @@
 
 package vimclojure.gradle
 
-import org.gradle.api.Plugin
-import org.gradle.api.Project
+import clojuresque.ClojureExec
 
-public class VimClojurePlugin implements Plugin<Project> {
-    public void apply(Project project) {
-        project.tasks.add(name: 'runNailgun', type: NailgunTask) {
-            dependsOn project.classes
-            classpath = project.files(
-                project.sourceSets.main.clojure.srcDirs,
-                project.sourceSets.main.output.classesDir,
-                project.sourceSets.main.output.resourcesDir,
-                project.configurations.testRuntime,
-                project.configurations.development
-            )
-        }
+class NReplTask extends ClojureExec {
+    def int nreplPort = 7888
 
-        project.tasks.add(name: 'runNRepl', type: NReplTask) {
-            dependsOn project.classes
-            classpath = project.files(
-                project.sourceSets.main.clojure.srcDirs,
-                project.sourceSets.main.output.classesDir,
-                project.sourceSets.main.output.resourcesDir,
-                project.configurations.testRuntime,
-                project.configurations.development
-            )
-        }
+    public NReplTask() {
+        main = "clojure.tools.nrepl.cmdline/-main"
+        args = []
+    }
+
+    void setNReplPort(int port) {
+        this.nreplPort = port
+        fixUpArgs()
+    }
+
+    private void fixUpArgs() {
+        args = [ "--port", nreplPort ] + args
     }
 }

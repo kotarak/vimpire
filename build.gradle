@@ -54,6 +54,8 @@ project(':gradle-plugin') {
 
     dependencies {
         compile gradleApi()
+        compile "clojuresque:clojuresque:1.5.0"
+
         groovy localGroovy()
     }
 

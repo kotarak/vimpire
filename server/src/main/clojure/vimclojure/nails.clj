@@ -68,10 +68,17 @@
     (.init sys local)
     old))
 
-(defn nail-driver
-  "Driver for the defnail macro."
-  [#^NGContext ctx nail]
-  (let [out          (ByteArrayOutputStream.)
+(defn nailgun-driver
+  "Entry point for the nailgun connector."
+  [#^NGContext ctx]
+  (let [args         (.getArgs ctx)
+        nail         (aget args 0)
+        nail         (let [slash (.indexOf nail "/")
+                           [nspace nail] (if (neg? slash)
+                                           ["vimclojure.nails" nail]
+                                           [(subs nail 0 slash) (subs nail slash)])]
+                       @(resolve (symbol nspace nail)))
+        out          (ByteArrayOutputStream.)
         err          (ByteArrayOutputStream.)
         encoding     (System/getProperty "clojure.vim.encoding" "UTF-8")
         [clj-in clj-out clj-err] (make-stream-set (.in ctx) out err encoding)
@@ -82,7 +89,7 @@
                                *out* clj-out
                                *err* clj-err]
                        (try
-                         (nail ctx)
+                         (nail (next args))
                          (catch Throwable e
                            (.printStackTrace e))))]
     (.flush clj-out)
@@ -108,13 +115,11 @@
   'nailContext'."
   [nail usage arguments & body]
   `(defn ~nail
-     [ctx#]
-     (nail-driver ctx#
-                  (fn [~(with-meta 'nailContext {:tag `NGContext})]
-                    (util/with-command-line (next (.getArgs ~'nailContext))
-                      ~usage
-                      ~arguments
-                      ~@body)))))
+     [args#]
+     (util/with-command-line args#
+       ~usage
+       ~arguments
+       ~@body)))
 
 (defnail DocLookup
   "Usage: ng vimclojure.nails.DocString [options] symbol ..."

@@ -32,7 +32,8 @@ public class VimClojurePlugin implements Plugin<Project> {
             dependsOn project.classes
             classpath = project.files(
                 project.sourceSets.main.clojure.srcDirs,
-                project.sourceSets.main.classesDir,
+                project.sourceSets.main.output.classesDir,
+                project.sourceSets.main.output.resourcesDir,
                 project.configurations.testRuntime,
                 project.configurations.development
             )

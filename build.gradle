@@ -178,6 +178,20 @@ task genCompletions(type: clojuresque.ClojureExec) {
     ]
 }
 
+
+task runNailgun(type: JavaExec) {
+    main = "vimclojure.nailgun.NGServer"
+    args = [ "127.0.0.1" ]
+    dependsOn project(':server').classes
+    dependsOn project(':server').processResources
+    classpath = project.files(
+        project(':server').sourceSets.main.clojure.srcDirs,
+        project(':server').sourceSets.main.output.classesDir,
+        project(':server').sourceSets.main.output.resourcesDir,
+        project(':server').sourceSets.main.compileClasspath
+    )
+}
+
 task runRepl(type: clojuresque.ClojureExec) {
     main = "clojure.tools.nrepl.cmdline/-main"
     args = [ "--port", "12345" ]

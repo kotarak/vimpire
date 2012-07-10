@@ -37,8 +37,8 @@ project(':server') {
     }
 
     dependencies {
-        compile 'org.clojure:clojure:1.+'
-        compile 'org.clojure:tools.nrepl:0.0.5'
+        compile 'org.clojure:clojure:[1.2,1.5)'
+        compile 'org.clojure:tools.nrepl:0.2.0-beta8'
     }
 
     uploadArchives {

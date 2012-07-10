@@ -48,7 +48,7 @@ project(':server') {
     compileClojure.dependsOn compileJava
 }
 
-project(':gradle') {
+project(':gradle-plugin') {
     apply plugin: 'groovy'
     apply plugin: 'clojure'
 
@@ -63,7 +63,7 @@ project(':gradle') {
 }
 
 
-project(':client') {
+project(':nailgun-client') {
     task nailgunClientZip(type: Zip) {
         archiveName = "vimclojure-nailgun-client-" + project.version + ".zip"
         into("vimclojure-nailgun-client") {
@@ -96,7 +96,7 @@ project(':nrepl-client') {
 project(':vim') {
     task vimZip(type: Zip) {
         archiveName = "vimclojure-" + project.version + ".zip"
-        from('.') {
+        from('src/main/vim') {
             include 'autoload/**/*'
             include 'bin/**/*'
             exclude 'bin/kickoff.sh'
@@ -135,13 +135,13 @@ project(':vim') {
         // The Vim files:
         [ 'autoload', 'indent', 'syntax', 'ftdetect', 'ftplugin', 'plugin' ].each {
             File subDir = new File(installDir, it)
-            installFiles project.file(it), '**/*.vim', subDir
+            installFiles project.file('src/main/vim/' + it), '**/*.vim', subDir
         }
 
         // The Docs and other text files:
         [ 'doc', 'ftplugin/clojure' ].each {
             File subDir = new File(installDir, it)
-            installFiles project.file(it), '**/*.txt', subDir
+            installFiles project.file('src/main/vim/' + it), '**/*.txt', subDir
         }
     }
 }

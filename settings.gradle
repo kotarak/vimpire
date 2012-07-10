@@ -1,6 +1,6 @@
 rootProject.name = 'vimclojure'
-include 'client'
+include 'nailgun-client'
 include 'nrepl-client'
 include 'server'
 include 'vim'
-include 'gradle'
+include 'gradle-plugin'

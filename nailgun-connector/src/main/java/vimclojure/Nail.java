@@ -36,9 +36,9 @@ public class Nail {
     static {
         try {
             final Var require = RT.var("clojure.core", "require");
-            require.invoke(Symbol.create("vimclojure.nails"));
+            require.invoke(Symbol.create("vimclojure.connector.nailgun"));
 
-            nailDriver = RT.var("vimclojure.nails", "nailgun-driver");
+            nailDriver = RT.var("vimclojure.connector.nailgun", "nailgun-driver");
         } catch (Exception exc) {
             Throwable e = exc;
             System.err.println("A crisis has arisen:");

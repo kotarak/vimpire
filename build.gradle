@@ -78,6 +78,26 @@ project(':nailgun-client') {
     }
 }
 
+project(':nailgun-connector') {
+    apply plugin: 'clojure'
+
+    defaultRepositories {
+        flatDir dirs: project(':').file('lib/build')
+        mavenCentral()
+    }
+
+    dependencies {
+        compile 'org.clojure:clojure:[1.2,1.5)'
+        compile project(':server')
+    }
+
+    uploadArchives {
+        clojarsDeploy()
+    }
+
+    compileClojure.dependsOn compileJava
+}
+
 project(':nrepl-client') {
     task compileHaskell {
         //inputs.dir project.file('src/main/haskell')
@@ -184,13 +204,14 @@ task genCompletions(type: clojuresque.ClojureExec) {
 task runNailgun(type: JavaExec) {
     main = "vimclojure.nailgun.NGServer"
     args = [ "127.0.0.1" ]
-    dependsOn project(':server').classes
-    dependsOn project(':server').processResources
+    dependsOn project(':nailgun-connector').classes
+    dependsOn project(':nailgun-connector').processResources
     classpath = project.files(
         project(':server').sourceSets.main.clojure.srcDirs,
-        project(':server').sourceSets.main.output.classesDir,
-        project(':server').sourceSets.main.output.resourcesDir,
-        project(':server').sourceSets.main.compileClasspath
+        project(':nailgun-connector').sourceSets.main.clojure.srcDirs,
+        project(':nailgun-connector').sourceSets.main.output.classesDir,
+        project(':nailgun-connector').sourceSets.main.output.resourcesDir,
+        project(':nailgun-connector').sourceSets.main.compileClasspath
     )
 }
 

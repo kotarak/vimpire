@@ -11,32 +11,23 @@ provides indenting, syntax highlighting and – if configured – interactive
 features like omni completion, documentation lookup and a Repl running in a
 Vim buffer.
 
-Nailgun Server                      *clj-nailgun-server*
+Backend Server                      *clj-backend-server*
 --------------
 
-To use the interactive part you have to start the nailgun server via the jar
-file. Make sure, that clojure and clojure-contrib are in your classpath and
-start the vimclojure.nailgun.NGServer class. Example invocation:
->
-        java -cp clojure.jar:clojure-contrib.jar:vimclojure.jar vimclojure.nailgun.NGServer 127.0.0.1
-<
-This may look different depending on your system.
+To use the interactive part you have to start the backend server. VimClojure
+allows several connector methods for connecting the frontend with the backend.
+These are at the moment nailgun as well as nrepl.
 
-You can stop the server by invoking the nailgun client with the ng-stop
-argument.
+Set the vimclojure#WantBackend variable in your vimrc.
 >
-        ng ng-stop
+        let vimclojure#WantBackend = 1
 <
-Set the vimclojure#WantNailgun variable in your vimrc.
+To choose which connector to use, set the vimclojure#Connector in .vimrc.
 >
-        let vimclojure#WantNailgun = 1
+        let vimclojure#Connector = vimclojure#connector#nailgun#Connector()
+        let vimclojure#Connector = vimclojure#connector#nrepl#Connector()
 <
-The actual server to connect to and the port of said server can be given
-via configuration variables. The defaults are:
->
-        let vimclojure#NailgunServer = "127.0.0.1"
-        let vimclojure#NailgunPort = "2113"
-<
+
 Note: Should there be an error when executing an interactive command
 and the error message goes away to quickly, you can use |:messages| to
 recall the message and read it conveniently without time pressure.
@@ -54,6 +45,29 @@ It is also possible to specify the size of the new window. The size is
 specified in lines/columns.
 >
         let vimclojure#SplitSize = 10
+<
+
+Nailgun Server                      *clj-nailgun-server*
+--------------
+
+Make sure, that clojure, the backend jar and the nailgun-connector.jar are in
+your classpath and start the vimclojure.nailgun.NGServer class. Example
+invocation:
+>
+        java -cp clojure.jar:nailgun-connector.jar:server.jar vimclojure.nailgun.NGServer 127.0.0.1
+<
+This may look different depending on your system.
+
+You can stop the server by invoking the nailgun client with the ng-stop
+argument.
+>
+        ng ng-stop
+<
+The actual server to connect to and the port of said server can be given
+via configuration variables. The defaults are:
+>
+        let vimclojure#connector#nailgun#Server = "127.0.0.1"
+        let vimclojure#connector#nailgun#Port = "2113"
 <
 
 Errors

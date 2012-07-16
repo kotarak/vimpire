@@ -53,22 +53,40 @@ if !exists("g:vimclojure#ParenRainbow")
 	endif
 endif
 
-if !exists("g:vimclojure#WantNailgun")
+if !exists("g:vimclojure#WantBackend")
 	if exists("g:clj_want_gorilla")
 		call vimclojure#WarnDeprecated("g:clj_want_gorilla",
-					\ "vimclojure#WantNailgun")
-		let vimclojure#WantNailgun = g:clj_want_gorilla
+					\ "vimclojure#WantBackend")
+		let vimclojure#WantBackend = g:clj_want_gorilla
+	elseif exists("g:vimclojure#WantNailgun")
+		call vimclojure#WarnDeprecated("g:vimclojure#WantNailgun",
+					\ "vimclojure#WantBackend")
+		let vimclojure#WantBackend = g:vimclojure#WantNailgun
 	else
-		let vimclojure#WantNailgun = 0
+		let vimclojure#WantBackend = 0
 	endif
 endif
 
-if !exists("g:vimclojure#NailgunServer")
-	let vimclojure#NailgunServer = "127.0.0.1"
+if exists("vimclojure#NailgunClient")
+	call vimclojure#WarnDeprecated("g:vimclojure#NailgunClient",
+				\ "vimclojure#connector#nailgun#Client")
+	let vimclojure#connector#nailgun#Client = g:vimclojure#NailgunClient
 endif
 
-if !exists("g:vimclojure#NailgunPort")
-	let vimclojure#NailgunPort = "2113"
+if exists("g:vimclojure#NailgunServer")
+	call vimclojure#WarnDeprecated("g:vimclojure#NailgunServer",
+				\ "vimclojure#connector#nailgun#Server")
+	let vimclojure#connector#nailgun#Server = g:vimclojure#NailgunServer
+endif
+
+if exists("g:vimclojure#NailgunPort")
+	call vimclojure#WarnDeprecated("g:vimclojure#NailgunPort",
+				\ "vimclojure#connector#nailgun#Port")
+	let vimclojure#connector#nailgun#Port = g:vimclojure#NailgunPort
+endif
+
+if !exists("g:vimclojure#Connector")
+	let vimclojure#Connector = vimclojure#connector#nailgun#Connector()
 endif
 
 if !exists("g:vimclojure#UseErrorBuffer")
@@ -182,14 +200,14 @@ if !exists("*vimclojure#CommandPlug")
 	function vimclojure#CommandPlug(f, args)
 		if exists("b:vimclojure_loaded")
 					\ && !exists("b:vimclojure_namespace")
-					\ && g:vimclojure#WantNailgun == 1
+					\ && g:vimclojure#WantBackend == 1
 			unlet b:vimclojure_loaded
 			call vimclojure#InitBuffer("silent")
 		endif
 
 		if exists("b:vimclojure_namespace")
 			call call(a:f, a:args)
-		elseif g:vimclojure#WantNailgun == 1
+		elseif g:vimclojure#WantBackend == 1
 			let msg = "VimClojure could not initialise the server connection.\n"
 						\ . "That means you will not be able to use the interactive features.\n"
 						\ . "Reasons might be that the server is not running or that there is\n"
@@ -395,55 +413,6 @@ function! vimclojure#ClojureResultBuffer.showOutput(text) dict
 	call self.__superResultBufferShowOutput(a:text)
 	normal G
 endfunction
-
-" Nails
-if !exists("vimclojure#NailgunClient")
-	let vimclojure#NailgunClient = "ng"
-endif
-
-function! vimclojure#ExecuteNailWithInput(nail, input, ...)
-	if type(a:input) == type("")
-		let input = split(a:input, '\n', 1)
-	else
-		let input = a:input
-	endif
-
-	let inputfile = tempname()
-	try
-		call writefile(input, inputfile)
-
-		let cmdline = vimclojure#util#ShellEscapeArguments(
-					\ [g:vimclojure#NailgunClient,
-					\   '--nailgun-server', g:vimclojure#NailgunServer,
-					\   '--nailgun-port', g:vimclojure#NailgunPort,
-					\   'vimclojure.Nail', a:nail]
-					\ + a:000)
-		let cmd = join(cmdline, " ") . " <" . inputfile
-		" Add hardcore quoting for Windows
-		if has("win32") || has("win64")
-			let cmd = '"' . cmd . '"'
-		endif
-
-		let output = system(cmd)
-
-		if v:shell_error
-			throw "Error executing Nail! (" . v:shell_error . ")\n" . output
-		endif
-	finally
-		call delete(inputfile)
-	endtry
-
-	execute "let result = " . substitute(output, '\n$', '', '')
-	return result
-endfunction
-
-function! vimclojure#ExecuteNail(nail, ...)
-	return call(function("vimclojure#ExecuteNailWithInput"), [a:nail, ""] + a:000)
-endfunction
-
-if !exists("g:vimclojure#Connector")
-	let vimclojure#Connector = vimclojure#connector#nailgun#Connector()
-endif
 
 function! vimclojure#DocLookup(word)
 	if a:word == ""
@@ -698,7 +667,7 @@ endfunction
 " FIXME: Ugly hack. But easier than cleaning up the buffer
 " mess in case something goes wrong with repl start.
 function! vimclojure#Repl.New(namespace) dict
-	let replStart = vimclojure#ExecuteNail("Repl", "-s",
+	let replStart = g:vimclojure#Connector.execute("Repl", "", "-s",
 				\ "-n", a:namespace)
 	if replStart.stderr != ""
 		call vimclojure#ReportError(replStart.stderr)
@@ -760,7 +729,7 @@ endfunction
 
 function! vimclojure#Repl.doReplCommand(cmd) dict
 	if a:cmd == ",close"
-		call vimclojure#ExecuteNail("Repl", "-S", "-i", self._id)
+		call g:vimclojure#Connector.execute("Repl", "", "-S", "-i", self._id)
 		call self.close()
 		stopinsert
 	elseif a:cmd == ",st"
@@ -961,7 +930,7 @@ function! vimclojure#OmniCompletion(findstart, base)
 			return []
 		endif
 
-		let completions = vimclojure#ExecuteNail("Complete",
+		let completions = g:vimclojure#Connector.execute("Complete", "",
 					\ "-n", b:vimclojure_namespace,
 					\ "-p", prefix, "-b", base)
 		return completions.value

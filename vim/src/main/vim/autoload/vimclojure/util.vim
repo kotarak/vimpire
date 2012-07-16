@@ -85,5 +85,19 @@ function! vimclojure#util#MoveForward()
 	call search('\S', 'W')
 endfunction
 
+function! vimclojure#util#ShellEscapeArgumentsWorker() dict
+	set noshellslash
+	return map(copy(self.vals), 'shellescape(v:val)')
+endfunction
+
+function! vimclojure#util#ShellEscapeArguments(vals)
+	let closure = {
+				\ 'vals': a:vals,
+				\ 'f':    function("vimclojure#util#ShellEscapeArgumentsWorker")
+				\ }
+
+	return vimclojure#util#WithSavedOption('shellslash', closure)
+endfunction
+
 " Epilog
 let &cpo = s:save_cpo

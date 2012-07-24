@@ -21,7 +21,9 @@ function! vimclojure#bencode#ReadString(input, pos)
 	endwhile
 	let cnt = eval(cntS)
 	let s = strpart(a:input, pos, cnt)
-	let s = iconv(s, "utf-8", &enc)
+	if &enc != "utf-8"
+		let s = iconv(s, "utf-8", &enc)
+	endif
 
 	return [ [s], pos + cnt ]
 endfunction
@@ -100,7 +102,10 @@ function! vimclojure#bencode#ReadBencode(input)
 endfunction
 
 function! vimclojure#bencode#WriteString(string)
-	let encoded = iconv(a:string, &enc, "utf-8")
+	let encoded = a:string
+	if &enc != "utf-8"
+		let encoded = iconv(encoded, &enc, "utf-8")
+	endif
 	return strlen(encoded) . ":" . encoded
 endfunction
 

@@ -17,16 +17,18 @@ if !exists("g:vimclojure#connector#nailgun#Port")
 	let vimclojure#connector#nailgun#Port = "2113"
 endif
 
-function! vimclojure#connector#nailgun#Execute(nail, input, ...)
-	if type(a:input) == type("")
-		let input = split(a:input, '\n', 1)
+function! vimclojure#connector#nailgun#Execute(nail, ...)
+	let args = join(map(copy(a:000), 'vimclojure#util#Literalize(v:val)'), " ")
+	if stridx(a:nail, "/") >= 0
+		let nail = a:nail
 	else
-		let input = a:input
+		let nail = "vimclojure.nails/" . a:nail
 	endif
+	let code = "(". nail . " " . args . ")"
 
 	let inputfile = tempname()
 	try
-		call writefile(input, inputfile)
+		call writefile([code], inputfile)
 
 		let cmdline = vimclojure#util#ShellEscapeArguments(
 					\ [g:vimclojure#connector#nailgun#Client,
@@ -34,8 +36,7 @@ function! vimclojure#connector#nailgun#Execute(nail, input, ...)
 					\   g:vimclojure#connector#nailgun#Server,
 					\   '--nailgun-port',
 					\   g:vimclojure#connector#nailgun#Port,
-					\   'vimclojure.Nail', a:nail]
-					\ + a:000)
+					\   'vimclojure.Nail'])
 		let cmd = join(cmdline, " ") . " <" . inputfile
 		" Add hardcore quoting for Windows
 		if has("win32") || has("win64")

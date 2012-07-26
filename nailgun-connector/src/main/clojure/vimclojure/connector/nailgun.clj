@@ -68,14 +68,7 @@
 (defn nailgun-driver
   "Entry point for the nailgun connector."
   [#^NGContext ctx]
-  (let [args         (.getArgs ctx)
-        nail         (aget args 0)
-        nail         (let [slash (.indexOf nail "/")
-                           [nspace nail] (if (neg? slash)
-                                           ["vimclojure.nails" nail]
-                                           [(subs nail 0 slash) (subs nail slash)])]
-                       @(resolve (symbol nspace nail)))
-        out          (ByteArrayOutputStream.)
+  (let [out          (ByteArrayOutputStream.)
         err          (ByteArrayOutputStream.)
         encoding     (System/getProperty "clojure.vim.encoding" "UTF-8")
         [clj-in clj-out clj-err] (make-stream-set (.in ctx) out err encoding)
@@ -86,7 +79,7 @@
                                *out* clj-out
                                *err* clj-err]
                        (try
-                         (nail (next args))
+                         (eval (read))
                          (catch Throwable e
                            (.printStackTrace e))))]
     (.flush clj-out)

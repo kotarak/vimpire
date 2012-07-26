@@ -419,8 +419,8 @@ function! vimclojure#DocLookup(word)
 		return
 	endif
 
-	let doc = g:vimclojure#Connector.execute("DocLookup", a:word,
-				\ "-n", b:vimclojure_namespace)
+	let doc = g:vimclojure#Connector.execute("DocLookup",
+				\ "-n", b:vimclojure_namespace, a:word)
 	let buf = g:vimclojure#ResultBuffer.New()
 	call buf.showOutput(doc)
 	wincmd p
@@ -469,8 +469,8 @@ endif
 
 function! vimclojure#JavadocLookup(word)
 	let word = substitute(a:word, "\\.$", "", "")
-	let path = g:vimclojure#Connector.execute("JavadocPath", word,
-				\ "-n", b:vimclojure_namespace)
+	let path = g:vimclojure#Connector.execute("JavadocPath",
+				\ "-n", b:vimclojure_namespace, word)
 
 	if path.stderr != ""
 		let buf = g:vimclojure#ResultBuffer.New()
@@ -495,24 +495,24 @@ function! vimclojure#JavadocLookup(word)
 endfunction
 
 function! vimclojure#SourceLookup(word)
-	let source = g:vimclojure#Connector.execute("SourceLookup", a:word,
-				\ "-n", b:vimclojure_namespace)
+	let source = g:vimclojure#Connector.execute("SourceLookup",
+				\ "-n", b:vimclojure_namespace, a:word)
 	let buf = g:vimclojure#ClojureResultBuffer.New(b:vimclojure_namespace)
 	call buf.showOutput(source)
 	wincmd p
 endfunction
 
 function! vimclojure#MetaLookup(word)
-	let meta = g:vimclojure#Connector.execute("MetaLookup", a:word,
-				\ "-n", b:vimclojure_namespace)
+	let meta = g:vimclojure#Connector.execute("MetaLookup",
+				\ "-n", b:vimclojure_namespace, a:word)
 	let buf = g:vimclojure#ClojureResultBuffer.New(b:vimclojure_namespace)
 	call buf.showOutput(meta)
 	wincmd p
 endfunction
 
 function! vimclojure#GotoSource(word)
-	let pos = g:vimclojure#Connector.execute("SourceLocation", a:word,
-				\ "-n", b:vimclojure_namespace)
+	let pos = g:vimclojure#Connector.execute("SourceLocation",
+				\ "-n", b:vimclojure_namespace, a:word)
 
 	if pos.stderr != ""
 		let buf = g:vimclojure#ResultBuffer.New()
@@ -539,10 +539,11 @@ function! vimclojure#MacroExpand(firstOnly)
 	let [unused, sexp] = vimclojure#ExtractSexpr(0)
 	let ns = b:vimclojure_namespace
 
-	let cmd = ["MacroExpand", sexp, "-n", ns]
+	let cmd = [ "MacroExpand", "-n", ns ]
 	if a:firstOnly
-		let cmd = cmd + [ "-o" ]
+		call add(cmd, "-o")
 	endif
+	call add(cmd, sexp)
 
 	let expanded = call(g:vimclojure#Connector.execute, cmd)
 
@@ -556,7 +557,7 @@ function! vimclojure#RequireFile(all)
 	let all = a:all ? "-all" : ""
 
 	let require = "(require :reload" . all . " :verbose '". ns. ")"
-	let result = g:vimclojure#Connector.execute("Repl", require, "-r")
+	let result = g:vimclojure#Connector.execute("Repl", "-r", require)
 
 	let resultBuffer = g:vimclojure#ClojureResultBuffer.New(ns)
 	call resultBuffer.showOutput(result)
@@ -567,7 +568,7 @@ function! vimclojure#RunTests(all)
 	let ns = b:vimclojure_namespace
 
 	let result = call(g:vimclojure#Connector.execute,
-				\ [ "RunTests", "", "-n", ns ] + (a:all ? [ "-a" ] : []))
+				\ [ "RunTests", "-n", ns ] + (a:all ? [ "-a" ] : []))
 	let resultBuffer = g:vimclojure#ClojureResultBuffer.New(ns)
 	call resultBuffer.showOutput(result)
 	wincmd p
@@ -578,8 +579,8 @@ function! vimclojure#EvalFile()
 	let file = vimclojure#BufferName()
 	let ns = b:vimclojure_namespace
 
-	let result = g:vimclojure#Connector.execute("Repl", content,
-				\ "-r", "-n", ns, "-f", file)
+	let result = g:vimclojure#Connector.execute("Repl",
+				\ "-r", "-n", ns, "-f", file, content)
 
 	let resultBuffer = g:vimclojure#ClojureResultBuffer.New(ns)
 	call resultBuffer.showOutput(result)
@@ -592,8 +593,8 @@ function! vimclojure#EvalLine()
 	let file = vimclojure#BufferName()
 	let ns = b:vimclojure_namespace
 
-	let result = g:vimclojure#Connector.execute("Repl", content,
-				\ "-r", "-n", ns, "-f", file, "-l", theLine)
+	let result = g:vimclojure#Connector.execute("Repl",
+				\ "-r", "-n", ns, "-f", file, "-l", theLine, content)
 
 	let resultBuffer = g:vimclojure#ClojureResultBuffer.New(ns)
 	call resultBuffer.showOutput(result)
@@ -605,8 +606,8 @@ function! vimclojure#EvalBlock()
 	let ns = b:vimclojure_namespace
 
 	let content = getbufline(bufnr("%"), line("'<"), line("'>"))
-	let result = g:vimclojure#Connector.execute("Repl", content,
-				\ "-r", "-n", ns, "-f", file, "-l", line("'<") - 1)
+	let result = g:vimclojure#Connector.execute("Repl",
+				\ "-r", "-n", ns, "-f", file, "-l", line("'<") - 1, content)
 
 	let resultBuffer = g:vimclojure#ClojureResultBuffer.New(ns)
 	call resultBuffer.showOutput(result)
@@ -618,8 +619,8 @@ function! vimclojure#EvalToplevel()
 	let ns = b:vimclojure_namespace
 	let [pos, expr] = vimclojure#ExtractSexpr(1)
 
-	let result = g:vimclojure#Connector.execute("Repl", expr,
-				\ "-r", "-n", ns, "-f", file, "-l", pos[0] - 1)
+	let result = g:vimclojure#Connector.execute("Repl",
+				\ "-r", "-n", ns, "-f", file, "-l", pos[0] - 1, expr)
 
 	let resultBuffer = g:vimclojure#ClojureResultBuffer.New(ns)
 	call resultBuffer.showOutput(result)
@@ -641,8 +642,8 @@ function! vimclojure#EvalParagraph()
 	let endPosition = vimclojure#util#WithSavedPosition(closure)
 
 	let content = getbufline(bufnr("%"), startPosition, endPosition)
-	let result = g:vimclojure#Connector.execute("Repl", content,
-				\ "-r", "-n", ns, "-f", file, "-l", startPosition - 1)
+	let result = g:vimclojure#Connector.execute("Repl",
+				\ "-r", "-n", ns, "-f", file, "-l", startPosition - 1, content)
 
 	let resultBuffer = g:vimclojure#ClojureResultBuffer.New(ns)
 	call resultBuffer.showOutput(result)
@@ -667,7 +668,7 @@ endfunction
 " FIXME: Ugly hack. But easier than cleaning up the buffer
 " mess in case something goes wrong with repl start.
 function! vimclojure#Repl.New(namespace) dict
-	let replStart = g:vimclojure#Connector.execute("Repl", "", "-s",
+	let replStart = g:vimclojure#Connector.execute("Repl", "-s",
 				\ "-n", a:namespace)
 	if replStart.stderr != ""
 		call vimclojure#ReportError(replStart.stderr)
@@ -677,8 +678,7 @@ function! vimclojure#Repl.New(namespace) dict
 	let instance = call(self.__superBufferNew, [a:namespace], self)
 	let instance._id = replStart.value.id
 	call g:vimclojure#Connector.execute("Repl",
-				\ "(require 'clojure.stacktrace)",
-				\ "-r", "-i", instance._id)
+				\ "-r", "-i", instance._id, "(require 'clojure.stacktrace)")
 
 	return instance
 endfunction
@@ -729,25 +729,25 @@ endfunction
 
 function! vimclojure#Repl.doReplCommand(cmd) dict
 	if a:cmd == ",close"
-		call g:vimclojure#Connector.execute("Repl", "", "-S", "-i", self._id)
+		call g:vimclojure#Connector.execute("Repl", "-S", "-i", self._id)
 		call self.close()
 		stopinsert
 	elseif a:cmd == ",st"
 		let result = g:vimclojure#Connector.execute("Repl",
-					\ "(vimclojure.util/pretty-print-stacktrace *e)", "-r",
-					\ "-i", self._id)
+					\ "-r", "-i", self._id,
+					\ "(vimclojure.util/pretty-print-stacktrace *e)")
 		call self.showOutput(result)
 		call self.showPrompt()
 	elseif a:cmd == ",ct"
 		let result = g:vimclojure#Connector.execute("Repl",
-					\ "(vimclojure.util/pretty-print-causetrace *e)", "-r",
-					\ "-i", self._id)
+					\ "-r", "-i", self._id,
+					\ "(vimclojure.util/pretty-print-causetrace *e)")
 		call self.showOutput(result)
 		call self.showPrompt()
 	elseif a:cmd == ",toggle-pprint"
 		let result = g:vimclojure#Connector.execute("Repl",
-					\ "(set! vimclojure.repl/*print-pretty* (not vimclojure.repl/*print-pretty*))", "-r",
-					\ "-i", self._id)
+					\ "-r", "-i", self._id,
+					\ "(set! vimclojure.repl/*print-pretty* (not vimclojure.repl/*print-pretty*))")
 		call self.showOutput(result)
 		call self.showPrompt()
 	endif
@@ -816,22 +816,22 @@ function! vimclojure#Repl.enterHook() dict
 		return
 	endif
 
-	let result = g:vimclojure#Connector.execute("CheckSyntax", cmd,
-				\ "-n", b:vimclojure_namespace)
+	let result = g:vimclojure#Connector.execute("CheckSyntax",
+				\ "-n", b:vimclojure_namespace, cmd)
 	if result.value == 0 && result.stderr == ""
 		call vimclojure#ReplDoEnter()
 	elseif result.stderr != ""
 		let buf = g:vimclojure#ResultBuffer.New()
 		call buf.showOutput(result)
 	else
-		let result = g:vimclojure#Connector.execute("Repl", cmd,
-					\ "-r", "-i", self._id)
+		let result = g:vimclojure#Connector.execute("Repl",
+					\ "-r", "-i", self._id, cmd)
 		call self.showOutput(result)
 
 		let self._historyDepth = 0
 		let self._history = [cmd] + self._history
 
-		let namespace = g:vimclojure#Connector.execute("ReplNamespace", "",
+		let namespace = g:vimclojure#Connector.execute("ReplNamespace",
 					\ "-i", self._id)
 		let b:vimclojure_namespace = namespace.value
 		let self._prompt = namespace.value . "=>"
@@ -930,7 +930,7 @@ function! vimclojure#OmniCompletion(findstart, base)
 			return []
 		endif
 
-		let completions = g:vimclojure#Connector.execute("Complete", "",
+		let completions = g:vimclojure#Connector.execute("Complete",
 					\ "-n", b:vimclojure_namespace,
 					\ "-p", prefix, "-b", base)
 		return completions.value

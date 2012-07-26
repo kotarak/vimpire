@@ -21,6 +21,9 @@
 ; THE SOFTWARE.
 
 (ns vimclojure.util
+  (:import
+    java.io.StringReader
+    clojure.lang.LineNumberingPushbackReader)
   (:require
     [clojure.pprint :as pprint]
     [clojure.stacktrace :as stacktrace]))
@@ -382,6 +385,12 @@
       (catch Exception _
         (require namespace)
         (the-ns namespace)))))
+
+(defn in-reader
+  "Turn a given string into a LineNumberingPushbackReader suitable for
+  read."
+  [s]
+  (LineNumberingPushbackReader. (StringReader. s)))
 
 (defn stream->seq
   "Turns a given stream into a seq of Clojure forms read from the stream."

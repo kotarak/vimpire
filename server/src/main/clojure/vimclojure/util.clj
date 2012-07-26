@@ -112,7 +112,7 @@
                             (assoc sopts sopt lopt))))
                 [{} {}]
                 (filter vector? specs))
-        rest-arg (when (symbol? (last specs)) (name (last specs)))]
+        rest-arg (when (symbol? (peek specs)) (name (peek specs)))]
     (loop [args   (seq args)
            argmap (hash-map)]
       (let [arg (first args)]

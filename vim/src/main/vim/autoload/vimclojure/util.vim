@@ -99,5 +99,19 @@ function! vimclojure#util#ShellEscapeArguments(vals)
 	return vimclojure#util#WithSavedOption('shellslash', closure)
 endfunction
 
+function! vimclojure#util#Quote(code)
+	return escape(a:code, '\"')
+endfunction
+
+function! vimclojure#util#Literalize(code)
+	if type(a:code) == type([])
+		let code = join(a:code, "\n")
+	else
+		let code = a:code
+	endif
+
+	return '"'. vimclojure#util#Quote(code) .'"'
+endfunction
+
 " Epilog
 let &cpo = s:save_cpo

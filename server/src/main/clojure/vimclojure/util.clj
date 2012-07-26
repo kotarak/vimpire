@@ -117,10 +117,7 @@
            argmap (hash-map)]
       (let [arg (first args)]
         (cond
-          (empty? args)  (if-not rest-arg
-                           (thunk argmap)
-                           (throw
-                             (Exception. "Missing command line arguments")))
+          (empty? args)  (thunk argmap)
 
           (some #{arg} ["-h" "--help" "-?"])
           (print-usage description specs)

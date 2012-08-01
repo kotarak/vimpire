@@ -768,10 +768,10 @@ function! vimclojure#EvalParagraph()
 endfunction
 
 " The Repl
-let vimclojure#Repl = copy(vimclojure#Buffer)
-let vimclojure#Repl.__superBufferNew = vimclojure#Repl.New
-let vimclojure#Repl.__superBufferInit = vimclojure#Repl.Init
-let vimclojure#Repl.__superBufferClear = vimclojure#Repl.clear
+let vimclojure#Repl = copy(vimclojure#Window)
+let vimclojure#Repl["__superWindowNew"]   = vimclojure#Repl.New
+let vimclojure#Repl["__superWindowInit"]  = vimclojure#Repl.Init
+let vimclojure#Repl["__superWindowClear"] = vimclojure#Repl.clear
 
 let vimclojure#Repl._history = []
 let vimclojure#Repl._historyDepth = 0
@@ -785,7 +785,7 @@ endfunction
 
 " FIXME: Ugly hack. But easier than cleaning up the buffer
 " mess in case something goes wrong with repl start.
-function! vimclojure#Repl.New(namespace) dict
+function! vimclojure#Repl.New(namespace, ...) dict
 	let replStart = vimclojure#ExecuteNail("Repl", "-s",
 				\ "-n", a:namespace)
 	if replStart.stderr != ""
@@ -793,7 +793,9 @@ function! vimclojure#Repl.New(namespace) dict
 		return
 	endif
 
-	let instance = call(self.__superBufferNew, [a:namespace], self)
+	let instance = call(self.__superWindowNew,
+				\ [g:vimclojure#Buffer, a:namespace] + a:000,
+				\ self)
 	let instance._id = replStart.value.id
 	call vimclojure#ExecuteNailWithInput("Repl",
 				\ "(require 'clojure.stacktrace)",
@@ -802,8 +804,8 @@ function! vimclojure#Repl.New(namespace) dict
 	return instance
 endfunction
 
-function! vimclojure#Repl.Init(namespace) dict
-	call self.__superBufferInit()
+function! vimclojure#Repl.Init(buftype, namespace) dict
+	call self.__superWindowInit(a:buftype)
 
 	let self._prompt = a:namespace . "=>"
 
@@ -879,7 +881,7 @@ function! vimclojure#Repl.showPrompt() dict
 endfunction
 
 function! vimclojure#Repl.clear() dict
-	call self.__superBufferClear()
+	call self.__superWindowClear()
 	call self.showPrompt()
 endfunction
 

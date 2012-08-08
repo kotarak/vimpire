@@ -3,7 +3,7 @@ buildscript {
         flatDir { dirs project(':').file('lib/build') }
     }
     dependencies {
-        classpath "clojuresque:clojuresque:1.4.5"
+        classpath "clojuresque:clojuresque:1.5.2"
         classpath "local-dotgradle:local-dotgradle:1.0.0"
     }
 }
@@ -13,7 +13,7 @@ allprojects {
         flatDir { dirs project(':').file('lib/build') }
     }
 
-    localDotGradle = project(':').file("local.gradle").absoluteFile
+    ext.localDotGradle = project(':').file("local.gradle").absoluteFile
     apply plugin: 'local-dotgradle'
 }
 

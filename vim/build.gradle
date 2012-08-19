@@ -1,0 +1,90 @@
+apply plugin: "vim"
+
+task vimZip(type: Zip) {
+    archiveName = "vimclojure-" + project.version + ".zip"
+    from('src/main/vim') {
+        include 'autoload/**/*'
+        include 'bin/**/*'
+        exclude 'bin/kickoff.sh'
+        include 'doc/**/*'
+        include 'ftdetect/**/*'
+        include 'ftplugin/**/*'
+        include 'indent/**/*'
+        include 'plugin/**/*'
+        include 'syntax/**/*'
+    }
+    from('..') {
+        include 'LICENSE.txt'
+        include 'README.markdown'
+    }
+}
+
+// Install the Vim part of the plugin
+def installFiles = { File directory, String pattern, File destination ->
+    destination.mkdirs()
+    ant.copy(todir: destination) {
+        fileset dir: directory, includes: pattern
+    }
+}
+
+task installVim << {
+    File installDir
+
+    if (project.hasProperty('vimdir')) {
+        installDir = new File(project.vimdir)
+    } else if (System.getProperty('os.name').toLowerCase().startsWith("win")) {
+        installDir = new File(System.getProperty('user.home') + "/vimfiles")
+    } else {
+        installDir = new File(System.getProperty('user.home') + "/.vim")
+    }
+
+    // The Vim files:
+    [ 'autoload', 'indent', 'syntax', 'ftdetect', 'ftplugin', 'plugin' ].each {
+        File subDir = new File(installDir, it)
+        installFiles project.file('src/main/vim/' + it), '**/*.vim', subDir
+    }
+
+    // The Docs and other text files:
+    [ 'doc', 'ftplugin/clojure' ].each {
+        File subDir = new File(installDir, it)
+        installFiles project.file('src/main/vim/' + it), '**/*.txt', subDir
+    }
+}
+
+/*
+task testVim() {
+    ext.workingDir = project.projectDir
+} << {
+    File output = File.createTempFile("test_output_", ".tap", workingDir)
+
+    try {
+        def driver = { test ->
+            return ["set runtimepath+=src/test/vim",
+                    "set runtimepath+=src/main/vim",
+                    "filetype plugin indent on",
+                    "syntax on",
+                    "vimtap#SetOutputFile('${output.path}')",
+                    "source ${test}",
+                    "vimtap#FlushOutput()",
+                   "qall!"].join("\n") + "\n"
+        }
+
+        def InputStream stdin = new java.io.ByteArrayInputStream(
+            driver("test.vim").getBytes("UTF-8")
+        )
+        try {
+            project.exec() {
+                executable    = "vim"
+                args          = [ "-E", "-n", "-N", "-u", "NONE" ]
+                standardInput = stdin
+            }
+        } finally {
+            stdin.close()
+        }
+    } finally {
+        output.delete()
+    }
+}
+
+build.dependsOn testVim
+*/

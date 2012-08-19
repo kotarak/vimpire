@@ -1,0 +1,12 @@
+task nailgunClientZip(type: Zip) {
+    archiveName = "vimclojure-nailgun-client-" + project.version + ".zip"
+    into("vimclojure-nailgun-client") {
+        from('.') {
+            include "ngclient/**/*"
+            include "Makefile"
+            include "ng.exe"
+        }
+    }
+}
+
+assemble.dependsOn nailgunClientZip

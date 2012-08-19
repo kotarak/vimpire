@@ -1,0 +1,14 @@
+task compileHaskell {
+    //inputs.dir project.file('src/main/haskell')
+    //outputs.dir project.file('build/main/classes')
+} << {
+    project.file("build/main/classes").mkdirs()
+    project.exec {
+        commandLine "ghc", "-isrc/main/haskell",
+            "-outputdir", "build/main/classes",
+            "-o", "build/main/classes/nrepl-client",
+            "-XFlexibleInstances",
+            "--make",
+            "src/main/haskell/VimClojure/Main.hs"
+    }
+}

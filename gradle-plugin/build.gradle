@@ -1,0 +1,13 @@
+apply plugin: 'groovy'
+apply plugin: 'clojure'
+
+dependencies {
+    compile gradleApi()
+    compile "clojuresque:clojuresque:1.5.0"
+
+    groovy localGroovy()
+}
+
+uploadArchives {
+    clojarsDeploy()
+}

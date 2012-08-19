@@ -1,0 +1,17 @@
+apply plugin: 'clojure'
+
+defaultRepositories {
+    flatDir dirs: project(':').file('lib/build')
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.clojure:clojure:[1.2,1.5)'
+    compile 'org.clojure:tools.nrepl:0.2.0-beta8'
+}
+
+uploadArchives {
+    clojarsDeploy()
+}
+
+compileClojure.dependsOn compileJava

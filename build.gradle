@@ -1,14 +1,18 @@
 buildscript {
     repositories {
-        flatDir dirs: project(':').file('lib/build')
+        flatDir { dirs project(':').file('lib/build') }
     }
     dependencies {
-        classpath "clojuresque:clojuresque:1.5.0"
+        classpath "clojuresque:clojuresque:1.5.2"
         classpath "local-dotgradle:local-dotgradle:1.0.0"
     }
 }
 
 allprojects {
+    repositories {
+        flatDir { dirs project(':').file('lib/build') }
+    }
+
     ext.localDotGradle = project(':').file("local.gradle").absoluteFile
     apply plugin: 'local-dotgradle'
 }
@@ -84,6 +88,7 @@ task runRepl(type: clojuresque.ClojureExec) {
     classpath = project.files(
         project(':server').sourceSets.main.clojure.srcDirs,
         project(':server').sourceSets.main.output.classesDir,
+        project(':server').sourceSets.main.output.resourcesDir,
         project(':server').sourceSets.main.compileClasspath
     )
 }

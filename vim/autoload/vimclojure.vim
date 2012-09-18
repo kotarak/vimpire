@@ -243,6 +243,10 @@ endfunction
 function! vimclojure#Object.Init() dict
 endfunction
 
+function! vimclojure#Object.isA(type) dict
+	return self.prototype is a:type
+endfunction
+
 let vimclojure#Buffer = copy(vimclojure#Object)
 let vimclojure#Buffer["__superObjectNew"]  = vimclojure#Buffer["New"]
 let vimclojure#Buffer["__superObjectInit"] = vimclojure#Buffer["Init"]
@@ -392,7 +396,7 @@ function! vimclojure#ResultWindow.New(buftype, ...) dict
 	if exists("t:vimclojure_result_window")
 		call t:vimclojure_result_window.goHere()
 
-		if t:vimclojure_result_window._buffer.prototype != a:buftype
+		if !t:vimclojure_result_window._buffer.isA(a:buftype)
 			let t:vimclojure_result_window._buffer = a:buftype.New()
 		else
 			call t:vimclojure_result_window.clear()

@@ -21,7 +21,7 @@ subprojects {
     apply plugin: 'java-base'
 
     group = 'vimclojure'
-    version = '2.3.6'
+    version = '2.3.7-SNAPSHOT'
 
     defaultTasks 'build'
 }

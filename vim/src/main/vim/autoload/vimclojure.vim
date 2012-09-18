@@ -497,6 +497,7 @@ function! vimclojure#ShellEscapeArguments(vals)
 				\ 'vals': a:vals,
 				\ 'f'   : function("ClojureShellEscapeArgumentsWorker")
 				\ }
+endfunction
 
 function! vimclojure#ShowResult(result)
 	let buf = g:vimclojure#ResultWindow.New(g:vimclojure#ResultBuffer)

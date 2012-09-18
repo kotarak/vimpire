@@ -266,6 +266,7 @@ endfunction
 
 function! vimclojure#Buffer.Init() dict
 	call self.__superObjectInit()
+	let b:vimclojure_buffer = self
 	let self._buf = bufnr("%")
 endfunction
 

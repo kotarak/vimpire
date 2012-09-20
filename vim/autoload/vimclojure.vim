@@ -296,6 +296,15 @@ function! vimclojure#Buffer.close() dict
 	execute "bdelete!" self._buf
 endfunction
 
+function! vimclojure#NoOp(...) dict
+endfunction
+
+let vimclojure#NullBuffer = copy(vimclojure#Object)
+let vimclojure#NullBuffer.showText = function("vimclojure#NoOp")
+let vimclojure#NullBuffer.clear    = function("vimclojure#NoOp")
+let vimclojure#NullBuffer.goHere   = function("vimclojure#NoOp")
+let vimclojure#NullBuffer.close    = function("vimclojure#NoOp")
+
 let vimclojure#Window = copy(vimclojure#Object)
 let vimclojure#Window["__superObjectNew"] = vimclojure#Window["New"]
 let vimclojure#Window["__superObjectInit"] = vimclojure#Window["Init"]

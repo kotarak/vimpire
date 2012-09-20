@@ -419,7 +419,23 @@ function! vimclojure#ResultWindow.New(buftype, ...) dict
 	let b:vimclojure_result_buffer = 1
 	let t:vimclojure_result_window = instance
 
+	augroup VimClojure
+		autocmd BufDelete <buffer> call g:vimclojure#ResultWindow.Demote(
+					\ getbufvar(eval(expand("<abuf>")), "vimclojure_buffer"))
+	augroup END
+
 	return instance
+endfunction
+
+" Remove the buffer object from the window. The buffer is removed
+" automatically be Vim, when it is removed from the window.
+function! vimclojure#ResultWindow.Demote(buffer) dict
+	if exists("t:vimclojure_result_window")
+		if t:vimclojure_result_window._buffer is a:buffer
+			let t:vimclojure_result_window._buffer =
+						\ g:vimclojure#NullBuffer.New()
+		endif
+	endif
 endfunction
 
 function! vimclojure#ResultWindow.close() dict

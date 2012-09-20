@@ -677,7 +677,7 @@ function! vimclojure#GotoSource(word)
 	endif
 
 	if !filereadable(pos.value.file)
-		let file = findfile(pos.value.file)
+		let file = globpath(&path, pos.value.file)
 		if file == ""
 			echoerr pos.value.file . " not found in 'path'"
 			return

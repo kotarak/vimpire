@@ -404,15 +404,20 @@ let vimclojure#ResultWindow["__superWindowClose"] = vimclojure#ResultWindow["clo
 
 function! vimclojure#ResultWindow.New(buftype, ...) dict
 	if exists("t:vimclojure_result_window")
-		call t:vimclojure_result_window.goHere()
+		" Otherwise the result window was closed.
+		if t:vimclojure_result_window.findThis() != -1
+			call t:vimclojure_result_window.goHere()
 
-		if !t:vimclojure_result_window._buffer.isA(a:buftype)
-			let t:vimclojure_result_window._buffer = a:buftype.New()
+			if !t:vimclojure_result_window._buffer.isA(a:buftype)
+				let t:vimclojure_result_window._buffer = a:buftype.New()
+			else
+				call t:vimclojure_result_window.clear()
+			endif
+
+			return t:vimclojure_result_window
 		else
-			call t:vimclojure_result_window.clear()
+			unlet t:vimclojure_result_window
 		endif
-
-		return t:vimclojure_result_window
 	endif
 
 	let instance = call(self.__superWindowNew, [a:buftype] + a:000, self)

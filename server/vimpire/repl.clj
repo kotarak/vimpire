@@ -20,16 +20,17 @@
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 ; THE SOFTWARE.
 
-(ns vimclojure.repl
+(ns vimpire.repl
   (:require
     clojure.test)
-  (:use
-    [vimclojure.util :only [resolve-and-load-namespace safe-var-get stream->seq
-                            pretty-print pretty-print-causetrace]])
   (:import
     clojure.lang.Var
     clojure.lang.Compiler
     clojure.lang.LineNumberingPushbackReader))
+
+(refer 'vimpire.util
+       :only '[resolve-and-load-namespace safe-var-get stream->seq
+               pretty-print pretty-print-causetrace])
 
 (def
   ^{:dynamic true :doc

@@ -13,7 +13,7 @@
 ;
 ; See also: http://en.wikibooks.org/wiki/Clojure_Programming
 
-(ns vimclojure.gencompletions)
+(ns vimpire.gencompletions)
 
 (defmacro with-out-file [pathname & body]
   `(with-open [stream# (new java.io.FileWriter ~pathname)]

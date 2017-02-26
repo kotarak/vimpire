@@ -20,7 +20,7 @@
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 ; THE SOFTWARE.
 
-(ns vimclojure.util
+(ns vimpire.util
   (:require
     [clojure.pprint :as pprint]
     [clojure.stacktrace :as stacktrace]))

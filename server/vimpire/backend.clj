@@ -20,13 +20,13 @@
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 ; THE SOFTWARE.
 
-(ns vimclojure.backend
-  (:require
-     [vimclojure.util :as util])
+(ns vimpire.backend
   (:import
      clojure.lang.RT
      (java.io File FileInputStream InputStreamReader
               LineNumberReader PushbackReader)))
+
+(alias 'util 'vimclojure.util)
 
 ; Documentation:
 ; Mirror this from clojure 1.3 to allow backwards compatibility.

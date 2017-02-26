@@ -20,7 +20,7 @@
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 ; THE SOFTWARE.
 
-(ns vimclojure.core
+(ns vimpire.core
   (:require
     [clojure.java.io :as io]))
 

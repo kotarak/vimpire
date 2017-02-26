@@ -20,11 +20,8 @@
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 ; THE SOFTWARE.
 
-(ns vimclojure.nails
+(ns vimpire.nails
   (:require
-    [vimclojure.repl :as repl]
-    [vimclojure.util :as util]
-    [vimclojure.backend :as backend]
     clojure.set
     clojure.test)
   (:import
@@ -39,6 +36,10 @@
     vimclojure.nailgun.NGServer
     vimclojure.nailgun.ThreadLocalInputStream
     vimclojure.nailgun.ThreadLocalPrintStream))
+
+(alias 'backend 'vimpire.backend)
+(alias 'repl    'vimpire.repl)
+(alias 'util    'vimpire.util)
 
 (defn start-server-thread
   "Start a nailgun server in a dedicated daemon thread. host defaults

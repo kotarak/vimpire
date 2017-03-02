@@ -31,91 +31,23 @@
     java.io.OutputStreamWriter
     java.io.PrintStream
     java.io.PrintWriter
-    clojure.lang.LineNumberingPushbackReader
-    vimclojure.nailgun.NGContext
-    vimclojure.nailgun.NGServer
-    vimclojure.nailgun.ThreadLocalInputStream
-    vimclojure.nailgun.ThreadLocalPrintStream))
+    java.io.StringReader
+    clojure.lang.LineNumberingPushbackReader))
 
+(alias 'json    'vimpire.clojure.data.json)
 (alias 'backend 'vimpire.backend)
 (alias 'repl    'vimpire.repl)
 (alias 'util    'vimpire.util)
 
-(defn start-server-thread
-  "Start a nailgun server in a dedicated daemon thread. host defaults
-  to 127.0.0.1, port to 2113."
-  ([]     (start-server-thread "127.0.0.1" 2113))
-  ([host] (start-server-thread host 2113))
-  ([host port]
-   (doto (Thread. #(NGServer/main (into-array [(str host ":" port)])))
-     (.setDaemon true)
-     (.start))))
-
 (defn- make-stream-set
   [in out err encoding]
-  [(-> in (InputStreamReader. encoding) LineNumberingPushbackReader.)
+  ; FIXME: encoding for stdin?
+  [(-> in  StringReader. LineNumberingPushbackReader.)
    (-> out (OutputStreamWriter. encoding))
    (-> err (OutputStreamWriter. encoding) PrintWriter.)])
 
-(defn- set-input-stream
-  [#^ThreadLocalInputStream sys local]
-  (let [old (.getInputStream sys)]
-    (.init sys local)
-    old))
 
-(defn- set-output-stream
-  [#^ThreadLocalPrintStream sys local]
-  (let [old (.getPrintStream sys)]
-    (.init sys local)
-    old))
 
-(defn nail-driver
-  "Driver for the defnail macro."
-  [#^NGContext ctx nail]
-  (let [out          (ByteArrayOutputStream.)
-        err          (ByteArrayOutputStream.)
-        encoding     (System/getProperty "clojure.vim.encoding" "UTF-8")
-        [clj-in clj-out clj-err] (make-stream-set (.in ctx) out err encoding)
-        sys-in       (set-input-stream System/in (.in ctx))
-        sys-out      (set-output-stream System/out (PrintStream. out))
-        sys-err      (set-output-stream System/err (PrintStream. err))
-        result       (binding [*in*  clj-in
-                               *out* clj-out
-                               *err* clj-err]
-                       (try
-                         (nail ctx)
-                         (catch Throwable e
-                           (.printStackTrace e))))]
-    (.flush clj-out)
-    (.flush clj-err)
-    (set-input-stream System/in sys-in)
-    (set-output-stream System/out sys-out)
-    (set-output-stream System/err sys-err)
-    (let [output (.getBytes
-                   (print-str
-                     (util/clj->vim
-                       {:value  result
-                        :stdout (.toString out encoding)
-                        :stderr (.toString err encoding)}))
-                   encoding)]
-      (.write (.out ctx) output 0 (alength output)))
-    (.flush (.out ctx))))
-
-(defmacro defnail
-  "Define a new Nail of the given name. The arguments is a command line
-  arguments specification vector suitable for with-command-line. The body
-  will be installed as the body of the nail with the command-line arguments
-  available according to the specification and the nailgun context as
-  'nailContext'."
-  [nail usage arguments & body]
-  `(defn ~nail
-     [ctx#]
-     (nail-driver ctx#
-                  (fn [~(with-meta 'nailContext {:tag `NGContext})]
-                    (util/with-command-line (next (.getArgs ~'nailContext))
-                      ~usage
-                      ~arguments
-                      ~@body)))))
 
 (defnail DocLookup
   "Usage: ng vimclojure.nails.DocString [options] symbol ..."
@@ -298,3 +230,36 @@
   (binding [clojure.test/*test-out* *out*]
     (clojure.test/run-tests (symbol nspace)))
   nil)
+
+(defn nail-server
+  []
+  (println "Nail server ready!")
+  (flush)
+  (loop []
+    (let [eof (Object.)
+          msg (json/read *in* :eof-error? false :eof-value eof)]
+      (when (not= msg eof)
+        (let [[msg-id ctx]  msg
+              op            (get ctx "op")
+              [nspace nail] (.split ^String op "/")
+              nail          (ns-resolve (symbol nspace) (symbol nail))
+              out           (ByteArrayOutputStream.)
+              err           (ByteArrayOutputStream.)
+              encoding      (System/getProperty "clojure.vim.encoding" "UTF-8")
+              [clj-in clj-out clj-err]
+              (make-stream-set (get ctx "stdin" "") out err encoding)
+              result        (binding [*in*  clj-in
+                                      *out* clj-out
+                                      *err* clj-err]
+                              (try
+                                (nail ctx)
+                                (catch Throwable e
+                                  (.printStackTrace e))))]
+          (.flush clj-out)
+          (.flush clj-err)
+          (json/write [msg-id {:value  result
+                               :stdout (.toString out encoding)
+                               :stderr (.toString out encoding)}]
+                      *out*)
+          (flush)
+          (recur))))))

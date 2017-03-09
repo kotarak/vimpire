@@ -22,6 +22,7 @@
 
 (ns vimpire.nails
   (:require
+    [clojure.pprint :as pprint]
     clojure.set
     clojure.test)
   (:import
@@ -46,78 +47,57 @@
    (-> out (OutputStreamWriter. encoding))
    (-> err (OutputStreamWriter. encoding) PrintWriter.)])
 
+(defn doc-lookup
+  [{:strs [nspace sym] :or {nspace "user"}}]
+  (let [nspace (util/resolve-and-load-namespace nspace)]
+    (backend/doc-lookup nspace (symbol sym))))
 
+(defn find-doc
+  [{:strs [query]}]
+  (backend/find-documentation query))
 
-
-(defnail DocLookup
-  "Usage: ng vimclojure.nails.DocString [options] symbol ..."
-  [[nspace n "Lookup the symbols in the given namespace." "user"]]
-  (let [nspace  (util/resolve-and-load-namespace nspace)]
-    (backend/doc-lookup nspace (read))))
-
-(defnail FindDoc
-  "Usage: ng vimclojure.nails.FindDoc"
-  []
-  (backend/find-documentation (.readLine *in*)))
-
-(defnail JavadocPath
-  "Usage: ng vimclojure.nails.JavadocPath [options]"
-  [[nspace n "Lookup the symbols in the given namespace." "user"]]
-  (let [nspace         (util/resolve-and-load-namespace nspace)
-        our-ns-resolve #(ns-resolve nspace %)]
-    (-> (read)
-      our-ns-resolve
+(defn javadoc-path
+  [{:strs [nspace sym] :or {nspace "user"}}]
+  (let [nspace (util/resolve-and-load-namespace nspace)]
+    (->> (symbol sym)
+      (ns-resolve nspace)
       backend/javadoc-path-for-class)))
 
-(defnail SourceLookup
-  "Usage: ng vimclojure.nails.SourceLookup [options]"
-  [[nspace n "Lookup the symbols in the given namespace." "user"]]
-  (let [nspace         (util/resolve-and-load-namespace nspace)
-        our-ns-resolve #(ns-resolve nspace %)]
-    (-> (read)
-      our-ns-resolve
+(defn source-lookup
+  [{:strs [nspace sym] :or {nspace "user"}}]
+  (let [nspace (util/resolve-and-load-namespace nspace)]
+    (->> (symbol sym)
+      (ns-resolve nspace)
       backend/get-source
       println)))
 
-(defnail MetaLookup
-  "Usage: ng vimclojure.nails.MetaLookup [options]"
-  [[nspace n "Lookup the symbols in the given namespace." "user"]]
-  (let [nspace         (util/resolve-and-load-namespace nspace)
-        our-ns-resolve #(ns-resolve nspace %)]
-    (-> (read)
-      our-ns-resolve
+(defn meta-lookup
+  [{:strs [nspace sym] :or {nspace "user"}}]
+  (let [nspace (util/resolve-and-load-namespace nspace)]
+    (->> (symbol sym)
+      (ns-resolve nspace)
       meta
-      util/pretty-print)))
+      pprint/pprint)))
 
-(defnail SourceLocation
-  "Usage: ng vimclojure.nails.SourceLocation [options]"
-  [[nspace n "Lookup the symbols in the given namespace." "user"]]
-  (let [nspace         (util/resolve-and-load-namespace nspace)
-        our-ns-resolve #(ns-resolve nspace %)]
-    (-> (read)
-      our-ns-resolve
+(defn source-location
+  [{:strs [nspace sym] :or {nspace "user"}}]
+  (let [nspace (util/resolve-and-load-namespace nspace)]
+    (-> (symbol sym)
+      (ns-resolve nspace)
       backend/source-position)))
 
-(defnail DynamicHighlighting
-  "Usage: ng vimclojure.nails.DynamicHighlighting"
-  []
-  (let [nspace    (read)
-        c-c       (the-ns 'clojure.core)
+(defn dynamic-highlighting
+  [{:strs [nspace]}]
+  (let [c-c       (the-ns 'clojure.core)
         the-space (util/resolve-and-load-namespace nspace)
         refers    (remove #(= c-c (-> % second meta :ns)) (ns-refers the-space))
-        aliases   (mapcat (fn [[the-alias the-alias-space]]
-                            (map #(vector (symbol (name the-alias)
-                                                  (name (first %)))
-                                          (second %))
-                                 (ns-publics the-alias-space)))
-                          (ns-aliases the-space))
-        namespaces (mapcat (fn [the-namespace]
-                             (map #(vector (symbol
-                                             (name (ns-name the-namespace))
-                                             (name (first %)))
-                                           (second %))
-                                  (ns-publics the-namespace)))
-                           (remove #(= c-c %) (all-ns)))
+        aliases   (for [[the-alias the-alias-space] (ns-aliases the-space)
+                        [the-sym the-var] (ns-publics the-alias-space)]
+                    [(symbol (name the-alias) (name the-sym)) the-var])
+        namespaces (for [the-namespace     (remove #{c-c} (all-ns))
+                         [the-sym the-var] (ns-publics the-namespace)]
+                     [(symbol (name (ns-name the-namespace)) (name the-sym))
+                      the-var])
         vars      (set (concat refers aliases namespaces))
         macros    (set (filter #(-> % second meta :macro) vars))
         vars      (clojure.set/difference vars macros)
@@ -130,9 +110,8 @@
               "Macro"    (map first macros)
               "Variable" (map first vars))))
 
-(defnail NamespaceOfFile
-  "Usage: ng vimclojure.nails.NamespaceOfFile"
-  []
+(defn namespace-of-file
+  [_ctx]
   (let [of-interest '#{in-ns ns clojure.core/in-ns clojure.core/ns}
         in-seq      (util/stream->seq *in*)
         candidate   (first
@@ -146,53 +125,38 @@
                                                          second
                                                          second))))
 
-(defnail NamespaceInfo
-  "Usage: ng vimclojure.nails.NamespaceInfo"
-  []
-  (println (util/clj->vim (map #(-> % symbol find-ns backend/ns-info)
-                               (line-seq (BufferedReader. *in*))))))
+(defn namespace-info
+  [{:strs [input]}]
+  (map #(-> % symbol find-ns backend/ns-info)
+       (-> input StringReader. BufferedReader. line-seq)))
 
-(defnail MacroExpand
-  "Usage: ng vimclojure.nails.MacroExpand [options]"
-  [[nspace n "Lookup the symbols in the given namespace." "user"]
-   [one?   o "Expand only the first macro."]]
+(defn macro-expand
+  [{:strs [nspace one?] :or {nspace "user" one? true}}]
   (let [nspace (util/resolve-and-load-namespace nspace)
-        expand (if one
+        expand (if one?
                  #(macroexpand-1 %)
                  #(macroexpand %))]
     (binding [*ns* nspace]
-      (-> (read)
-        expand
-        util/pretty-print-code))))
+      (-> (read) expand pprint/pprint))))
 
-(defnail Repl
-  "Usage: ng vimclojure.nails.Repl [options]"
-  [[start?  s "Start a new Repl."]
-   [stop?   S "Stop the Repl of the given id."]
-   [run?    r "Run the input in the Repl context of the given id."]
-   [id      i "The id of the repl to act on." "-1"]
-   [nspace  n "Change to namespace before executing the input." ""]
-   [file    f "The filename to be set." "REPL"]
-   [line    l "The initial line to be set." "0"]
-   [ignore? I "Ignore the command with respect to *1, *2, *3"]]
-  (let [id     (Integer/parseInt id)
-        line   (Integer/parseInt line)
-        nspace (when (not= nspace "")
-                 (util/resolve-and-load-namespace nspace))]
-    (cond
-      start {:id (repl/start nspace)}
-      stop  (repl/stop id)
-      run   (repl/run id nspace file line ignore))))
+(defn repl
+  [{:strs [start? stop? run?]
+    :or   {start? false stop? false run? true}
+    :as   ctx}]
+  (cond
+    start? (repl/start ctx)
+    stop?  (repl/stop ctx)
+    run?   (repl/run ctx)))
 
-(defnail ReplNamespace
-  "Usage: ng vimclojure.nails.Repl [options]"
-  [[id i "The id of the repl to act on."]]
-  (let [id (Integer/parseInt id)]
-    (get (get @repl/*repls* id {:ns "user"}) :ns)))
+(defn repl-namespace
+  [{:strs [id]}]
+  (-> @repl/*repls*
+    (get-in [id :ns] 'user)
+    ns-name
+    name))
 
-(defnail CheckSyntax
-  "Usage: ng vimclojure.nails.CheckSyntax"
-  [[nspace  n "Change to namespace before executing the input." "user"]]
+(defn check-syntax
+  [{:strs [nspace] :or {nspace "user"}}]
   (let [nspace (util/resolve-and-load-namespace nspace)]
     (binding [*ns* nspace]
       (try
@@ -207,11 +171,8 @@
               false
               (throw exc))))))))
 
-(defnail Complete
-  "Usage: ng vimclojure.nails.Complete"
-  [[nspace n "Start completion in this namespace." "user"]
-   [prefix p "Prefix used for the match, ie. the part before /." ""]
-   [base   b "Base pattern to be matched."]]
+(defn complete
+  [{:strs [nspace prefix base] :or {nspace "user" prefix ""}}]
   (let [nspace      (util/resolve-and-load-namespace nspace)
         prefix      (symbol prefix)
         to-complete (util/decide-completion-in nspace prefix base)
@@ -219,12 +180,10 @@
                             to-complete)]
     (map #(apply util/make-completion-item %) completions)))
 
-(defnail RunTests
-  "Usage: ng vimclojure.nails.RunTests"
-  [[nspace n "Run tests in the given namespace." "user"]
-   [all?   a "Reload all or only the namespace under test"]]
+(defn run-tests
+  [{:strs [nspace all?] :or {nspace "user" all? true}}]
   (when (not= "user" nspace)
-    (if all
+    (if all?
       (require :reload-all (symbol nspace))
       (require :reload (symbol nspace))))
   (binding [clojure.test/*test-out* *out*]
@@ -233,6 +192,10 @@
 
 (defn nail-server
   []
+  (binding [*ns* *ns*]
+    (in-ns 'user)
+    (refer-clojure)
+    (use 'clojure.repl))
   (println "Nail server ready!")
   (flush)
   (loop []
@@ -252,14 +215,15 @@
                                       *out* clj-out
                                       *err* clj-err]
                               (try
-                                (nail ctx)
+                                (nail (dissoc ctx "op" "stdin"))
                                 (catch Throwable e
-                                  (.printStackTrace e))))]
+                                  (binding [*out* *err*]
+                                    (prn e)))))]
           (.flush clj-out)
           (.flush clj-err)
           (json/write [msg-id {:value  result
                                :stdout (.toString out encoding)
-                               :stderr (.toString out encoding)}]
+                               :stderr (.toString err encoding)}]
                       *out*)
           (flush)
           (recur))))))

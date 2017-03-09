@@ -22,6 +22,7 @@
 
 (ns vimpire.repl
   (:require
+    [clojure.java.io :as io]
     clojure.test)
   (:import
     clojure.lang.Var
@@ -61,17 +62,19 @@
   `[*warn-on-reflection* *print-meta* *print-length*
     *print-level* *compile-path* *command-line-args*
     *unchecked-math* *math-context* *1 *2 *3 *e
-    ; VimClojure specific.
+    ; Vimpire specific.
     *print-pretty*])
 
 (defn make-repl
   "Create a new Repl."
-  ([id] (make-repl id nil))
-  ([id namespace]
+  ([id] (make-repl id "user" nil nil))
+  ([id namespace] (make-repl id namespace nil nil))
+  ([id namespace file line]
    {:id        id
-    :ns        (or namespace (resolve-and-load-namespace 'user))
+    :ns        (resolve-and-load-namespace namespace)
     :test-out  nil
-    :line      1
+    :file      (or file (str "REPL-" id))
+    :line      (or line 0)
     :bindings  (-> (reduce add-binding {} bindable-vars)
                  (assoc #'*compile-path* (System/getProperty
                                            "clojure.compile.path"
@@ -79,7 +82,7 @@
 
 (defn start
   "Start a new Repl and register it in the system."
-  [nspace]
+  [{:strs [nspace] :or {nspace "user"}}]
   (let [id       (repl-id)
         the-repl (make-repl id nspace)]
     (swap! *repls* assoc id the-repl)
@@ -87,9 +90,9 @@
 
 (defn stop
   "Stop the Repl with the given id."
-  [id]
+  [{:strs [id]}]
   (when-not (@*repls* id)
-    (throw (Exception. "Not Repl of that id or Repl currently active: " id)))
+    (throw (ex-info "Not Repl of that id or Repl currently active" {:id id})))
   (swap! *repls* dissoc id)
   nil)
 
@@ -111,38 +114,36 @@
   "Calls thunk in the context of the Repl with the given id. id may be -1
   to use a one-shot context. Sets the file line accordingly."
   [id nspace file line thunk]
-  (let [the-repl (if (not= id -1)
+  (let [the-repl (if id
                    (locking *repls*
                      (if-let [the-repl (get @*repls* id)]
                        (do
                          (swap! *repls* dissoc id)
                          the-repl)
-                       (throw (Exception. (str "No Repl of that id: " id)))))
-                   (make-repl -1))
-        line     (if (= line 0)
-                   (the-repl :line)
-                   line)]
+                       (throw (ex-info "No Repl of this id" {:id id}))))
+                   (make-repl nil nspace file line))]
     (with-bindings
       (merge (:bindings the-repl)
              ; #64: Unbox to ensure int.
-             {Compiler/LINE        (Integer. (.intValue line))
-              Compiler/SOURCE      (.getName (java.io.File. file))
-              Compiler/SOURCE_PATH file
-              #'*in*               (make-reader *in* line)
-              #'*ns*               (if nspace nspace (:ns the-repl))
+             {Compiler/LINE        (Integer. (.intValue (:line the-repl)))
+              Compiler/SOURCE      (.getName (io/file (:file the-repl)))
+              Compiler/SOURCE_PATH (:file the-repl)
+              #'*in*               (make-reader *in* (:line the-repl))
+              #'*ns*               (:ns the-repl)
               #'clojure.test/*test-out* (if-let [test-out (the-repl :test-out)]
                                           test-out
                                           *out*)})
       (try
         (thunk)
         (finally
-          (when (not= id -1)
+          (when id
             (swap! *repls* assoc id
                    {:id        id
                     :ns        *ns*
                     :test-out  (let [test-out clojure.test/*test-out*]
                                  (when-not (identical? test-out *out*)
                                    test-out))
+                    :file      @Compiler/SOURCE_PATH
                     :line      (dec (.getLineNumber *in*))
                     :bindings  (reduce add-binding {} bindable-vars)})))))))
 
@@ -157,20 +158,21 @@
   Repl is retrieved using the given id. Output goes to *out* and *err*.
   The initial input line and the file are set to the supplied values.
   Ignore flags whether the evaluation result is saved in the star Vars."
-  [id nspace file line ignore]
+  [{:strs [id nspace file line ignore?]
+    :or   {nspace "user" file "REPL" line 0 ignore? false}}]
   (with-repl id nspace file line
     (try
       (doseq [form (stream->seq *in*)]
         (let [result (eval form)]
-          ((if vimclojure.repl/*print-pretty* pretty-print prn) result)
-          (when-not ignore
+          ((if *print-pretty* pretty-print prn) result)
+          (when-not ignore?
             (set! *3 *2)
             (set! *2 *1)
             (set! *1 result))))
       (catch Throwable e
         (binding [*out* *err*]
-          (if (= id -1)
+          (if id
             (pretty-print-causetrace e)
-            (println e)))
+            (prn e)))
         (set! *e e)
         nil))))

@@ -26,7 +26,7 @@
      (java.io File FileInputStream InputStreamReader
               LineNumberReader PushbackReader)))
 
-(alias 'util 'vimclojure.util)
+(alias 'util 'vimpire.util)
 
 ; Documentation:
 ; Mirror this from clojure 1.3 to allow backwards compatibility.
@@ -97,27 +97,25 @@ itself (not its value) is returned. The reader macro #'x expands to (var x)."}})
   [nspace]
   (assoc (meta nspace) :name (ns-name nspace)))
 
-(defn- print-documentation [m]
-  (println "-------------------------")
-  (println (str (when-let [ns (:ns m)] (str (ns-name ns) "/")) (:name m)))
-  (cond
-    (:forms m) (doseq [f (:forms m)]
-                 (print "  ")
-                 (prn f))
-    (:arglists m) (prn (:arglists m)))
-  (if (:special-form m)
-    (do
-      (println "Special Form")
-      (println " " (:doc m))
-      (if (contains? m :url)
-        (when (:url m)
-          (println (str "\n  Please see http://clojure.org/" (:url m))))
-        (println (str "\n  Please see http://clojure.org/special_forms#"
-                      (:name m)))))
-    (do
-      (when (:macro m)
-        (println "Macro"))
-      (println " " (:doc m)))))
+(defn- print-documentation
+  [m]
+  (->> ["-------------------------"
+        (str (when-let [ns (:ns m)] (str (ns-name ns) "/")) (:name m))
+        (when-let [forms (:forms m)]
+          (apply str (interleave (repeat "  ") (map prn-str (forms m)))))
+        (when-let [arglists (:arglists m)]
+          (prn-str arglists))
+        (if (:special-form m)
+          (str "Special Form\n"
+               " " (:doc m) \newline
+               (if (contains? m :url)
+                 (when (:url m)
+                   (str "\n  Please see http://clojure.org/" (:url m))))
+               (str "\n  Please see http://clojure.org/special_forms#" (:name m)))
+          (str (when (:macro m) "Macro\n")
+               " " (:doc m) \newline))]
+    (interpose \newline)
+    (apply str)))
 
 (defn doc-lookup
   "Lookup up the documentation for the given symbols in the given namespace.
@@ -131,8 +129,7 @@ itself (not its value) is returned. The reader macro #'x expands to (var x)."}})
                                         (special-doc namespace symbol)))
       find-ns                   :>> #(print-documentation (namespace-doc %))
       #(ns-resolve namespace %) :>> #(print-documentation (meta %))
-      (println
-        (str "'" symbol "' could not be found. Please check the spelling.")))))
+      (str "'" symbol "' could not be found. Please check the spelling."))))
 
 (defn find-documentation
   "Prints documentation for any var whose documentation or name

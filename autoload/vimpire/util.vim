@@ -104,5 +104,44 @@ function! vimpire#util#MoveForward()
     call search('\S', 'W')
 endfunction
 
+function! vimpire#util#BufferName()
+    let file = expand("%")
+    if file == ""
+        let file = "UNNAMED"
+    endif
+    return file
+endfunction
+
+function! s:ClojureExtractSexprWorker() dict
+    let pos = [0, 0]
+    let start = getpos(".")
+
+    if getline(start[1])[start[2] - 1] == "("
+                \ && vimpire#util#SynIdName() =~ 'clojureParen'
+        let pos = [start[1], start[2]]
+    endif
+
+    if pos == [0, 0]
+        let pos = searchpairpos('(', '', ')', 'bW' . self.flag,
+                    \ 'vimpire#util#SynIdName() !~ "clojureParen"')
+    endif
+
+    if pos == [0, 0]
+        throw "Error: Not in a s-expression!"
+    endif
+
+    return [pos, vimpire#util#Yank('l', 'normal! "ly%')]
+endfunction
+
+function! vimpire#util#ExtractSexpr(toplevel)
+    let closure = {
+                \ "flag"  : (a:toplevel ? "r" : ""),
+                \ "level" : (a:toplevel ? "0" : '\d'),
+                \ "f"     : function("s:ClojureExtractSexprWorker")
+                \ }
+
+    return vimpire#util#WithSavedPosition(closure)
+endfunction
+
 " Epilog
 let &cpo = s:save_cpo

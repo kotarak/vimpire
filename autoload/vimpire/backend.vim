@@ -177,7 +177,6 @@ function! vimpire#backend#RequireFile(all)
 
     let result = vimpire#backend#server#Execute(server,
                 \ {"op":     "repl",
-                \  "id":     -1,
                 \  "stdin":  require})
 
     call vimpire#ui#ShowClojureResult(result, ns)
@@ -204,9 +203,9 @@ function! vimpire#backend#EvalFile()
 
     let result = vimpire#backend#server#Execute(server,
                 \ {"op":     "repl",
-                \  "id":     -1,
                 \  "file":   file,
-                \  "stdin":  content})
+                \  "nspace": ns,
+                \  "stdin":  join(content, "\n")})
 
     call vimpire#ui#ShowClojureResult(result, ns)
 endfunction
@@ -221,9 +220,9 @@ function! vimpire#backend#EvalLine()
 
     let result = vimpire#backend#server#Execute(server,
                 \ {"op":     "repl",
-                \  "id":     -1,
                 \  "file":   file,
                 \  "line":   theLine,
+                \  "nspace": ns,
                 \  "stdin":  content})
 
     call vimpire#ui#ShowClojureResult(result, ns)
@@ -238,9 +237,9 @@ function! vimpire#backend#EvalBlock()
     let content = vimpire#util#Yank("l", 'normal! gv"ly')
     let result = vimpire#backend#server#Execute(server,
                 \ {"op":     "repl",
-                \  "id":     -1,
                 \  "file":   file,
                 \  "line":   line("'<") - 1,
+                \  "nspace": ns,
                 \  "stdin":  content})
 
     call vimpire#ui#ShowClojureResult(result, ns)
@@ -255,9 +254,9 @@ function! vimpire#backend#EvalToplevel()
 
     let result = vimpire#backend#server#Execute(server,
                 \ {"op":     "repl",
-                \  "id":     -1,
                 \  "file":   file,
                 \  "line":   pos[0] - 1,
+                \  "nspace": ns,
                 \  "stdin":  expr})
 
     call vimpire#ui#ShowClojureResult(result, ns)
@@ -282,10 +281,10 @@ function! vimpire#backend#EvalParagraph()
     let content = getbufline(bufnr("%"), startPosition, endPosition)
     let result = vimpire#backend#server#Execute(server,
                 \ {"op":     "repl",
-                \  "id":     -1,
                 \  "file":   file,
                 \  "line":   startPosition - 1,
-                \  "stdin":  content})
+                \  "nspace": ns,
+                \  "stdin":  join(content, "\n")})
 
     call vimpire#ui#ShowClojureResult(result, ns)
 endfunction
@@ -320,7 +319,7 @@ function! vimpire#backend#OmniCompletion(findstart, base)
         let completions = vimpire#backend#server#Execute(server,
                     \ {"op":     "complete",
                     \  "prefix": prefix,
-                    \  "base":   base
+                    \  "base":   base,
                     \  "nspace": b:vimpire_namespace})
         return completions.value
     endif
@@ -342,7 +341,7 @@ function! vimpire#backend#InitBuffer(...)
                     throw namespace.stderr
                 endif
                 let b:vimpire_namespace = namespace.value
-            catch /Vimpire: Not backend server found/
+            catch /Vimpire: No backend server found/
                 " Do nothing. Fail silently in this case.
             catch /.*/
                 if a:000 == []

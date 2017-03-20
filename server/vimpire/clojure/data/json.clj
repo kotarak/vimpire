@@ -1,3 +1,11 @@
+;; FIXME:
+;; The following is taken verbatim from clojure.data.json. It is
+;; included here to avoid an external dependency for the time
+;; being. A better solution to be found.
+;;    -- Meikel Brandmeyer, Frankfurt am Main, March 20th, 2017
+;;
+;; The following copyright notice applies to the content of this file:
+;;
 ;; Copyright (c) Stuart Sierra, 2012. All rights reserved.  The use
 ;; and distribution terms for this software are covered by the Eclipse
 ;; Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)

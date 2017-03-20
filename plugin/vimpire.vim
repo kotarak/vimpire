@@ -25,7 +25,7 @@ if exists("vimpire_loaded")
     finish
 endif
 
-let vimpire_loaded = "3.0.0-SNAPSHOT"
+let vimpire_loaded = "3.0.0"
 
 let s:cpo_save = &cpo
 set cpo&vim

@@ -26,31 +26,57 @@ function! vimpire#backend#server#New(server)
                 \ a:server,
                 \ {"mode": "raw",
                 \  "callback": {ch, msg ->
-                \     vimpire#backend#server#PromoteChannel(this, ch, msg)
+                \     vimpire#backend#server#Banner(this, ch, msg)
                 \ }})
 
-    let bootstrap = []
-    for fname in g:vimpire#backend#Support
-        let bootstrap += readfile(fname)
-    endfor
-    let bootstrap += ["(vimpire.nails/nail-server)\n"]
-    let bootstrapCode = join(bootstrap, "\n")
-
-    call ch_sendraw(this.channel, bootstrapCode)
-
     return this
+endfunction
+
+function! vimpire#backend#server#Banner(this, channel, msg)
+    if a:msg =~ '^user=>'
+        call ch_setoptions(a:channel, {"callback": {ch, msg ->
+                    \   vimpire#backend#server#Bootstrap(a:this, ch, msg)
+                    \ }})
+
+        let bootstrapCode = join(
+                    \ readfile(s:Location . "/server/vimpire/bootstrap.clj"),
+                    \ "\n") . "\n(needs-bootstrap?)\n"
+        call ch_sendraw(a:channel, bootstrapCode)
+    endif
+endfunction
+
+function! vimpire#backend#server#Bootstrap(this, channel, msg)
+    if a:msg =~ 'Vimpire needs bootstrap!'
+        let bootstrap = []
+        for fname in g:vimpire#backend#Support
+            call add(bootstrap,
+                        \ "(vimpire.bootstrap/set-source \"" . fname . "\")")
+            call extend(bootstrap, readfile(fname))
+            call add(bootstrap,
+                        \ "(vimpire.bootstrap/revert-source)")
+        endfor
+        call add(bootstrap, "\"Vimpire is ready!\"\n")
+
+        call ch_sendraw(a:channel, join(bootstrap, "\n"))
+    elseif a:msg =~ 'Vimpire is ready!'
+        call ch_setoptions(a:channel, {"callback": {ch, msg ->
+                    \   vimpire#backend#server#PromoteChannel(a:this, ch, msg)
+                    \ }})
+
+        call ch_sendraw(a:channel, "(vimpire.nails/nail-server)\n")
+    endif
+endfunction
+
+function! vimpire#backend#server#PromoteChannel(this, channel, msg)
+    if a:msg =~ 'Nail server ready!'
+        call ch_setoptions(a:channel, {"mode": "json", "callback": ""})
+        let a:this.running = v:true
+    endif
 endfunction
 
 function! vimpire#backend#server#Stop(this)
     let a:this.running = v:false
     call ch_close(a:this.channel)
-endfunction
-
-function! vimpire#backend#server#PromoteChannel(this, channel, msg)
-    if a:msg =~ "Nail server ready!"
-        call ch_setoptions(a:channel, {"mode": "json", "callback": ""})
-        let a:this.running = v:true
-    endif
 endfunction
 
 function! vimpire#backend#server#Execute(this, ctx)

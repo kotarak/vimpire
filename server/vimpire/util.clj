@@ -26,11 +26,6 @@
     [clojure.stacktrace :as stacktrace]))
 
 ; Common helpers
-(defn str-cut
-  "Cut n characters of the end of the string s."
-  [string n]
-  (.substring string 0 (- (.length string) n)))
-
 (defn str-wrap
   "Wrap the given string into the given separators."
   ([string sep]
@@ -58,186 +53,6 @@
                                      pattern-split
                                      candidate-split))))
     (.startsWith candidate pattern)))
-
-; Command-line handling
-(defn print-usage
-  "Print usage information for the given option spec."
-  [description specs]
-  (println description)
-  (newline)
-  (println "Options:")
-  (doseq [spec (filter vector? specs)]
-    (let [loption (name (first spec))
-          spec    (rest spec)
-          soption (when (symbol? (first spec)) (name (first spec)))
-          spec    (if soption (rest spec) spec)
-          descr   (first spec)
-          default (first (rest spec))]
-      (print (format "  --%-10s " loption))
-      (when soption
-        (print (format "-%-3s " soption)))
-      (print descr)
-      (when default
-        (newline)
-        (print (format "                    The default is '%s'." default))))
-    (newline))
-  (flush))
-
-(defn with-command-line*
-  "Parse the command line arguments according to the given specifications.
-  A specification consists of a vector of an option name, an optional short
-  option name, a description and an optional default value. An option name
-  ending in ? designates a boolean flag. The last entry in the list of
-  specifications might be a symbol which is bound to the rest of the command
-  line arguments when -- or the first non-option argument is encountered.
-
-  -h, --help or -? stop the parsing and trigger the printing of the usage
-  message and thunk is not called.
-
-  thunk is called with a map of option-value pairs found on the command line."
-  [args description specs thunk]
-  (let [[options soptions]
-        (reduce (fn [[opts sopts] spec]
-                  (let [lopt  (name (first spec))
-                        sopt  (second spec)
-                        sopt  (if (symbol? sopt) (name sopt) nil)
-                        [lopt sopt type]
-                        (if (.endsWith lopt "?")
-                          [(str-cut lopt 1) sopt :flag]
-                          [lopt             sopt :option])]
-                    (vector (assoc opts lopt type)
-                            (assoc sopts sopt lopt))))
-                [{} {}]
-                (filter vector? specs))
-        rest-arg (when (symbol? (last specs)) (name (last specs)))]
-    (loop [args   (seq args)
-           argmap (hash-map)]
-      (let [arg (first args)]
-        (cond
-          (empty? args)  (if-not rest-arg
-                           (thunk argmap)
-                           (throw
-                             (Exception. "Missing command line arguments")))
-
-          (some #{arg} ["-h" "--help" "-?"])
-          (print-usage description specs)
-
-          (= arg "--")
-          (if rest-arg
-            (thunk (assoc argmap rest-arg (rest args)))
-            (throw (Exception.
-                     "Unexpected command line arguments")))
-
-          (.startsWith arg "--")
-          (let [option (.substring arg 2)]
-            (condp = (options option)
-              :flag   (recur (rest args) (assoc argmap option true))
-              :option (if-let [value (second args)]
-                        (recur (nthnext args 2) (assoc argmap option value))
-                        (throw (Exception.
-                                 (str "Missing value for option: " arg))))
-              nil     (throw (Exception. (str "Unknown option: " option)))))
-
-          (.startsWith arg "-")
-          (let [option (.substring arg 1)]
-            (if-let [loption (soptions option)]
-              (recur (cons (str "--" loption) (rest args)) argmap)
-              (throw (Exception. (str "Unknown option: " option)))))
-
-          :else
-          (if rest-arg
-            (thunk (assoc argmap rest-arg args))
-            (throw (Exception.
-                     "Unexpected command line arguments"))))))))
-
-(defmacro with-command-line
-  "Parses the command line arguments given according to the specifications.
-  A specification consists of a vector of an option name, an optional short
-  option name, a description and an optional default value. An option name
-  ending in ? designates a boolean flag. The last entry in the list of
-  specifications might be a symbol which is bound to the rest of the command
-  line arguments when -- or the first non-option argument is encountered.
-
-  -h, --help or -? stop the parsing and trigger the printing of the usage
-  message and body is not executed.
-
-  The body is executed with the long option names bound to the value found
-  on the command line or the default value if the option was not given.
-  Flags default to nil, ie. logical false."
-  [args description specs & body]
-  (let [defaults (map (fn [spec]
-                        (cond
-                          (not (vector? spec)) [spec nil]
-
-                          (-> spec first name (.endsWith "?"))
-                          (vector (-> spec first name (str-cut 1) symbol) false)
-
-                          (-> spec second symbol?)
-                          (vector (first spec) (when (= (count spec) 4)
-                                                 (nth spec 3)))
-
-                          :else
-                          (vector (first spec) (when (= (count spec) 3)
-                                                         (nth spec 2)))))
-                      specs)]
-    `(with-command-line* ~args
-       ~description
-       (quote ~specs)
-       (fn [{:strs ~(vec (map first defaults))
-             :or   ~(into {} defaults)}]
-         ~@body))))
-
-; Vim Interface:
-(defmulti
-  #^{:arglists '([thing])
-     :doc
-  "Convert the Clojure thing into a Vim thing."}
-  clj->vim
-  class)
-
-(defmethod clj->vim :default
-  [thing]
-  (str-wrap thing \"))
-
-(defmethod clj->vim Boolean
-  [thing]
-  (if thing "1" "0"))
-
-(derive clojure.lang.ISeq              ::ToVimList)
-(derive clojure.lang.IPersistentSet    ::ToVimList)
-(derive clojure.lang.IPersistentVector ::ToVimList)
-
-(defmethod clj->vim ::ToVimList
-  [thing]
-  (str-wrap (str-cat (map clj->vim thing) ", ") \[ \]))
-
-(derive clojure.lang.IPersistentMap ::ToVimDict)
-
-(defmethod clj->vim ::ToVimDict
-  [thing]
-  (str-wrap (str-cat (map (fn [[kei value]]
-                            (str (clj->vim kei) " : " (clj->vim value)))
-                          thing)
-                     ", ")
-            \{ \}))
-
-(defmethod clj->vim String
-  [thing]
-  (pr-str thing))
-
-(defmethod clj->vim clojure.lang.Named
-  [thing]
-  (if-let [prefix (namespace thing)]
-    (str-wrap (str prefix "/" (name thing)) \")
-    (str-wrap (name thing) \")))
-
-(defmethod clj->vim Number
-  [thing]
-  (str thing))
-
-(defmethod clj->vim nil
-  [_]
-  0)
 
 (defn safe-var-get
   [the-var]
@@ -392,14 +207,13 @@
 
 ; Pretty printing.
 (defn pretty-print
-  "Print the given form in a pretty way. If Tom Faulhaber's pretty printer is
-  not installed simply defaults prn."
+  "Print the given form in a pretty way."
   [form]
   (pprint/pprint form))
 
 (defn pretty-print-code
-  "Print the given form in a pretty way. If Tom Faulhaber's pretty printer is
-  not installed simply defaults prn. Uses the *code-dispatch* formatting."
+  "Print the given form in a pretty way.
+  Uses the *code-dispatch* formatting."
   [form]
   (pprint/with-pprint-dispatch pprint/code-dispatch
     (pprint/pprint form)))
@@ -417,16 +231,3 @@
   defaults to simple printing."
   [e]
   (stacktrace/print-cause-trace e))
-
-; Load optional libraries
-(defmacro defoptional
-  [sym args & body]
-  `(let [docstring# (:doc (meta (var ~sym)))]
-     (defn ~sym ~args ~@body)
-     (alter-meta! (var ~sym) assoc :doc docstring#)))
-
-(try
-  (load "optional/clj_stacktrace")
-  (catch Exception exc
-    (when-not (re-find #"Could not locate clj_stacktrace/repl__init.class or clj_stacktrace/repl.clj on classpath" (str exc))
-      (throw exc))))

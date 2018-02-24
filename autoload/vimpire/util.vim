@@ -135,13 +135,13 @@ function! s:ClojureExtractSexprWorker() dict
     let start = getpos(".")
 
     if getline(start[1])[start[2] - 1] == "("
-                \ && vimpire#util#SynIdName() =~ 'clojureParen'
+                \ && vimpire#util#SynIdName() =~ 'clojureParen\|level\d\+c'
         let pos = [start[1], start[2]]
     endif
 
     if pos == [0, 0]
         let pos = searchpairpos('(', '', ')', 'bW' . self.flag,
-                    \ 'vimpire#util#SynIdName() !~ "clojureParen"')
+                    \ "vimpire#util#SynIdName() !~ 'clojureParen\\|level\\d\\+c'")
     endif
 
     if pos == [0, 0]

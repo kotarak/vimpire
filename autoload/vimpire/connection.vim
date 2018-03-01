@@ -210,9 +210,10 @@ function! vimpire#connection#UpgradeSideloader(this, msg)
 endfunction
 
 function! vimpire#connection#HandleSideloadedResource(this, response)
-    let fname = s:Location . "server/" . a:response[1]
+    let fname = s:Location . "venom/" . a:response[1] . ".b64"
     if filereadable(fname)
-        let data = vimpire#edn#Write(join(readfile(fname), "\n"))
+        " Join without newline here, since files are wrapped.
+        let data = vimpire#edn#Write(join(readfile(fname), ""))
         call ch_sendraw(a:this.channel, data . "\n")
     else
         call ch_sendraw(a:this.channel, "nil\n")

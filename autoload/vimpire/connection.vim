@@ -26,7 +26,9 @@ set cpo&vim
 
 let s:Location = expand("<sfile>:p:h:h:h") . "/"
 
-let s:Registry = {}
+if !exists("s:Registry")
+    let s:Registry = {}
+endif
 
 function! vimpire#connection#RegisterPrefix(prefix, server)
     if !has_key(s:Registry, a:prefix)

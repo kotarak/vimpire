@@ -81,8 +81,10 @@ function! vimpire#connection#UpgradeRepl(this, msg)
 
         let starter = ""
         if type(a:this.sibling) != v:t_none
-            " FIXME: This should be parameter-handled.
-            let starter = vimpire#edn#Write(a:this.sibling.actions[":start-aux"])
+            let starter = vimpire#edn#Write(
+                        \ vimpire#connection#ExpandAction(
+                        \  a:this.sibling.actions[":start-aux"],
+                        \  {}))
         else
             let starter = join(readfile(s:Location . "server/unrepl/blob.clj"),
                         \ "\n")
@@ -139,6 +141,8 @@ function! vimpire#connection#HandleHello(this, response)
 
     if has_key(payload, ":actions")
         let a:this.actions = payload[":actions"]
+    else
+        let a:this.actions = {}
     endif
 
     if has_key(payload, ":session")
@@ -186,7 +190,10 @@ function! vimpire#connection#UpgradeSideloader(this, msg)
     if a:this.queue =~ 'user=> '
         let a:this.queue = ""
 
-        let starter = vimpire#edn#Write(a:this.oniisama.actions[":unrepl.jvm/start-side-loader"])
+        let starter = vimpire#edn#Write(
+                    \ vimpire#connection#ExpandAction(
+                    \  a:this.oniisama.actions[":unrepl.jvm/start-side-loader"],
+                    \  {}))
 
         call ch_sendraw(a:this.channel, starter . "\n")
     elseif a:this.queue =~ '\[:unrepl.jvm.side-loader/hello\]'
@@ -210,6 +217,42 @@ function! vimpire#connection#HandleSideloadedResource(this, response)
     else
         call ch_sendraw(a:this.channel, "nil\n")
     endif
+endfunction
+
+function! vimpire#connection#ExpandAction(form, bindings)
+    if type(a:form) == v:t_dict
+        if has_key(a:form, "edn/tag") && a:form["edn/tag"] == "unrepl/param"
+            if has_key(a:bindings, a:form["edn/value"])
+                return a:bindings[a:form["edn/value"]]
+            else
+                return v:null
+            endif
+        endif
+    endif
+
+    if type(a:form) == v:t_list
+        let res = []
+
+        for item in a:form
+            call add(res, vimpire#connection#ExpandAction(item, a:bindings))
+        endfor
+
+        return res
+    endif
+
+    if type(a:form) == v:t_dict
+        let res = {}
+
+        for [ key, value ] in items(a:form)
+            let key      = vimpire#connection#ExpandAction(key, a:bindings)
+            let res[key] = vimpire#connection#ExpandAction(value, a:bindings)
+        endfor
+
+        return res
+    endif
+
+    " Just a value
+    return a:form
 endfunction
 
 " Epilog

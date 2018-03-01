@@ -51,6 +51,7 @@ endfunction
 function! vimpire#connection#New(server, sibling)
     let this = {}
 
+    let this.unrepled = v:false
     let this.running = v:false
     let this.server  = a:server
     let this.sibling = a:sibling
@@ -76,7 +77,8 @@ function! vimpire#connection#UpgradeRepl(this, msg)
     if a:this.queue =~ '\[:unrepl.upgrade/failed\]'
         call ch_close(a:this.channel)
         throw "Vimpire: Couldn't upgrade to unrepl."
-    elseif a:this.queue =~ 'user=> '
+    elseif a:this.queue =~ 'user=> ' && !a:this.unrepled
+        let a:this.unrepled = v:true
         let a:this.queue = ""
 
         let starter = ""

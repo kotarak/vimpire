@@ -23,21 +23,19 @@
 let s:save_cpo = &cpo
 set cpo&vim
 
-function! vimpire#backend#Connect(server, ...)
-    if a:0 > 0
-        let scope = a:1
-    else
-        let scope = "global"
-    endif
+function! vimpire#backend#Action(action, bindings, callback)
+    let server = vimpire#connection#ForBuffer()
 
-    let server = vimpire#backend#server#New(a:server)
-    if scope == "buffer"
-        let b:vimpire_server = server
-    elseif scope == "tab"
-        let t:vimpire_server = server
-    else
-        let g:vimpire_server = server
-    endif
+    let action = vimpire#connection#ExpandAction(
+                \ server.actions[a:action],
+                \ extend({":nspace": b:vimpire_namespace}, a:bindings))
+    let code   = vimpire#edn#Write(action)
+
+    call vimpire#connection#Eval(server, code, {"eval": a:callback})
+endfunction
+
+function! vimpire#backend#ShowClojureResultCallback(nspace)
+    return { val -> vimpire#ui#ShowClojureResult(vimpire#edn#Write(val), a:nspace) }
 endfunction
 
 function! vimpire#backend#DocLookup(word)
@@ -45,24 +43,17 @@ function! vimpire#backend#DocLookup(word)
         return
     endif
 
-    let server = vimpire#backend#server#Instance()
-
-    let doc = vimpire#backend#server#Execute(server,
-                \ {"op":     "doc-lookup",
-                \  "sym":    a:word,
-                \  "nspace": b:vimpire_namespace})
-
-    call vimpire#ui#ShowResult(doc)
+    call vimpire#backend#Action(":vimpire.nails/doc-lookup",
+                \ {":sym": a:word},
+                \ function("vimpire#ui#ShowResult"))
 endfunction
 
 function! vimpire#backend#FindDoc()
-    let server = vimpire#backend#server#Instance()
-
     let pattern = input("Pattern to look for: ")
-    let doc = vimpire#backend#server#Execute(server,
-                \ {"op":    "find-doc",
-                \  "query": pattern})
-    call vimpire#ui#ShowResult(doc)
+
+    call vimpire#backend#Action(":vimpire.nails/find-doc",
+                \ {":query": pattern},
+                \ function("vimpire#ui#ShowResult"))
 endfunction
 
 let s:DefaultJavadocPaths = {
@@ -98,68 +89,48 @@ if !exists("g:vimpire#Browser")
     endif
 endif
 
-function! vimpire#backend#JavadocLookup(word)
-    let server = vimpire#backend#server#Instance()
-
-    let word = substitute(a:word, "\\.$", "", "")
-    let path = vimpire#backend#server#Execute(server,
-                \ {"op":     "javadoc-path",
-                \  "sym":    word,
-                \  "nspace": b:vimpire_namespace})
-
-    if path.stderr != ""
-        call vimpire#ui#ShowResult(path)
-        return
-    endif
-
+function! vimpire#backend#JavadocLookupCallback(path)
     let match = ""
     for pattern in keys(g:vimpire#JavadocPathMap)
-        if path.value =~ "^" . pattern && len(match) < len(pattern)
+        if a:path =~ "^" . pattern && len(match) < len(pattern)
             let match = pattern
         endif
     endfor
 
     if match == ""
-        throw "Vimpire: No matching Javadoc URL found for " . path.value
+        throw "Vimpire: No matching Javadoc URL found for " . a:path
     endif
 
-    let url = g:vimpire#JavadocPathMap[match] . path.value
+    let url = g:vimpire#JavadocPathMap[match] . a:path
     call system(join([g:vimpire#Browser, url], " "))
 endfunction
 
-function! vimpire#backend#SourceLookup(word)
-    let server = vimpire#backend#server#Instance()
+function! vimpire#backend#JavadocLookup(word)
+    let word = substitute(a:word, "\\.$", "", "")
 
-    let source = vimpire#backend#server#Execute(server,
-                \ {"op":     "source-lookup",
-                \  "sym":    a:word,
-                \  "nspace": b:vimpire_namespace})
-    call vimpire#ui#ShowClojureResult(source, b:vimpire_namespace)
+    call vimpire#backend#Action(":vimpire.nails/javadoc-path",
+                \ {":sym": pattern},
+                \ function("vimpire#backend#JavadocLookupCallback"))
+endfunction
+
+function! vimpire#backend#SourceLookup(word)
+    let nspace = b:vimpire_namespace
+
+    call vimpire#backend#Action(":vimpire.nails/source-lookup",
+                \ {":sym": a:word},
+                \ vimpire#backend#ShowClojureResultCallback(nspace))
 endfunction
 
 function! vimpire#backend#MetaLookup(word)
-    let server = vimpire#backend#server#Instance()
+    let nspace = b:vimpire_namespace
 
-    let meta = vimpire#backend#server#Execute(server,
-                \ {"op":     "meta-lookup",
-                \  "sym":    a:word,
-                \  "nspace": b:vimpire_namespace})
-    call vimpire#ui#ShowClojureResult(meta, b:vimpire_namespace)
+    call vimpire#backend#Action(":vimpire.nails/meta-lookup",
+                \ {":sym": a:word},
+                \ vimpire#backend#ShowClojureResultCallback(nspace))
 endfunction
 
-function! vimpire#backend#GotoSource(word)
-    let server = vimpire#backend#server#Instance()
-
-    let meta = vimpire#backend#server#Execute(server,
-                \ {"op":     "source-location",
-                \  "sym":    a:word,
-                \  "nspace": b:vimpire_namespace})
-
-    if pos.stderr != ""
-        call vimpire#ui#ShowResult(pos)
-        return
-    endif
-
+" FIXME
+function! vimpire#backend#GotoSourceCallBack(pos)
     if !filereadable(pos.value.file)
         let file = globpath(&path, pos.value.file)
         if file == ""
@@ -172,112 +143,109 @@ function! vimpire#backend#GotoSource(word)
     execute pos.value.line
 endfunction
 
+function! vimpire#backend#GotoSource(word)
+    call vimpire#backend#Action(":vimpire.nails/source-location",
+                \ {":sym": a:word},
+                \ function("vimpire#backend#GotoSourceCallback"))
+endfunction
+
 " Evaluators
 function! vimpire#backend#MacroExpand(firstOnly)
-    let server = vimpire#backend#server#Instance()
-
+    let nspace = b:vimpire_namespace
     let [unused, sexp] = vimpire#util#ExtractSexpr(0)
-    let expanded = vimpire#backend#server#Execute(server,
-                \ {"op":     "macro-expand",
-                \  "one?":   (a:firstOnly ? v:true : v:false),
-                \  "nspace": b:vimpire_namespace,
-                \  "stdin":  sexp})
-    call vimpire#ui#ShowClojureResult(expanded, b:vimpire_namespace)
+
+    call vimpire#backend#Action(":vimpire.nails/source-location",
+                \ {":one?": (a:firstOnly ? v:true : v:false),
+                \  ":form": sexp},
+                \ vimpire#backend#ShowClojureResultCallback(nspace))
 endfunction
 
 function! vimpire#backend#RequireFile(all)
-    let server = vimpire#backend#server#Instance()
-
-    let ns = b:vimpire_namespace
+    let nspace = b:vimpire_namespace
     let all = a:all ? "-all" : ""
     let require = "(require :reload" . all . " :verbose '". ns. ")"
 
-
-    let result = vimpire#backend#server#Execute(server,
-                \ {"op":     "repl",
-                \  "stdin":  require})
-
-    call vimpire#ui#ShowClojureResult(result, ns)
+    let server = vimpire#connection#ForBuffer()
+    call vimpire#connection#Eval(server,
+                \ require,
+                \ {"eval": vimpire#backend#ShowClojureResultCallback(nspace)})
 endfunction
 
 function! vimpire#backend#RunTests(all)
-    let server = vimpire#backend#server#Instance()
+    let nspace = b:vimpire_namespace
 
-    let ns = b:vimpire_namespace
+    call vimpire#backend#Action(":vimpire.nails/run-tests",
+                \ {":all?": (a:all ? v:true : v:false)},
+                \ vimpire#backend#ShowClojureResultCallback(nspace))
+endfunction
 
-    let result = vimpire#backend#server#Execute(server,
-                \ {"op":     "run-tests",
-                \  "all?":   (a:all ? v:true : v:false)
-                \  "nspace": ns})
-    call vimpire#ui#ShowClojureResult(result, ns)
+function! vimpire#backend#EvalWithPosition(fname, line, column, f)
+    call vimpire#backend#Action(":set-source",
+                \ {":unrepl/sourcename": a:fname,
+                \  ":unrepl/line":       a:line,
+                \  ":unrepl/column":     a:column},
+                \ { val -> val })
+
+    call a:f()
+
+    call vimpire#backend#Action(":set-source",
+                \ {":unrepl/sourcename": "Tooling Repl",
+                \  ":unrepl/line": 1,
+                \  ":unrepl/column": 1},
+                \ { val -> val })
 endfunction
 
 function! vimpire#backend#EvalFile()
-    let server = vimpire#backend#server#Instance()
+    let server  = vimpire#connection#ForBuffer()
+    let nspace  = b:vimpire_namespace
+    let content = join(getbufline(bufnr("%"), 1, line("$")), "\n")
+    let file    = vimpire#util#BufferName()
 
-    let content = getbufline(bufnr("%"), 1, line("$"))
-    let file = vimpire#util#BufferName()
-    let ns = b:vimpire_namespace
-
-    let result = vimpire#backend#server#Execute(server,
-                \ {"op":     "repl",
-                \  "file":   file,
-                \  "nspace": ns,
-                \  "stdin":  join(content, "\n")})
-
-    call vimpire#ui#ShowClojureResult(result, ns)
+    call vimpire#backend#EvalWithPosition(file, 1, 1, { ->
+                \ vimpire#connection#Eval(server,
+                \   content,
+                \   { "eval": vimpire#backend#ShowClojureResultCallback(nspace)})
+                \ })
 endfunction
 
 function! vimpire#backend#EvalLine()
-    let server = vimpire#backend#server#Instance()
-
+    let server  = vimpire#connection#ForBuffer()
+    let nspace  = b:vimpire_namespace
     let theLine = line(".")
     let content = getline(theLine)
-    let file = vimpire#util#BufferName()
-    let ns = b:vimpire_namespace
+    let file    = vimpire#util#BufferName()
 
-    let result = vimpire#backend#server#Execute(server,
-                \ {"op":     "repl",
-                \  "file":   file,
-                \  "line":   theLine,
-                \  "nspace": ns,
-                \  "stdin":  content})
-
-    call vimpire#ui#ShowClojureResult(result, ns)
+    call vimpire#backend#EvalWithPosition(file, theLine, 1, { ->
+                \ vimpire#connection#Eval(server,
+                \   content,
+                \   { "eval": vimpire#backend#ShowClojureResultCallback(nspace)})
+                \ })
 endfunction
 
 function! vimpire#backend#EvalBlock()
-    let server = vimpire#backend#server#Instance()
-
-    let file = vimpire#util#BufferName()
-    let ns = b:vimpire_namespace
-
+    let server  = vimpire#connection#ForBuffer()
+    let nspace  = b:vimpire_namespace
+    let file    = vimpire#util#BufferName()
     let content = vimpire#util#Yank("l", 'normal! gv"ly')
-    let result = vimpire#backend#server#Execute(server,
-                \ {"op":     "repl",
-                \  "file":   file,
-                \  "line":   line("'<") - 1,
-                \  "nspace": ns,
-                \  "stdin":  content})
 
-    call vimpire#ui#ShowClojureResult(result, ns)
+    call vimpire#backend#EvalWithPosition(file, line("'<") - 1, 1, { ->
+                \ vimpire#connection#Eval(server,
+                \   content,
+                \   { "eval": vimpire#backend#ShowClojureResultCallback(nspace)})
+                \ })
 endfunction
 
 function! vimpire#backend#EvalToplevel()
-    let server = vimpire#backend#server#Instance()
-
-    let file = vimpire#util#BufferName()
-    let ns = b:vimpire_namespace
+    let server  = vimpire#connection#ForBuffer()
+    let nspace  = b:vimpire_namespace
+    let file    = vimpire#util#BufferName()
     let [pos, expr] = vimpire#util#ExtractSexpr(1)
 
-    let result = vimpire#backend#server#Execute(server,
-                \ {"op":     "repl",
-                \  "file":   file,
-                \  "line":   pos[0] - 1,
-                \  "nspace": ns,
-                \  "stdin":  expr})
-
-    call vimpire#ui#ShowClojureResult(result, ns)
+    call vimpire#backend#EvalWithPosition(file, pos[0] - 1, 1, { ->
+                \ vimpire#connection#Eval(server,
+                \   expr,
+                \   { "eval": vimpire#backend#ShowClojureResultCallback(nspace)})
+                \ })
 endfunction
 
 function! VimpireEvalParagraphWorker() dict
@@ -286,25 +254,21 @@ function! VimpireEvalParagraphWorker() dict
 endfunction
 
 function! vimpire#backend#EvalParagraph()
-    let server = vimpire#backend#server#Instance()
-
-    let file = vimpire#util#BufferName()
-    let ns = b:vimpire_namespace
+    let server = vimpire#connection#ForBuffer()
+    let nspace = b:vimpire_namespace
+    let file   = vimpire#util#BufferName()
     let startPosition = line(".")
 
     let closure = { 'f' : function("VimpireEvalParagraphWorker") }
-
     let endPosition = vimpire#util#WithSavedPosition(closure)
 
-    let content = getbufline(bufnr("%"), startPosition, endPosition)
-    let result = vimpire#backend#server#Execute(server,
-                \ {"op":     "repl",
-                \  "file":   file,
-                \  "line":   startPosition - 1,
-                \  "nspace": ns,
-                \  "stdin":  join(content, "\n")})
+    let content = join(getbufline(bufnr("%"), startPosition, endPosition), "\n")
 
-    call vimpire#ui#ShowClojureResult(result, ns)
+    call vimpire#backend#EvalWithPosition(file, startPosition - 1, 1, { ->
+                \ vimpire#connection#Eval(server,
+                \ content,
+                \   { "eval": vimpire#backend#ShowClojureResultCallback(nspace)})
+                \ })
 endfunction
 
 " Omni Completion
@@ -345,20 +309,16 @@ endfunction
 
 function! vimpire#backend#InitBuffer(...)
     if !exists("b:vimpire_namespace")
+        let b:vimpire_namespace = "user"
+
         " Get the namespace of the buffer.
-        if &previewwindow
-            let b:vimpire_namespace = "user"
-        else
+        if !&previewwindow
             try
-                let server = vimpire#backend#server#Instance()
-                let content = getbufline(bufnr("%"), 1, line("$"))
-                let namespace = vimpire#backend#server#Execute(server,
-                            \ {"op": "namespace-of-file",
-                            \  "stdin": join(content, "\n")})
-                if namespace.stderr != ""
-                    throw namespace.stderr
-                endif
-                let b:vimpire_namespace = namespace.value
+                let buffer  = bufnr("%")
+                let content = join(getbufline(buffer, 1, line("$")), "\n")
+                call vimpire#backend#Action(":vimpire.nails/namespace-of-file",
+                            \ {":content": content},
+                            \ { val -> setbufvar(buffer, "vimpire_namespace", val) })
             catch /Vimpire: No backend server found/
                 " Do nothing. Fail silently in this case.
             catch /.*/

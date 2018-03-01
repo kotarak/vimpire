@@ -22,16 +22,16 @@
 
 (ns vimpire.repl
   (:require
+    [vimpire.util
+     :refer
+     [resolve-and-load-namespace safe-var-get stream->seq
+      pretty-print pretty-print-causetrace]]
     [clojure.java.io :as io]
     clojure.test)
   (:import
     clojure.lang.Var
     clojure.lang.Compiler
     clojure.lang.LineNumberingPushbackReader))
-
-(refer 'vimpire.util
-       :only '[resolve-and-load-namespace safe-var-get stream->seq
-               pretty-print pretty-print-causetrace])
 
 (def
   ^{:dynamic true :doc

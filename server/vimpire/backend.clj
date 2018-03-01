@@ -21,12 +21,15 @@
 ; THE SOFTWARE.
 
 (ns vimpire.backend
+  (:require
+    [vimpire.util :as util])
   (:import
-     clojure.lang.RT
-     (java.io File FileInputStream InputStreamReader
-              LineNumberReader PushbackReader)))
-
-(alias 'util 'vimpire.util)
+    clojure.lang.RT
+    java.io.File
+    java.io.FileInputStream
+    java.io.InputStreamReader
+    java.io.LineNumberReader
+    java.io.PushbackReader))
 
 ; Documentation:
 ; Mirror this from clojure 1.3 to allow backwards compatibility.

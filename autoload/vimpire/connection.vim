@@ -30,22 +30,28 @@ let s:Registry = {}
 
 function! vimpire#connection#RegisterPrefix(prefix, server)
     if !has_key(s:Registry, a:prefix)
-        let s:Registry[a:prefix] = { "server": a:server }
+        let s:Registry[a:prefix] = vimpire#connection#New(a:server, v:none)
     endif
 endfunction
 
-function! vimpire#connection#ForPrefix(prefix)
-    if !has_key(s:Registry, a:prefix)
-        throw "Vimpire: prefix '" . a:prefix . "' unknown."
+function! vimpire#connection#ForBuffer()
+    let path = expand("%:p")
+
+    if path == ""
+       if exists("b:vimpire_connection")
+           return b:vimpire_connection
+       else
+           let path = getcwd()
+       endif
     endif
 
-    if !has_key(s:Registry[a:prefix], "conn")
-        let s:Registry[a:prefix].conn =
-                    \ vimpire#connection#New(s:Registry[a:prefix].server,
-                    \   v:none)
-    endif
+    for [ candidate, conn ] in items(s:Registry)
+        if strpart(path, 0, len(candidate)) == candidate
+            return conn
+        endif
+    endfor
 
-    return s:Registry[a:prefix].conn
+    throw "Vimpire: no connection found"
 endfunction
 
 function! vimpire#connection#New(server, sibling)
@@ -55,6 +61,10 @@ function! vimpire#connection#New(server, sibling)
     let this.running = v:false
     let this.server  = a:server
     let this.sibling = a:sibling
+
+    let this.equeue  = []
+    let this.evaling = v:false
+
     let this.queue   = ""
     let this.channel = ch_open(
                 \ a:server,
@@ -64,8 +74,22 @@ function! vimpire#connection#New(server, sibling)
                 \ }})
 
     let this.handlers = {
-                \ ":out":  { t, r -> append(line("$"), "out=>" . r[1]) },
-                \ ":eval": { t, r -> append(line("$"), "eval=>" . r[1]) }
+                \ ":read":
+                \ { t, r -> vimpire#connection#HandleEvent(t, "read", r) },
+                \ ":start-eval":
+                \ { t, r -> vimpire#connection#HandleEvent(t, "startEval", r) },
+                \ ":eval":
+                \ { t, r -> vimpire#connection#HandleEvent(t, "eval", r) },
+                \ ":prompt":
+                \ { t, r -> vimpire#connection#HandlePrompt(t, r) },
+                \ ":out":
+                \ { t, r -> vimpire#connection#HandleEvent(t, "out", r) },
+                \ ":err":
+                \ { t, r -> vimpire#connection#HandleEvent(t, "err", r) },
+                \ ":log":
+                \ { t, r -> vimpire#connection#HandleEvent(t, "log", r) },
+                \ ":exception":
+                \ { t, r -> vimpire#connection#HandleEvent(t, "exception", r) }
                 \ }
 
     return this
@@ -88,7 +112,7 @@ function! vimpire#connection#UpgradeRepl(this, msg)
                         \  a:this.sibling.actions[":start-aux"],
                         \  {}))
         else
-            let starter = join(readfile(s:Location . "server/unrepl/blob.clj"),
+            let starter = join(readfile(s:Location . "venom/unrepl/blob.clj"),
                         \ "\n")
         endif
 
@@ -155,11 +179,76 @@ function! vimpire#connection#HandleHello(this, response)
         let a:this.about = payload[":about"]
     endif
 
+    let a:this.running = v:true
+
     if type(a:this.sibling) == v:t_none
+        " This is the tooling repl for this backend server. We have to setup
+        " the sideloader to get at the tooling venom. Also the tooling repl
+        " should not use elisions.
         let a:this.sideloader = vimpire#connection#NewSideloader(a:this)
+
+        " Disable elisions for tooling repl.
+        let action = vimpire#connection#ExpandAction(
+                    \ a:this.actions[":print-limits"],
+                    \ {":unrepl.print/string-length": {"edn/symbol": "Long/MAX_VALUE"},
+                    \  ":unrepl.print/coll-length":   {"edn/symbol": "Long/MAX_VALUE"},
+                    \  ":unrepl.print/nesting-depth": {"edn/symbol": "Long/MAX_VALUE"}})
+        let code   = vimpire#edn#Write(action)
+
+        call vimpire#connection#Eval(a:this, code, {})
+
+        " Set the name of the tooling repl.
+        let action = vimpire#connection#ExpandAction(
+                    \ a:this.actions[":set-source"],
+                    \ {":unrepl/sourcename": "Tooling Repl",
+                    \  ":unrepl/line": 1,
+                    \  ":unrepl/column": 1})
+        let code   = vimpire#edn#Write(action)
+
+        call vimpire#connection#Eval(a:this, code, {})
+    endif
+endfunction
+
+function! vimpire#connection#HandleEvent(this, event, response)
+    if len(a:this.equeue) == 0
+        return
     endif
 
-    let a:this.running = v:true
+    if has_key(a:this.equeue[0].callbacks, a:event)
+        call a:this.equeue[0].callbacks[a:event](a:response[1])
+    endif
+endfunction
+
+function! vimpire#connection#Eval(this, code, callbacks)
+    let ctx = { "code": a:code, "callbacks": a:callbacks }
+
+    call add(a:this.equeue, ctx)
+    call vimpire#connection#DoEval(a:this)
+endfunction
+
+function! vimpire#connection#DoEval(this)
+    if !a:this.running || a:this.evaling || len(a:this.equeue) == 0
+        return
+    endif
+
+    let a:this.evaling = v:true
+
+    call ch_sendraw(a:this.channel, a:this.equeue[0].code . "\n")
+endfunction
+
+function! vimpire#connection#HandlePrompt(this, response)
+    if len(a:this.equeue) > 0
+        let [ ctx; nextQueue ] = a:this.equeue
+        let a:this.equeue = nextQueue
+
+        if has_key(ctx.callbacks, "prompt")
+            call ctx.callbacks.prompt(a:response)
+        endif
+    endif
+
+    let a:this.evaling = v:false
+
+    call vimpire#connection#DoEval(a:this)
 endfunction
 
 function! vimpire#connection#NewSideloader(oniisama)

@@ -31,7 +31,7 @@ let s:cpo_save = &cpo
 set cpo&vim
 
 command! -nargs=? VimpireRepl call vimpire#repl#StartRepl(<f-args>)
-command! -nargs=* VimpireBite call vimpire#backend#Connect(<f-args>)
+command! -nargs=* VimpireBite call vimpire#connection#RegisterPrefix(getcwd(), <f-args>)
 
 call vimpire#ui#MakeCommandPlug("n", "DocLookupWord", "vimpire#backend#DocLookup", "expand(\"<cword>\")")
 call vimpire#ui#MakeCommandPlug("n", "DocLookupInteractive", "vimpire#backend#DocLookup", "input(\"Symbol to look up: \")")

@@ -39,14 +39,14 @@ endfunction
 
 function! vimpire#ui#ShowResult(result)
     let buf = vimpire#window#resultwindow#New("vimpire#buffer#NewResultBuffer")
-    call vimpire#window#ShowOutput(buf, a:result)
+    call vimpire#window#ShowText(buf, a:result)
     wincmd p
 endfunction
 
 function! vimpire#ui#ShowClojureResult(result, nspace)
     let buf = vimpire#window#resultwindow#New("vimpire#buffer#NewClojureResultBuffer")
     let b:vimpire_namespace = a:nspace
-    call vimpire#window#ShowOutput(buf, a:result)
+    call vimpire#window#ShowText(buf, a:result)
     wincmd p
 endfunction
 

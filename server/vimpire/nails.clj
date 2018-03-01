@@ -22,7 +22,10 @@
 
 (ns vimpire.nails
   (:require
-    [clojure.pprint :as pprint]
+    [vimpire.backend :as backend]
+    [vimpire.repl    :as repl]
+    [vimpire.util    :as util]
+    [clojure.pprint  :as pprint]
     clojure.set
     clojure.test)
   (:import
@@ -35,36 +38,24 @@
     java.io.StringReader
     clojure.lang.LineNumberingPushbackReader))
 
-(alias 'json    'vimpire.clojure.data.json)
-(alias 'backend 'vimpire.backend)
-(alias 'repl    'vimpire.repl)
-(alias 'util    'vimpire.util)
-
-(defn- make-stream-set
-  [in out err encoding]
-  ; FIXME: encoding for stdin?
-  [(-> in  StringReader. LineNumberingPushbackReader.)
-   (-> out (OutputStreamWriter. encoding))
-   (-> err (OutputStreamWriter. encoding) PrintWriter.)])
-
 (defn doc-lookup
-  [{:strs [nspace sym] :or {nspace "user"}}]
+  [nspace sym]
   (let [nspace (util/resolve-and-load-namespace nspace)]
     (backend/doc-lookup nspace (symbol sym))))
 
 (defn find-doc
-  [{:strs [query]}]
+  [query]
   (backend/find-documentation query))
 
 (defn javadoc-path
-  [{:strs [nspace sym] :or {nspace "user"}}]
+  [nspace sym]
   (let [nspace (util/resolve-and-load-namespace nspace)]
     (->> (symbol sym)
       (ns-resolve nspace)
       backend/javadoc-path-for-class)))
 
 (defn source-lookup
-  [{:strs [nspace sym] :or {nspace "user"}}]
+  [nspace sym]
   (let [nspace (util/resolve-and-load-namespace nspace)]
     (->> (symbol sym)
       (ns-resolve nspace)
@@ -72,7 +63,7 @@
       println)))
 
 (defn meta-lookup
-  [{:strs [nspace sym] :or {nspace "user"}}]
+  [nspace sym]
   (let [nspace (util/resolve-and-load-namespace nspace)]
     (->> (symbol sym)
       (ns-resolve nspace)
@@ -80,14 +71,14 @@
       pprint/pprint)))
 
 (defn source-location
-  [{:strs [nspace sym] :or {nspace "user"}}]
+  [nspace sym]
   (let [nspace (util/resolve-and-load-namespace nspace)]
     (-> (symbol sym)
       (ns-resolve nspace)
       backend/source-position)))
 
 (defn dynamic-highlighting
-  [{:strs [nspace]}]
+  [nspace]
   (let [c-c       (the-ns 'clojure.core)
         the-space (util/resolve-and-load-namespace nspace)
         refers    (remove #(= c-c (-> % second meta :ns)) (ns-refers the-space))
@@ -111,50 +102,39 @@
               "Variable" (map first vars))))
 
 (defn namespace-of-file
-  [_ctx]
+  [content]
   (let [of-interest '#{in-ns ns clojure.core/in-ns clojure.core/ns}
-        in-seq      (util/stream->seq *in*)
+        in-seq      (-> content
+                      StringReader.
+                      LineNumberingPushbackReader.
+                      util/stream->seq)
         candidate   (first
                       (drop-while #(or (not (instance? clojure.lang.ISeq %))
                                        (not (contains? of-interest (first %))))
                                   in-seq))]
     (cond
       (not (instance? clojure.lang.ISeq candidate))    "user"
-      ('#{ns clojure.core/ns} (first candidate))       (second candidate)
+      ('#{ns clojure.core/ns} (first candidate))       (name (second candidate))
       ('#{in-ns clojure.core/in-ns} (first candidate)) (-> candidate
                                                          second
-                                                         second))))
+                                                         second
+                                                         name))))
 
 (defn namespace-info
-  [{:strs [input]}]
+  [content]
   (map #(-> % symbol find-ns backend/ns-info)
-       (-> input StringReader. BufferedReader. line-seq)))
+       (-> content StringReader. line-seq)))
 
 (defn macro-expand
-  [{:strs [nspace one?] :or {nspace "user" one? true}}]
+  [nspace form one?]
   (let [nspace (util/resolve-and-load-namespace nspace)
         expand (if one?
                  #(macroexpand-1 %)
                  #(macroexpand %))]
     (binding [*ns* nspace]
-      (-> (read) expand pprint/pprint))))
+      (-> (read-string form) expand pprint/pprint))))
 
-(defn repl
-  [{:strs [start? stop? run?]
-    :or   {start? false stop? false run? true}
-    :as   ctx}]
-  (cond
-    start? (repl/start ctx)
-    stop?  (repl/stop ctx)
-    run?   (repl/run ctx)))
-
-(defn repl-namespace
-  [{:strs [id]}]
-  (-> @repl/*repls*
-    (get-in [id :ns] 'user)
-    ns-name
-    name))
-
+#_
 (defn check-syntax
   [{:strs [nspace] :or {nspace "user"}}]
   (let [nspace (util/resolve-and-load-namespace nspace)]
@@ -172,7 +152,7 @@
               (throw exc))))))))
 
 (defn complete
-  [{:strs [nspace prefix base] :or {nspace "user" prefix ""}}]
+  [nspace prefix base]
   (let [nspace      (util/resolve-and-load-namespace nspace)
         prefix      (symbol prefix)
         to-complete (util/decide-completion-in nspace prefix base)
@@ -181,7 +161,7 @@
     (map #(apply util/make-completion-item %) completions)))
 
 (defn run-tests
-  [{:strs [nspace all?] :or {nspace "user" all? true}}]
+  [nspace all?]
   (when (not= "user" nspace)
     (if all?
       (require :reload-all (symbol nspace))
@@ -189,41 +169,3 @@
   (binding [clojure.test/*test-out* *out*]
     (clojure.test/run-tests (symbol nspace)))
   nil)
-
-(defn nail-server
-  []
-  (binding [*ns* *ns*]
-    (in-ns 'user)
-    (refer-clojure)
-    (use 'clojure.repl))
-  (println "Nail server ready!")
-  (flush)
-  (loop []
-    (let [eof (Object.)
-          msg (json/read *in* :eof-error? false :eof-value eof)]
-      (when (not= msg eof)
-        (let [[msg-id ctx]  msg
-              op            (get ctx "op")
-              [nspace nail] (.split ^String op "/")
-              nail          (ns-resolve (symbol nspace) (symbol nail))
-              out           (ByteArrayOutputStream.)
-              err           (ByteArrayOutputStream.)
-              encoding      (System/getProperty "clojure.vim.encoding" "UTF-8")
-              [clj-in clj-out clj-err]
-              (make-stream-set (get ctx "stdin" "") out err encoding)
-              result        (binding [*in*  clj-in
-                                      *out* clj-out
-                                      *err* clj-err]
-                              (try
-                                (nail (dissoc ctx "op" "stdin"))
-                                (catch Throwable e
-                                  (binding [*out* *err*]
-                                    (prn e)))))]
-          (.flush clj-out)
-          (.flush clj-err)
-          (json/write [msg-id {:value  result
-                               :stdout (.toString out encoding)
-                               :stderr (.toString err encoding)}]
-                      *out*)
-          (flush)
-          (recur))))))

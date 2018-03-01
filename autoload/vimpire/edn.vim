@@ -391,7 +391,7 @@ function! vimpire#edn#WriteDict(thing)
     let s = "{" . vimpire#edn#Write(firstPair[0])
                 \ . " " . vimpire#edn#Write(firstPair[1])
     for [ key, value ] in rest
-        let s .= " " . vimpire#edn#Write(key) . " " . vimpire#edn#Write
+        let s .= " " . vimpire#edn#Write(key) . " " . vimpire#edn#Write(value)
     endfor
     let s .= "}"
 

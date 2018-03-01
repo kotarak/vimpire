@@ -7,3 +7,6 @@ ng
 local.gradle
 vim/doc/tags
 venom
+actions_poisoned.clj
+.cpcache
+marker

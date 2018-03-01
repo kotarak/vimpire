@@ -41,20 +41,25 @@
       (nextElement [this]
         (let [x (first @s)] (swap! s rest) x)))))
 
-(defn input-for
-  [f]
-  (io/file (str "server/" f)))
-
 (defn output-for
   [f marker]
   (-> f
-    (str/replace #"vimpire" (fn [s] (str "venom/" s "/" marker)))
+    .getPath
+    (str/replace #"server/vimpire" (str "venom/vimpire/" marker))
     io/file))
 
+(defn input-files
+  []
+  (->> "server"
+    io/file
+    file-seq
+    (filter #(.isFile %))
+    (filter #(.endsWith (.getName %) ".clj"))))
+
 (defn marker
-  [files]
-  (with-open [input (-> files
-                      (->> (map input-for) (map io/input-stream))
+  []
+  (with-open [input (->> (input-files)
+                      (map io/input-stream)
                       >enum
                       SequenceInputStream.
                       io/reader)]
@@ -64,15 +69,14 @@
       (->> (.digest (MessageDigest/getInstance "SHA-1")))
       ByteArrayInputStream.
       base64-encode
-      (->> (str "vv_")))))
+      (->> (str "vv_") (spit "marker")))))
 
 (defn encode-sources
   [files m mns]
   (doseq [f files]
-    (let [inputf  (input-for f)
-          outputf (output-for f m)]
+    (let [outputf (output-for f m)]
       (.mkdirs (.getParentFile outputf))
-      (with-open [input  (io/reader inputf)
+      (with-open [input  (io/reader f)
                   output (io/writer outputf)]
         (-> input
           slurp
@@ -88,11 +92,8 @@
 
 (defn main
   []
-  (let [files ["vimpire/backend.clj"
-               "vimpire/nails.clj"
-               "vimpire/repl.clj"
-               "vimpire/util.clj"]
-        m     (marker files)
+  (let [files (input-files)
+        m     (slurp "marker")
         mns   (str/replace m #"_" "-")]
     (encode-sources files m mns)
     (encode-actions mns)))

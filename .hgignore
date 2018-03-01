@@ -6,3 +6,4 @@ ng
 .gradle
 local.gradle
 vim/doc/tags
+venom

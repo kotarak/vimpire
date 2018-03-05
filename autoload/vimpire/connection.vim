@@ -32,7 +32,7 @@ endif
 
 function! vimpire#connection#RegisterPrefix(prefix, server)
     if !has_key(s:Registry, a:prefix)
-        let s:Registry[a:prefix] = vimpire#connection#New(a:server, v:none)
+        let s:Registry[a:prefix] = vimpire#connection#New(a:server)
         call vimpire#connection#Start(s:Registry[a:prefix])
     endif
 endfunction
@@ -57,13 +57,19 @@ function! vimpire#connection#ForBuffer()
     throw "Vimpire: no connection found"
 endfunction
 
-function! vimpire#connection#New(server, sibling)
+function! vimpire#connection#New(serverOrSibling)
     let this = {}
 
     let this.unrepled = v:false
     let this.running = v:false
-    let this.server  = a:server
-    let this.sibling = a:sibling
+
+    if type(a:serverOrSibling) == v:t_dict
+        let this.server  = a:serverOrSibling.server
+        let this.sibling = a:serverOrSibling
+    else
+        let this.server  = a:serverOrSibling
+        let this.sibling = v:none
+    endif
 
     let this.equeue  = []
     let this.evaling = v:false

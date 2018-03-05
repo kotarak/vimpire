@@ -458,3 +458,79 @@ function! vimpire#edn#Write(thing)
 
     throw "EDN: Don't know how to write value: " . string(a:thing)
 endfunction
+
+function! vimpire#edn#Simplify(form)
+    let t = type(a:form)
+
+    if t == v:t_list
+        let f = []
+        for x in a:form
+            call add(f, vimpire#edn#Simplify(x))
+        endfor
+        return f
+    elseif t == v:t_dict
+        " Special case: Elisions are left alone.
+        if vimpire#edn#IsTaggedLiteral(a:form, "unrepl/...")
+            " Special case: If the associated value is nil, then this
+            " elision is for the key of a map. We return a pure string
+            " to be able use a vim map. The true elision is put in the
+            " value.
+            if type(a:form["edn/value"]) == v:t_null
+                return "unrepl/..."
+            else
+                return a:form
+            endif
+        " Special case: Namespaces have their symbol translated.
+        elseif vimpire#edn#IsTaggedLiteral(a:form, "unrepl/ns")
+            return vimpire#edn#Simplify(a:form["edn/value"])
+        " Special case: Other tagged literals are stringified.
+        elseif vimpire#edn#IsTaggedLiteral(a:form)
+            return vimpire#edn#Write(a:form)
+        " Special case: Symbols are translated to strings.
+        elseif vimpire#edn#IsMagical(a:form, "edn/symbol")
+            return a:form["edn/symbol"]
+        " Special case: Keywords are translated to strings.
+        elseif vimpire#edn#IsMagical(a:form, "edn/keyword")
+            return a:form["edn/keyword"]
+        " Special case: Lists are translated to vectors.
+        elseif vimpire#edn#IsMagical(a:form, "edn/list")
+            return vimpire#edn#Simplify(a:form["edn/list"])
+        " Special case: Sets are translated to vectors.
+        elseif vimpire#edn#IsMagical(a:form, "edn/set")
+            return vimpire#edn#Simplify(a:form["edn/set"])
+        " Special case: Alists are translated to maps. In particalur
+        " at least one key is stringified.
+        elseif vimpire#edn#IsMagical(a:form, "edn/map")
+            let f = {}
+            for [ k, v ] in a:form["edn/map"]
+                let ks = vimpire#edn#Simplify(k)
+                let vs = vimpire#edn#Simplify(v)
+                let f[ks] = vs
+            endfor
+            return f
+        " For a true vim map, we can skip the key handling.
+        else
+            let f = {}
+            for [ k, v ] in items(a:form)
+                let f[k] = vimpire#edn#Simplify(v)
+            endfor
+            return f
+        endif
+    " Other non-compound values, we can leave alone.
+    else
+        return a:form
+    endif
+endfunction
+
+function! vimpire#edn#SimplifyMap(form)
+    if vimpire#edn#IsMagical(a:form, "edn/map")
+        let m = {}
+        for [k, v] in a:form["edn/map"]
+            let ks = vimpire#edn#Simplify(k)
+            let m[ks] = v
+        endfor
+        return m
+    else
+        return a:form
+    endif
+endfunction

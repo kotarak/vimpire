@@ -159,7 +159,7 @@ function! vimpire#connection#HandleResponse(this, msg)
             break
         endif
 
-        let tag = response[0]
+        let tag = vimpire#edn#Simplify(response[0])
 
         " :unrepl/hello needs special treatment. If it's the first connection
         " for a prefix, ie. there is no sibling, we have to also fire up a
@@ -175,10 +175,10 @@ function! vimpire#connection#HandleResponse(this, msg)
 endfunction
 
 function! vimpire#connection#HandleHello(this, response)
-    let payload = a:response[1]
+    let payload = vimpire#edn#SimplifyMap(a:response[1])
 
     if has_key(payload, ":actions")
-        let a:this.actions = payload[":actions"]
+        let a:this.actions = vimpire#edn#SimplifyMap(payload[":actions"])
     else
         let a:this.actions = {}
     endif
@@ -326,8 +326,8 @@ endfunction
 function! vimpire#connection#ExpandAction(form, bindings)
     if type(a:form) == v:t_dict
         if has_key(a:form, "edn/tag") && a:form["edn/tag"] == "unrepl/param"
-            if has_key(a:bindings, a:form["edn/value"])
-                return a:bindings[a:form["edn/value"]]
+            if has_key(a:bindings, a:form["edn/value"]["edn/keyword"])
+                return a:bindings[a:form["edn/value"]["edn/keyword"]]
             else
                 return v:null
             endif

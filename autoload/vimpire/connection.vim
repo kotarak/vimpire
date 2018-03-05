@@ -92,7 +92,7 @@ function! vimpire#connection#New(serverOrSibling)
                 \ ":log":
                 \ { t, r -> vimpire#connection#HandleEvent(t, "log", r) },
                 \ ":exception":
-                \ { t, r -> vimpire#connection#HandleEvent(t, "exception", r) }
+                \ { t, r -> vimpire#connection#HandleException(t, "exception", r) }
                 \ }
 
     return this
@@ -229,6 +229,16 @@ function! vimpire#connection#HandleEvent(this, event, response)
     if has_key(a:this.equeue[0].callbacks, a:event)
         call a:this.equeue[0].callbacks[a:event](a:response[1])
     endif
+endfunction
+
+function! vimpire#connection#HandleException(this, event, response)
+    if len(a:this.equeue) == 0
+                \ || !has_key(a:this.equeue[0].callbacks, a:event)
+        echoerr vimpire#edn#Write(a:response[1])
+        return
+    endif
+
+    call a:this.equeue[0].callbacks[a:event](a:response[1])
 endfunction
 
 function! vimpire#connection#Eval(this, code, callbacks)

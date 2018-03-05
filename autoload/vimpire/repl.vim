@@ -116,7 +116,7 @@ endfunction
 function! vimpire#repl#DeleteLastLineIfNecessary(this)
     call vimpire#window#GoHere(a:this)
     if getline(line("$")) == ""
-        execute "normal! Gdd"
+        execute 'normal! G"_dd'
     endif
 endfunction
 

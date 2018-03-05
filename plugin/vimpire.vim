@@ -30,7 +30,7 @@ let vimpire_loaded = "3.0.0"
 let s:cpo_save = &cpo
 set cpo&vim
 
-command! -nargs=? VimpireRepl call vimpire#repl#StartRepl(<f-args>)
+command! -nargs=? VimpireRepl call vimpire#repl#StartRepl(vimpire#connection#ForBuffer(), <f-args>)
 command! -nargs=* VimpireBite call vimpire#connection#RegisterPrefix(getcwd(), <f-args>)
 
 call vimpire#ui#MakeCommandPlug("n", "DocLookupWord", "vimpire#backend#DocLookup", "expand(\"<cword>\")")

@@ -26,40 +26,41 @@ set cpo&vim
 " The Repl
 
 " Simple wrapper to allow on demand load of autoload/vimpire.vim.
-function! vimpire#repl#StartRepl(...)
+function! vimpire#repl#StartRepl(sibling, ...)
     let ns = a:0 > 0 ? a:1 : "user"
-    call vimpire#repl#New(ns)
+    call vimpire#repl#New(a:sibling, ns)
 endfunction
 
 " FIXME: Ugly hack. But easier than cleaning up the buffer
 " mess in case something goes wrong with repl start.
-function! vimpire#repl#New(namespace, ...)
-    let server = vimpire#backend#server#Instance()
-
-    let replStart = vimpire#backend#server#Execute(server,
-                \ {"op":     "repl",
-                \  "start?": v:true,
-                \  "nspace": a:namespace})
-    if replStart.stderr != ""
-        call vimpire#ui#ReportError(replStart.stderr)
-        return
-    endif
+function! vimpire#repl#New(sibling, namespace)
+    let server  = vimpire#connection#New(a:sibling)
 
     let this = vimpire#window#New("vimpire#buffer#New")
-    let this.id = replStart.value
+    let this.conn = server
+
+    let server.handlers = {
+                \ ":started-eval":
+                \ { _t, r -> vimpire#repl#HandleStartedEval(this, r) },
+                \ ":prompt":
+                \ { _t, r -> vimpire#repl#HandlePrompt(this, r) },
+                \ ":out":
+                \ { _t, r -> vimpire#repl#HandleOutput(this, r) },
+                \ ":err":
+                \ { _t, r -> vimpire#repl#HandleOutput(this, r) },
+                \ ":eval":
+                \ { _t, r -> vimpire#repl#HandleEval(this, r) },
+                \ ":exception":
+                \ { _t, r -> vimpire#repl#HandleException(this, r) }
+                \ }
 
     let this.history = []
     let this.historyDepth = 0
-    let this.prompt = a:namespace . "=>"
 
     setlocal buftype=nofile
     setlocal noswapfile
 
-    call append(line("$"), ["Clojure", this.prompt . " "])
-
     let b:vimpire_repl = this
-
-    let b:vimpire_namespace = a:namespace
     set filetype=vimpire.clojure
 
     if !hasmapto("<Plug>VimpireReplEnterHook.", "i")
@@ -78,13 +79,63 @@ function! vimpire#repl#New(namespace, ...)
         imap <buffer> <silent> <C-Down> <Plug>VimpireReplDownHistory.
     endif
 
+    call append(line("$"), "Clojure")
+
     normal! G
     startinsert!
+
+    let b:vimpire_namespace = "user"
+    let this.namespace = "user"
+    let this.prompt = "user=> "
+
+    call vimpire#connection#Start(server)
+
+    if a:namespace != "user"
+        call vimpire#connection#Eval(server,
+                    \ "(in-ns '" . a:namespace . ")",
+                    \ {})
+    endif
 
     return this
 endfunction
 
-let s:ReplCommands = [ ",close", ",st", ",ct", ",toggle-pprint" ]
+function! vimpire#repl#HandlePrompt(this, response) abort
+    let resp = vimpire#edn#Simplify(a:response)
+
+    let a:this.namespace = resp[1]["clojure.core/*ns*"]
+    let a:this.prompt = a:this.namespace . "=> "
+    let a:this.state = "prompt"
+
+    call vimpire#repl#ShowPrompt(a:this)
+endfunction
+
+function! vimpire#repl#HandleStartedEval(this, response)
+    let a:this.state = "stdin"
+endfunction
+
+function! vimpire#repl#DeleteLastLineIfNecessary(this)
+    call vimpire#window#GoHere(a:this)
+    if getline(line("$")) == ""
+        execute "normal! Gdd"
+    endif
+endfunction
+
+function! vimpire#repl#HandleOutput(this, response)
+    call vimpire#repl#DeleteLastLineIfNecessary(a:this)
+    call vimpire#window#ShowText(a:this, a:response[1])
+endfunction
+
+function! vimpire#repl#HandleEval(this, response)
+    call vimpire#repl#DeleteLastLineIfNecessary(a:this)
+    call vimpire#window#ShowText(a:this, vimpire#edn#Write(a:response[1]))
+endfunction
+
+function! vimpire#repl#HandleException(this, response)
+    call vimpire#repl#DeleteLastLineIfNecessary(a:this)
+    call vimpire#window#ShowText(a:this, vimpire#edn#Write(a:response[1][":ex"]))
+endfunction
+
+let s:ReplCommands = [ ",close" ]
 
 function! s:IsReplCommand(cmd)
     for candidate in s:ReplCommands
@@ -96,44 +147,17 @@ function! s:IsReplCommand(cmd)
 endfunction
 
 function! vimpire#repl#DoReplCommand(this, cmd)
-    let server = vimpire#backend#server#Instance()
-
     if a:cmd == ",close"
-        call vimpire#backend#server#Execute(server,
-                    \ {"op":    "repl",
-                    \  "id":    a:this.id,
-                    \  "stop?": v:true})
+        call ch_close(a:this.conn.channel)
         call vimpire#window#Close(a:this)
         stopinsert
-    elseif a:cmd == ",st"
-        let result = vimpire#backend#server#Execute(server,
-                    \ {"op":      "repl",
-                    \  "id":      a:this.id,
-                    \  "ignore?": v:true,
-                    \  "stdin":   "(vimpire.util/pretty-print-stacktrace *e)"})
-        call vimpire#window#ShowOutput(a:this, result)
-        call vimpire#repl#ShowPrompt(a:this)
-    elseif a:cmd == ",ct"
-        let result = vimpire#backend#server#Execute(server,
-                    \ {"op":      "repl",
-                    \  "id":      a:this.id,
-                    \  "ignore?": v:true,
-                    \  "stdin":   "(vimpire.util/pretty-print-causetrace *e)"})
-        call vimpire#window#ShowOutput(a:this, result)
-        call vimpire#repl#ShowPrompt(a:this)
-    elseif a:cmd == ",toggle-pprint"
-        let result = vimpire#backend#server#Execute(server,
-                    \ {"op":      "repl",
-                    \  "id":      a:this.id,
-                    \  "ignore?": v:true,
-                    \  "stdin":   "(set! vimpire.repl/*print-pretty* (not vimpire.repl/*print-pretty*))"})
-        call vimpire#window#ShowOutput(a:this, result)
-        call vimpire#repl#ShowPrompt(a:this)
     endif
 endfunction
 
 function! vimpire#repl#ShowPrompt(this)
-    call vimpire#window#ShowText(a:this, a:this.prompt . " ")
+    call vimpire#window#ShowText(a:this, a:this.prompt)
+    let b:vimpire_namespace = a:this.namespace
+
     normal! G
     startinsert!
 endfunction
@@ -168,7 +192,13 @@ function! s:DoEnter()
     endif
 endfunction
 
-function! vimpire#repl#EnterHook(this)
+function! vimpire#repl#EnterHookStdin(this)
+    call ch_sendraw(a:this.conn.channel, getline(line(".")) . "\n")
+    execute "normal! a\<CR>"
+    startinsert!
+endfunction
+
+function! vimpire#repl#EnterHookPrompt(this)
     let lastCol = {}
 
     function lastCol.f() dict
@@ -195,34 +225,36 @@ function! vimpire#repl#EnterHook(this)
         return
     endif
 
-    let server = vimpire#backend#server#Instance()
+    let action = vimpire#connection#ExpandAction(
+                \ a:this.conn.sibling.actions[":vimpire.nails/check-syntax"],
+                \ {":nspace":  a:this.namespace,
+                \  ":content": cmd})
+    let code   = vimpire#edn#Write(action)
 
-    let result = vimpire#backend#server#Execute(server,
-                \ {"op": "check-syntax",
-                \  "nspace": b:vimpire_namespace,
-                \  "stdin": cmd})
-    if result.value == v:false && result.stderr == ""
-        call s:DoEnter()
-    elseif result.stderr != ""
-        call vimpire#ui#ShowResult(result)
+    call vimpire#connection#Eval(
+                \ a:this.conn.sibling,
+                \ code,
+                \ {"eval":
+                \  { val ->
+                \     vimpire#repl#HandleSyntaxChecked(a:this, cmd, val)
+                \  }})
+endfunction
+
+function! vimpire#repl#HandleSyntaxChecked(this, cmd, validForm)
+    if a:validForm
+        call ch_sendraw(a:this.conn.channel, a:cmd . "\n")
+        execute "normal! o"
+        startinsert!
     else
-        let result = vimpire#backend#server#Execute(server,
-                    \ {"op":    "repl",
-                    \  "id":    a:this.id,
-                    \  "run?":  v:true,
-                    \  "stdin": cmd})
-        call vimpire#window#ShowOutput(a:this, result)
+        call s:DoEnter()
+    endif
+endfunction
 
-        let a:this.historyDepth = 0
-        let a:this.history = [cmd] + a:this.history
-
-        let namespace = vimpire#backend#server#Execute(server,
-                    \ {"op": "repl-namespace",
-                    \  "id": a:this.id})
-        let b:vimpire_namespace = namespace.value
-        let a:this.prompt = namespace.value . "=>"
-
-        call vimpire#repl#ShowPrompt(a:this)
+function! vimpire#repl#EnterHook(this)
+    if a:this.state == "prompt"
+        call vimpire#repl#EnterHookPrompt(a:this)
+    elseif a:this.state == "stdin"
+        call vimpire#repl#EnterHookStdin(a:this)
     endif
 endfunction
 

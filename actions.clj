@@ -31,5 +31,8 @@
  :vimpire.nails/complete
  (vimpire.nails/complete #unrepl/param :nspace #unrepl/param :prefix #unrepl/param :base)
 
+ :vimpire.nails/check-syntax
+ (vimpire.nails/check-syntax #unrepl/param :nspace #unrepl/param :content)
+
  :vimpire.nails/run-tests
  (vimpire.nails/run-tests #unrepl/param :nspace #unrepl/param :all?)}

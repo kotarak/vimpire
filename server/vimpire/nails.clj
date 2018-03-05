@@ -134,17 +134,17 @@
     (binding [*ns* nspace]
       (-> (read-string form) expand pprint/pprint))))
 
-#_
 (defn check-syntax
-  [{:strs [nspace] :or {nspace "user"}}]
+  [nspace content]
   (let [nspace (util/resolve-and-load-namespace nspace)]
     (binding [*ns* nspace]
       (try
-        (let [eof (Object.)]
+        (let [eof (Object.)
+              rdr (LineNumberingPushbackReader. (StringReader. content))]
           (loop [x nil]
             (if (identical? x eof)
               true
-              (recur (read *in* false eof)))))
+              (recur (read rdr false eof)))))
         (catch clojure.lang.LispReader$ReaderException exc
           (let [e (.getCause exc)]
             (if (.startsWith (.getMessage e) "EOF while reading")

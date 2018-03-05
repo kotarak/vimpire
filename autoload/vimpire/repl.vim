@@ -132,7 +132,7 @@ endfunction
 
 function! vimpire#repl#HandleException(this, response)
     call vimpire#repl#DeleteLastLineIfNecessary(a:this)
-    call vimpire#window#ShowText(a:this, vimpire#edn#Write(a:response[1][":ex"]))
+    call vimpire#window#ShowText(a:this, vimpire#edn#Write(a:response[1]))
 endfunction
 
 let s:ReplCommands = [ ",close" ]

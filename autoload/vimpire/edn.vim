@@ -1,3 +1,15 @@
+function! vimpire#edn#IsMagical(form, type)
+    return (len(a:form) == 1 && has_key(a:form, a:type)) ? v:true : v:false
+endfunction
+
+function! vimpire#edn#IsTaggedLiteral(form, ...)
+    return (len(a:form) == 2
+                \   && has_key(a:form, "edn/tag")
+                \   && has_key(a:form, "edn/value")
+                \   && (a:0 == 0 || a:form["edn/tag"] == a:1))
+                \ ? v:true : v:false
+endfunction
+
 let s:NormalizeSymbol = {
             \ "nil":   v:null,
             \ "true":  v:true,
@@ -364,40 +376,33 @@ function! vimpire#edn#WriteDict(thing)
     endif
 
     " Special case: tagged literal
-    if len(thing) == 2
-                \ && has_key(thing, "edn/tag")
-                \ && has_key(thing, "edn/value")
+    if vimpire#edn#IsTaggedLiteral(thing)
         return "#" . thing["edn/tag"]
                     \ . " " . vimpire#edn#Write(thing["edn/value"])
     endif
 
     " Special case: a list, not a vector
-    if len(thing) == 1
-                \ && has_key(thing, "edn/list")
+    if vimpire#edn#IsMagical(thing, "edn/list")
         return vimpire#edn#WriteList(thing["edn/list"], "(")
     endif
 
     " Special case: a set, not a vector
-    if len(thing) == 1
-                \ && has_key(thing, "edn/set")
+    if vimpire#edn#IsMagical(thing, "edn/set")
         return "#" . vimpire#edn#WriteList(thing["edn/set"], "{")
     endif
 
     " Special case: a keyword, not a string
-    if len(thing) == 1
-                \ && has_key(thing, "edn/keyword")
+    if vimpire#edn#IsMagical(thing, "edn/keyword")
         return thing["edn/keyword"]
     endif
 
     " Special case: a symbol, not a string
-    if len(thing) == 1
-                \ && has_key(thing, "edn/symbol")
+    if vimpire#edn#IsMagical(thing, "edn/symbol")
         return thing["edn/symbol"]
     endif
 
     " Special case: a map, not a vector
-    if len(thing) == 1
-                \ && has_key(thing, "edn/map")
+    if vimpire#edn#IsMagical(thing, "edn/map")
         let thing = thing["edn/map"]
     else
         let thing = items(thing)

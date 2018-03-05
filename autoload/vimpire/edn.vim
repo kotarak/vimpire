@@ -123,7 +123,7 @@ function! vimpire#edn#ReadMap(input)
     endwhile
 
     if canMap == v:false
-        return [ alist, input ]
+        return [ {'edn/map': alist}, input ]
     endif
 
     let amap = {}
@@ -356,38 +356,48 @@ function! vimpire#edn#WriteList(thing, delim)
 endfunction
 
 function! vimpire#edn#WriteDict(thing)
+    let thing = a:thing
+
     " Special case: Empty dict. Otherwise the first fails.
-    if len(a:thing) == 0
+    if len(thing) == 0
         return "{}"
     endif
 
     " Special case: tagged literal
-    if len(a:thing) == 2
-                \ && has_key(a:thing, "edn/tag")
-                \ && has_key(a:thing, "edn/value")
-        return "#" . a:thing["edn/tag"]
-                    \ . " " . vimpire#edn#Write(a:thing["edn/value"])
+    if len(thing) == 2
+                \ && has_key(thing, "edn/tag")
+                \ && has_key(thing, "edn/value")
+        return "#" . thing["edn/tag"]
+                    \ . " " . vimpire#edn#Write(thing["edn/value"])
     endif
 
     " Special case: a list, not a vector
-    if len(a:thing) == 1
-                \ && has_key(a:thing, "edn/list")
-        return vimpire#edn#WriteList(a:thing["edn/list"], "(")
+    if len(thing) == 1
+                \ && has_key(thing, "edn/list")
+        return vimpire#edn#WriteList(thing["edn/list"], "(")
     endif
 
     " Special case: a set, not a vector
-    if len(a:thing) == 1
-                \ && has_key(a:thing, "edn/set")
-        return "#" . vimpire#edn#WriteList(a:thing["edn/set"], "{")
+    if len(thing) == 1
+                \ && has_key(thing, "edn/set")
+        return "#" . vimpire#edn#WriteList(thing["edn/set"], "{")
     endif
 
     " Special case: a symbol, not a string
-    if len(a:thing) == 1
-                \ && has_key(a:thing, "edn/symbol")
-        return a:thing["edn/symbol"]
+    if len(thing) == 1
+                \ && has_key(thing, "edn/symbol")
+        return thing["edn/symbol"]
     endif
 
-    let [ firstPair; rest ] = items(a:thing)
+    " Special case: a map, not a vector
+    if len(thing) == 1
+                \ && has_key(thing, "edn/map")
+        let thing = thing["edn/map"]
+    else
+        let thing = items(thing)
+    endif
+
+    let [ firstPair; rest ] = thing
     let s = "{" . vimpire#edn#Write(firstPair[0])
                 \ . " " . vimpire#edn#Write(firstPair[1])
     for [ key, value ] in rest

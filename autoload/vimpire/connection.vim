@@ -33,6 +33,7 @@ endif
 function! vimpire#connection#RegisterPrefix(prefix, server)
     if !has_key(s:Registry, a:prefix)
         let s:Registry[a:prefix] = vimpire#connection#New(a:server, v:none)
+        call vimpire#connection#Start(s:Registry[a:prefix])
     endif
 endfunction
 
@@ -68,12 +69,6 @@ function! vimpire#connection#New(server, sibling)
     let this.evaling = v:false
 
     let this.queue   = ""
-    let this.channel = ch_open(
-                \ a:server,
-                \ { "mode": "raw",
-                \   "callback" : { ch, msg ->
-                \      vimpire#connection#UpgradeRepl(this, msg)
-                \ }})
 
     let this.handlers = {
                 \ ":read":
@@ -95,6 +90,15 @@ function! vimpire#connection#New(server, sibling)
                 \ }
 
     return this
+endfunction
+
+function! vimpire#connection#Start(this)
+    let a:this.channel = ch_open(
+                \ a:this.server,
+                \ { "mode": "raw",
+                \   "callback" : { ch, msg ->
+                \      vimpire#connection#UpgradeRepl(a:this, msg)
+                \ }})
 endfunction
 
 function! vimpire#connection#UpgradeRepl(this, msg)

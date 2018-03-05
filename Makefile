@@ -20,7 +20,7 @@ actions_poisoned.clj $(VENOM): actions.clj fang.clj $(BACKEND)
 	clj -i fang.clj -e '(main)'
 
 venom/unrepl/blob.clj: actions_poisoned.clj
-	clj -m unrepl.blobit venom/unrepl/blob.clj actions_poisoned.clj
+	clj -m unrepl.make-blob venom/unrepl/blob.clj actions_poisoned.clj
 
 clean:
 	rm -r venom

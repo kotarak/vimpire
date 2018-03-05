@@ -1,0 +1,33 @@
+ifeq (,$(wildcard marker))
+MARKER:=    funky
+else
+MARKER:=    $(shell type marker)
+endif
+
+BACKEND:=   $(shell gfind server -type f -print)
+VENOM:=     $(subst server/vimpire,venom/vimpire/$(MARKER),$(BACKEND))
+VENOM_B64:= $(patsubst %,%.b64,$(VENOM))
+
+venom: venom/unrepl/blob.clj $(VENOM_B64)
+
+marker: $(BACKEND)
+	java -cp $(M2REPO)\org\clojure\clojure\1.8.0\clojure-1.8.0.jar clojure.main -i fang.clj -e '(marker)'
+
+%.clj.b64: %.clj
+	certutil -encode '$<' '$@'
+	gmv $@ $@.xxx
+	grep -v CERTIFICATE $@.xxx > $@
+	rm $@.xxx
+
+actions_poisoned.clj $(VENOM): actions.clj fang.clj $(BACKEND)
+	java -cp $(M2REPO)\org\clojure\clojure\1.8.0\clojure-1.8.0.jar clojure.main -i fang.clj -e '(main)'
+
+venom/unrepl/blob.clj: actions_poisoned.clj
+	java -cp $(M2REPO)\org\clojure\clojure\1.8.0\clojure-1.8.0.jar;$(M2REPO)\net\cgrand\unrepl\0.1.0-SNAPSHOT\unrepl-0.1.0-SNAPSHOT.jar clojure.main -m unrepl.make-blob venom/unrepl/blob.clj actions_poisoned.clj
+
+clean:
+	rm -r venom
+	rm actions_poisoned.clj
+	rm marker
+
+.PHONY: venom clean

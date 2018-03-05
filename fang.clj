@@ -45,7 +45,8 @@
   [f marker]
   (-> f
     .getPath
-    (str/replace #"server/vimpire" (str "venom/vimpire/" marker))
+    (str/replace #"server[/\\]vimpire"
+                 (str/re-quote-replacement (str "venom/vimpire/" marker)))
     io/file))
 
 (defn input-files
@@ -75,6 +76,7 @@
   [files m mns]
   (doseq [f files]
     (let [outputf (output-for f m)]
+      (println "Writing " (.getPath outputf))
       (.mkdirs (.getParentFile outputf))
       (with-open [input  (io/reader f)
                   output (io/writer outputf)]

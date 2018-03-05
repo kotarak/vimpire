@@ -48,7 +48,7 @@ function! vimpire#edn#ReadKeyword(input)
     let sym = sym1 . sym
 
     if !has_key(s:Keywords, sym)
-        let s:Keywords[sym] = sym
+        let s:Keywords[sym] = {"edn/keyword": sym}
     endif
 
     return [ s:Keywords[sym], input ]
@@ -383,6 +383,12 @@ function! vimpire#edn#WriteDict(thing)
         return "#" . vimpire#edn#WriteList(thing["edn/set"], "{")
     endif
 
+    " Special case: a keyword, not a string
+    if len(thing) == 1
+                \ && has_key(thing, "edn/keyword")
+        return thing["edn/keyword"]
+    endif
+
     " Special case: a symbol, not a string
     if len(thing) == 1
                 \ && has_key(thing, "edn/symbol")
@@ -409,17 +415,13 @@ function! vimpire#edn#WriteDict(thing)
 endfunction
 
 function! vimpire#edn#WriteString(thing)
-    if a:thing[0] == ":"
-        return a:thing
-    else
-        let s = escape(a:thing, "\\")
+    let s = escape(a:thing, "\\")
 
-        for [ c, e ] in items({"\t": "t", "\n": "n", "\r": "r", "\"": "\""})
-            let s = substitute(s, c, '\\' . e, "g")
-        endfor
+    for [ c, e ] in items({"\t": "t", "\n": "n", "\r": "r", "\"": "\""})
+        let s = substitute(s, c, '\\' . e, "g")
+    endfor
 
-        return '"' . s . '"'
-    endif
+    return '"' . s . '"'
 endfunction
 
 function! vimpire#edn#WriteFunc(thing)

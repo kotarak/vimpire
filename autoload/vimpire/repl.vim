@@ -285,7 +285,7 @@ function! vimpire#repl#EnterHookPrompt(this)
     let cmd = vimpire#repl#GetCommand(a:this)
 
     " Special Case: Showed prompt (or user just hit enter).
-    if len(cmd) == 1 && cmd[0] =~ '^\(\s\|\n\)*$'
+    if join(cmd, "\n") =~ '^\(\s\|\n\)*$'
         call append(line("$"), "")
         call cursor(line("$"), col([line("$"), "$"]))
         startinsert

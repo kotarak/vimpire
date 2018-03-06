@@ -475,7 +475,7 @@ function! vimpire#edn#Simplify(form)
             " elision is for the key of a map. We return a pure string
             " to be able use a vim map. The true elision is put in the
             " value.
-            if type(a:form["edn/value"]) == v:t_null
+            if type(a:form["edn/value"]) == v:t_none
                 return "unrepl/..."
             else
                 return a:form

@@ -99,6 +99,13 @@ function! vimpire#repl#New(sibling, namespace)
     return this
 endfunction
 
+function! vimpire#repl#ShowPrompt(this)
+    call vimpire#window#ShowText(a:this, a:this.prompt)
+    let b:vimpire_namespace = a:this.namespace
+
+    call cursor(line("$"), col([line("$"), "$"]))
+endfunction
+
 function! vimpire#repl#HandlePrompt(this, response) abort
     let resp = vimpire#edn#Simplify(a:response)
 
@@ -111,6 +118,8 @@ endfunction
 
 function! vimpire#repl#HandleStartedEval(this, response)
     let a:this.state = "stdin"
+    call append(line("$"), "")
+    call cursor(line("$"), col([line("$"), "$"]))
 endfunction
 
 function! vimpire#repl#DeleteLastLineIfNecessary(this)
@@ -123,16 +132,19 @@ endfunction
 function! vimpire#repl#HandleOutput(this, response)
     call vimpire#repl#DeleteLastLineIfNecessary(a:this)
     call vimpire#window#ShowText(a:this, a:response[1])
+    call cursor(line("$"), col([line("$"), "$"]))
 endfunction
 
 function! vimpire#repl#HandleEval(this, response)
     call vimpire#repl#DeleteLastLineIfNecessary(a:this)
     call vimpire#window#ShowText(a:this, vimpire#edn#Write(a:response[1]))
+    call cursor(line("$"), col([line("$"), "$"]))
 endfunction
 
 function! vimpire#repl#HandleException(this, response)
     call vimpire#repl#DeleteLastLineIfNecessary(a:this)
     call vimpire#window#ShowText(a:this, vimpire#edn#Write(a:response[1]))
+    call cursor(line("$"), col([line("$"), "$"]))
 endfunction
 
 let s:ReplCommands = [ ",close" ]
@@ -152,14 +164,6 @@ function! vimpire#repl#DoReplCommand(this, cmd)
         call vimpire#window#Close(a:this)
         stopinsert
     endif
-endfunction
-
-function! vimpire#repl#ShowPrompt(this)
-    call vimpire#window#ShowText(a:this, a:this.prompt)
-    let b:vimpire_namespace = a:this.namespace
-
-    normal! G
-    startinsert!
 endfunction
 
 function! vimpire#repl#FindPrompt(this)
@@ -187,23 +191,16 @@ function! vimpire#repl#GetCommand(this)
     return cmd
 endfunction
 
-function! s:DoEnter()
-    execute "normal! a\<CR>x"
-    normal! ==x
-    if getline(".") =~ '^\s*$'
-        startinsert!
-    else
-        startinsert
-    endif
-endfunction
-
 function! vimpire#repl#EnterHookStdin(this)
     call ch_sendraw(a:this.conn.channel, getline(line(".")) . "\n")
-    execute "normal! a\<CR>"
+    call append(line("$"), "")
+    call cursor(line("$"), col([line("$"), "$"]))
     startinsert!
 endfunction
 
 function! vimpire#repl#EnterHookPrompt(this)
+    " Special Case: If inside an expression we do not send the expression,
+    " but enter a newline and reindent the code.
     let lastCol = {}
 
     function lastCol.f() dict
@@ -211,20 +208,31 @@ function! vimpire#repl#EnterHookPrompt(this)
         return col(".")
     endfunction
 
-    if line(".") < line("$") || col(".") < vimpire#util#WithSavedPosition(lastCol)
-        call s:DoEnter()
+    if line(".") < line("$")
+                \ || col(".") < vimpire#util#WithSavedPosition(lastCol)
+        execute "normal! a\<CR>x"
+        normal! ==x
+        if getline(".") =~ '^\s*$'
+            startinsert!
+        else
+            startinsert
+        endif
         return
     endif
 
+    " Otherwise, we check whether the command is complete and if so,
+    " submit it to the repl.
     let cmd = vimpire#repl#GetCommand(a:this)
 
     " Special Case: Showed prompt (or user just hit enter).
     if len(cmd) == 1 && cmd[0] =~ '^\(\s\|\n\)*$'
-        execute "normal! a\<CR>"
-        startinsert!
+        call append(line("$"), "")
+        call cursor(line("$"), col([line("$"), "$"]))
+        startinsert
         return
     endif
 
+    " Special Case: The user typed a shell command.
     if len(cmd) == 1 && s:IsReplCommand(cmd[0])
         call vimpire#repl#DoReplCommand(a:this, cmd[0])
         return
@@ -244,15 +252,17 @@ function! vimpire#repl#EnterHookPrompt(this)
                 \  { val ->
                 \     vimpire#repl#HandleSyntaxChecked(a:this, cmd, val)
                 \  }})
+
+    startinsert
 endfunction
 
 function! vimpire#repl#HandleSyntaxChecked(this, cmd, validForm)
     if a:validForm
         call ch_sendraw(a:this.conn.channel, a:cmd . "\n")
-        execute "normal! o"
-        startinsert!
     else
-        call s:DoEnter()
+        execute "normal! a\<CR>x"
+        normal! ==x
+        call cursor(line("$"), col([line("$"), "$"]))
     endif
 endfunction
 

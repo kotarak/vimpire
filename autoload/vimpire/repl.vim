@@ -147,25 +147,6 @@ function! vimpire#repl#HandleException(this, response)
     call cursor(line("$"), col([line("$"), "$"]))
 endfunction
 
-let s:ReplCommands = [ ",close" ]
-
-function! s:IsReplCommand(cmd)
-    for candidate in s:ReplCommands
-        if candidate == a:cmd
-            return 1
-        endif
-    endfor
-    return 0
-endfunction
-
-function! vimpire#repl#DoReplCommand(this, cmd)
-    if a:cmd == ",close"
-        call ch_close(a:this.conn.channel)
-        call vimpire#window#Close(a:this)
-        stopinsert
-    endif
-endfunction
-
 function! vimpire#repl#FindPrompt(this)
     let ln = line("$")
 
@@ -190,6 +171,16 @@ function! vimpire#repl#GetCommand(this)
 
     return cmd
 endfunction
+
+function! vimpire#repl#CloseCommand(this)
+    call ch_close(a:this.conn.channel)
+    call vimpire#window#Close(a:this)
+    stopinsert
+endfunction
+
+let s:ReplCommands = {
+            \ ",close": function("vimpire#repl#CloseCommand")
+            \ }
 
 function! vimpire#repl#EnterHookStdin(this)
     call ch_sendraw(a:this.conn.channel, getline(line(".")) . "\n")
@@ -233,8 +224,8 @@ function! vimpire#repl#EnterHookPrompt(this)
     endif
 
     " Special Case: The user typed a shell command.
-    if len(cmd) == 1 && s:IsReplCommand(cmd[0])
-        call vimpire#repl#DoReplCommand(a:this, cmd[0])
+    if len(cmd) == 1 && has_key(s:ReplCommands, cmd[0])
+        call s:ReplCommands[cmd[0]](a:this)
         return
     endif
 

@@ -121,6 +121,8 @@ function! vimpire#repl#ShowWithProtectedPrompt(this, f)
 
         call append(line("$"), "")
         call cursor(line("$"), col([line("$"), "$"]))
+        " Although supposed to be unnecessary…
+        redraw
     endif
 endfunction
 
@@ -130,6 +132,8 @@ function! vimpire#repl#ShowPrompt(this)
     let b:vimpire_namespace = a:this.namespace
 
     call cursor(line("$"), col([line("$"), "$"]))
+    " Although supposed to be unnecessary…
+    redraw
 endfunction
 
 function! vimpire#repl#HandlePrompt(this, response) abort
@@ -165,6 +169,8 @@ function! vimpire#repl#HandleEval(this, response)
     call vimpire#repl#DeleteLastLineIfNecessary(a:this)
     call vimpire#window#ShowText(a:this, vimpire#edn#Write(a:response[1]))
     call cursor(line("$"), col([line("$"), "$"]))
+    " Although supposed to be unnecessary…
+    redraw
 endfunction
 
 function! vimpire#repl#HandleException(this, response)
@@ -248,6 +254,7 @@ function! vimpire#repl#EnterHookStdin(this)
     call ch_sendraw(a:this.conn.channel, getline(line(".")) . "\n")
     call append(line("$"), "")
     call cursor(line("$"), col([line("$"), "$"]))
+    redraw
     startinsert!
 endfunction
 

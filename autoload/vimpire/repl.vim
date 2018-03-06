@@ -162,12 +162,18 @@ function! vimpire#repl#ShowPrompt(this)
     startinsert!
 endfunction
 
-function! vimpire#repl#GetCommand(this)
+function! vimpire#repl#FindPrompt(this)
     let ln = line("$")
 
     while getline(ln) !~ "^" . a:this.prompt && ln > 0
         let ln = ln - 1
     endwhile
+
+    return ln
+endfunction
+
+function! vimpire#repl#GetCommand(this)
+    let ln = vimpire#repl#FindPrompt(a:this)
 
     " Special Case: User deleted Prompt by accident. Insert a new one.
     if ln == 0

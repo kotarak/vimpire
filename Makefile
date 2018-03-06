@@ -14,7 +14,7 @@ marker: $(BACKEND)
 	clj -i fang.clj -e '(marker)'
 
 %.clj.b64: %.clj
-	base64 $< >$@
+	base64 '$<' >'$@'
 
 actions_poisoned.clj $(VENOM): actions.clj fang.clj $(BACKEND)
 	clj -i fang.clj -e '(main)'

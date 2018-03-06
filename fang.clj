@@ -45,8 +45,8 @@
   [f marker]
   (-> f
     .getPath
-    (str/replace #"server[/\\]vimpire"
-                 (str/re-quote-replacement (str "venom/vimpire/" marker)))
+    (str/replace #"server[/\\]"
+                 (str/re-quote-replacement (str "venom/" marker "/")))
     io/file))
 
 (defn input-files
@@ -82,14 +82,16 @@
                   output (io/writer outputf)]
         (-> input
           slurp
-          (str/replace #"(?<!:)vimpire\." #(str % mns "."))
+          (str/replace #"(?<!:)vimpire\."
+                       (partial str mns "."))
           (->> (spit output)))))))
 
 (defn encode-actions
   [mns]
   (-> "actions.clj"
     slurp
-    (str/replace #"(?<!:)vimpire" #(str % "." mns))
+    (str/replace #"(?<!:)vimpire"
+                 (partial str mns "."))
     (->> (spit "actions_poisoned.clj"))))
 
 (defn main

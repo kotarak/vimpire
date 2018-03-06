@@ -100,6 +100,7 @@ function! vimpire#repl#New(sibling, namespace)
 endfunction
 
 function! vimpire#repl#ShowPrompt(this)
+    call vimpire#repl#DeleteLastLineIfNecessary(a:this)
     call vimpire#window#ShowText(a:this, a:this.prompt)
     let b:vimpire_namespace = a:this.namespace
 
@@ -125,7 +126,7 @@ endfunction
 function! vimpire#repl#DeleteLastLineIfNecessary(this)
     call vimpire#window#GoHere(a:this)
     if getline(line("$")) == ""
-        execute 'normal! G"_dd'
+        execute line("$") . "delete _"
     endif
 endfunction
 
@@ -142,9 +143,64 @@ function! vimpire#repl#HandleEval(this, response)
 endfunction
 
 function! vimpire#repl#HandleException(this, response)
-    call vimpire#repl#DeleteLastLineIfNecessary(a:this)
-    call vimpire#window#ShowText(a:this, vimpire#edn#Write(a:response[1]))
-    call cursor(line("$"), col([line("$"), "$"]))
+    " Exceptions is tagges as #error.
+    let ex = vimpire#edn#SimplifyMap(a:response[1])[":ex"]["edn/value"]
+    let ex = vimpire#edn#SimplifyMap(ex)
+
+    let stackTrace = []
+    let incomplete = v:false
+    for elem in ex[":trace"]
+        if vimpire#edn#IsTaggedLiteral(elem, "unrepl/...")
+            let incomplete = v:true
+            break
+        endif
+
+        call add(stackTrace, vimpire#edn#Simplify(elem))
+    endfor
+
+    let exToPrint = {"edn/map": [
+                \ [{"edn/keyword": ":cause"}, ex[":cause"]],
+                \ [{"edn/keyword": ":trace"}, stackTrace]
+                \ ]}
+
+    let action = vimpire#connection#ExpandAction(
+                \ a:this.conn.sibling.actions[":vimpire.nails/pprint-exception"],
+                \ {":ex": exToPrint})
+    let code   = vimpire#edn#Write(action)
+
+    call vimpire#connection#Eval(a:this.conn.sibling, code,
+                \ { "eval": { val ->
+                \   vimpire#repl#ShowException(a:this, val, incomplete)
+                \ }})
+endfunction
+
+function! vimpire#repl#ShowException(this, response, incomplete)
+    if a:this.state == "prompt"
+        let [ _buf, cline, ccol, _off ] = getpos(".")
+        let lline = line("$")
+
+        let pline = vimpire#repl#FindPrompt(a:this)
+        let promptLines = getline(pline, lline)
+        execute pline . "," lline . "delete _"
+
+        call vimpire#window#ShowText(a:this, a:response)
+        if a:incomplete
+            call vimpire#window#ShowText(a:this, "    ...")
+        endif
+
+        call append(line("$"), promptLines)
+        call cursor(line("$") - (lline - cline), ccol)
+        " Although supposed to unnecessary…
+        redraw
+    elseif a:this.state == "stdin"
+        call vimpire#repl#DeleteLastLineIfNecessary(a:this)
+        call vimpire#window#ShowText(a:this, a:response)
+        if a:incomplete
+            call vimpire#window#ShowText(a:this, "    ...")
+        endif
+        call append(line("$"), "")
+        call cursor(line("$"), col([line("$"), "$"]))
+    endif
 endfunction
 
 function! vimpire#repl#FindPrompt(this)

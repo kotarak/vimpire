@@ -35,4 +35,7 @@
  (vimpire.nails/check-syntax #unrepl/param :nspace #unrepl/param :content)
 
  :vimpire.nails/run-tests
- (vimpire.nails/run-tests #unrepl/param :nspace #unrepl/param :all?)}
+ (vimpire.nails/run-tests #unrepl/param :nspace #unrepl/param :all?)
+
+ :vimpire.nails/pprint-exception
+ (vimpire.pprint/pprint-exception #unrepl/param :ex)}

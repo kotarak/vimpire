@@ -5,7 +5,7 @@ MARKER:=    $(shell type marker)
 endif
 
 BACKEND:=   $(shell gfind server -type f -print)
-VENOM:=     $(subst server/vimpire,venom/vimpire/$(MARKER),$(BACKEND))
+VENOM:=     $(subst server/,venom/$(MARKER)/,$(BACKEND))
 VENOM_B64:= $(patsubst %,%.b64,$(VENOM))
 
 venom: venom/unrepl/blob.clj $(VENOM_B64)

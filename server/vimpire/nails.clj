@@ -26,6 +26,7 @@
     [vimpire.repl    :as repl]
     [vimpire.util    :as util]
     [clojure.pprint  :as pprint]
+    [pyro.printer    :as pyro]
     clojure.set
     clojure.test)
   (:import
@@ -127,7 +128,7 @@
 
 (defn macro-expand
   [nspace form one?]
-  (let [nspace (util/resolve-and-load-namespace nspace)
+  (let [nspace (util/resolveô-and-load-namespace nspace)
         expand (if one?
                  #(macroexpand-1 %)
                  #(macroexpand %))]

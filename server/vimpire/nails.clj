@@ -128,7 +128,7 @@
 
 (defn macro-expand
   [nspace form one?]
-  (let [nspace (util/resolveô-and-load-namespace nspace)
+  (let [nspace (util/resolve-and-load-namespace nspace)
         expand (if one?
                  #(macroexpand-1 %)
                  #(macroexpand %))]

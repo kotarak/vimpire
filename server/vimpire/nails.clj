@@ -26,7 +26,6 @@
     [vimpire.repl    :as repl]
     [vimpire.util    :as util]
     [clojure.pprint  :as pprint]
-    [pyro.printer    :as pyro]
     clojure.set
     clojure.test)
   (:import

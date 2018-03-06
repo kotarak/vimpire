@@ -99,6 +99,31 @@ function! vimpire#repl#New(sibling, namespace)
     return this
 endfunction
 
+function! vimpire#repl#ShowWithProtectedPrompt(this, f)
+    if a:this.state == "prompt"
+        let [ _buf, cline, ccol, _off ] = getpos(".")
+        let lline = line("$")
+
+        let pline = vimpire#repl#FindPrompt(a:this)
+        let promptLines = getline(pline, lline)
+        execute pline . "," lline . "delete _"
+
+        call a:f()
+
+        call append(line("$"), promptLines)
+        call cursor(line("$") - (lline - cline), ccol)
+        " Although supposed to be unnecessary…
+        redraw
+    elseif a:this.state == "stdin"
+        call vimpire#repl#DeleteLastLineIfNecessary(a:this)
+
+        call a:f()
+
+        call append(line("$"), "")
+        call cursor(line("$"), col([line("$"), "$"]))
+    endif
+endfunction
+
 function! vimpire#repl#ShowPrompt(this)
     call vimpire#repl#DeleteLastLineIfNecessary(a:this)
     call vimpire#window#ShowText(a:this, a:this.prompt)
@@ -131,9 +156,9 @@ function! vimpire#repl#DeleteLastLineIfNecessary(this)
 endfunction
 
 function! vimpire#repl#HandleOutput(this, response)
-    call vimpire#repl#DeleteLastLineIfNecessary(a:this)
-    call vimpire#window#ShowText(a:this, a:response[1])
-    call cursor(line("$"), col([line("$"), "$"]))
+    call vimpire#repl#ShowWithProtectedPrompt(
+                \ a:this,
+                \ function("vimpire#window#ShowText", [a:this, a:response[1]]))
 endfunction
 
 function! vimpire#repl#HandleEval(this, response)
@@ -143,7 +168,7 @@ function! vimpire#repl#HandleEval(this, response)
 endfunction
 
 function! vimpire#repl#HandleException(this, response)
-    " Exceptions is tagges as #error.
+    " Exceptions are tagged as #error.
     let ex = vimpire#edn#SimplifyMap(a:response[1])[":ex"]["edn/value"]
     let ex = vimpire#edn#SimplifyMap(ex)
 
@@ -170,36 +195,17 @@ function! vimpire#repl#HandleException(this, response)
 
     call vimpire#connection#Eval(a:this.conn.sibling, code,
                 \ { "eval": { val ->
-                \   vimpire#repl#ShowException(a:this, val, incomplete)
+                \   vimpire#repl#ShowWithProtectedPrompt(
+                \     a:this,
+                \     function("vimpire#repl#ShowException",
+                \       [a:this, val, incomplete]))
                 \ }})
 endfunction
 
 function! vimpire#repl#ShowException(this, response, incomplete)
-    if a:this.state == "prompt"
-        let [ _buf, cline, ccol, _off ] = getpos(".")
-        let lline = line("$")
-
-        let pline = vimpire#repl#FindPrompt(a:this)
-        let promptLines = getline(pline, lline)
-        execute pline . "," lline . "delete _"
-
-        call vimpire#window#ShowText(a:this, a:response)
-        if a:incomplete
-            call vimpire#window#ShowText(a:this, "    ...")
-        endif
-
-        call append(line("$"), promptLines)
-        call cursor(line("$") - (lline - cline), ccol)
-        " Although supposed to unnecessary…
-        redraw
-    elseif a:this.state == "stdin"
-        call vimpire#repl#DeleteLastLineIfNecessary(a:this)
-        call vimpire#window#ShowText(a:this, a:response)
-        if a:incomplete
-            call vimpire#window#ShowText(a:this, "    ...")
-        endif
-        call append(line("$"), "")
-        call cursor(line("$"), col([line("$"), "$"]))
+    call vimpire#window#ShowText(a:this, a:response)
+    if a:incomplete
+        call vimpire#window#ShowText(a:this, "    ...")
     endif
 endfunction
 

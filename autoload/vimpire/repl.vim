@@ -137,13 +137,15 @@ function! vimpire#repl#ShowPrompt(this)
 endfunction
 
 function! vimpire#repl#HandlePrompt(this, response) abort
-    let resp = vimpire#edn#Simplify(a:response)
+    if a:this.state == "eval-ended"
+        let resp = vimpire#edn#Simplify(a:response)
 
-    let a:this.namespace = resp[1]["clojure.core/*ns*"]
-    let a:this.prompt = a:this.namespace . "=> "
-    let a:this.state = "prompt"
+        let a:this.namespace = resp[1]["clojure.core/*ns*"]
+        let a:this.prompt = a:this.namespace . "=> "
+        let a:this.state = "prompt"
 
-    call vimpire#repl#ShowPrompt(a:this)
+        call vimpire#repl#ShowPrompt(a:this)
+    endif
 endfunction
 
 function! vimpire#repl#HandleStartedEval(this, response)
@@ -166,9 +168,12 @@ function! vimpire#repl#HandleOutput(this, response)
 endfunction
 
 function! vimpire#repl#HandleEval(this, response)
+    let a:this.state = "eval-ended"
+
     call vimpire#repl#DeleteLastLineIfNecessary(a:this)
     call vimpire#window#ShowText(a:this, vimpire#edn#Write(a:response[1]))
     call cursor(line("$"), col([line("$"), "$"]))
+
     " Although supposed to be unnecessary…
     redraw
 endfunction

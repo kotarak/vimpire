@@ -178,13 +178,12 @@ function! vimpire#repl#GetCommand(this)
     " Special Case: User deleted Prompt by accident. Insert a new one.
     if ln == 0
         call vimpire#repl#ShowPrompt(a:this)
-        return ""
+        return [""]
     endif
 
-    let cmd = vimpire#util#Yank("l", ln . "," . line("$") . "yank l")
+    let cmd = getline(ln, line("$"))
+    let cmd[0] = substitute(cmd[0], "^" . a:this.prompt . "\\s*", "", "")
 
-    let cmd = substitute(cmd, "^" . a:this.prompt . "\\s*", "", "")
-    let cmd = substitute(cmd, "\n$", "", "")
     return cmd
 endfunction
 
@@ -220,17 +219,18 @@ function! vimpire#repl#EnterHookPrompt(this)
     let cmd = vimpire#repl#GetCommand(a:this)
 
     " Special Case: Showed prompt (or user just hit enter).
-    if cmd =~ '^\(\s\|\n\)*$'
+    if len(cmd) == 1 && cmd[0] =~ '^\(\s\|\n\)*$'
         execute "normal! a\<CR>"
         startinsert!
         return
     endif
 
-    if s:IsReplCommand(cmd)
-        call vimpire#repl#DoReplCommand(a:this, cmd)
+    if len(cmd) == 1 && s:IsReplCommand(cmd[0])
+        call vimpire#repl#DoReplCommand(a:this, cmd[0])
         return
     endif
 
+    let cmd    = join(cmd, "\n")
     let action = vimpire#connection#ExpandAction(
                 \ a:this.conn.sibling.actions[":vimpire.nails/check-syntax"],
                 \ {":nspace":  a:this.namespace,

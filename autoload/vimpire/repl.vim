@@ -284,21 +284,22 @@ function! vimpire#repl#EnterHookPrompt(this)
     " submit it to the repl.
     let cmd = vimpire#repl#GetCommand(a:this)
 
-    " Special Case: Showed prompt (or user just hit enter).
-    if join(cmd, "\n") =~ '^\(\s\|\n\)*$'
-        call append(line("$"), "")
-        call cursor(line("$"), col([line("$"), "$"]))
-        startinsert
-        return
-    endif
-
     " Special Case: The user typed a shell command.
     if len(cmd) == 1 && has_key(s:ReplCommands, cmd[0])
         call s:ReplCommands[cmd[0]](a:this)
         return
     endif
 
-    let cmd    = join(cmd, "\n")
+    let cmd = join(cmd, "\n")
+
+    " Special Case: Showed prompt (or user just hit enter).
+    if cmd =~ '^\(\s\|\n\)*$'
+        call append(line("$"), "")
+        call cursor(line("$"), col([line("$"), "$"]))
+        startinsert
+        return
+    endif
+
     let action = vimpire#connection#ExpandAction(
                 \ a:this.conn.sibling.actions[":vimpire.nails/check-syntax"],
                 \ {":nspace":  a:this.namespace,

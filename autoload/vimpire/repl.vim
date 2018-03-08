@@ -193,12 +193,9 @@ function! vimpire#repl#HandleException(this, response)
                 \ [{"edn/keyword": ":trace"}, stackTrace]
                 \ ]}
 
-    let action = vimpire#connection#ExpandAction(
-                \ a:this.conn.sibling.actions[":vimpire.nails/pprint-exception"],
-                \ {":ex": exToPrint})
-    let code   = vimpire#edn#Write(action)
-
-    call vimpire#connection#Eval(a:this.conn.sibling, code,
+    call vimpire#connection#Action(a:this.conn.sibling,
+                \ ":vimpire.nails/pprint-exception",
+                \ {":ex": exToPrint},
                 \ { "eval": { val ->
                 \   vimpire#repl#ShowWithProtectedPrompt(
                 \     a:this,
@@ -297,15 +294,11 @@ function! vimpire#repl#EnterHookPrompt(this)
         return
     endif
 
-    let action = vimpire#connection#ExpandAction(
-                \ a:this.conn.sibling.actions[":vimpire.nails/check-syntax"],
-                \ {":nspace":  a:this.conn.namespace,
-                \  ":content": cmd})
-    let code   = vimpire#edn#Write(action)
-
-    call vimpire#connection#Eval(
+    call vimpire#connection#Action(
                 \ a:this.conn.sibling,
-                \ code,
+                \ ":vimpire.nails/check-syntax",
+                \ {":nspace":  a:this.conn.namespace,
+                \  ":content": cmd},
                 \ {"eval":
                 \  { val ->
                 \     vimpire#repl#HandleSyntaxChecked(a:this, cmd, val)

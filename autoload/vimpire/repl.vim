@@ -114,7 +114,7 @@ function! vimpire#repl#ShowWithProtectedPrompt(this, f)
         call cursor(line("$") - (lline - cline), ccol)
         " Although supposed to be unnecessary…
         redraw
-    elseif a:this.state == "stdin"
+    else
         call vimpire#repl#DeleteLastLineIfNecessary(a:this)
 
         call a:f()
@@ -137,7 +137,7 @@ function! vimpire#repl#ShowPrompt(this)
 endfunction
 
 function! vimpire#repl#HandlePrompt(this, response) abort
-    if a:this.state == "eval-ended"
+    if !has_key(a:this, "state") || a:this.state == "eval-ended"
         let resp = vimpire#edn#Simplify(a:response)
 
         let a:this.namespace = resp[1]["clojure.core/*ns*"]

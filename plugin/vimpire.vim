@@ -56,11 +56,7 @@ call vimpire#ui#MakeCommandPlug("n", "RunTests", "vimpire#backend#RunTests", "0"
 call vimpire#ui#MakeCommandPlug("n", "MacroExpand",  "vimpire#backend#MacroExpand", "0")
 call vimpire#ui#MakeCommandPlug("n", "MacroExpand1", "vimpire#backend#MacroExpand", "1")
 
-call vimpire#ui#MakeCommandPlug("n", "EvalFile",      "vimpire#backend#EvalFile", "")
-call vimpire#ui#MakeCommandPlug("n", "EvalLine",      "vimpire#backend#EvalLine", "")
-call vimpire#ui#MakeCommandPlug("v", "EvalBlock",     "vimpire#backend#EvalBlock", "")
-call vimpire#ui#MakeCommandPlug("n", "EvalToplevel",  "vimpire#backend#EvalToplevel", "")
-call vimpire#ui#MakeCommandPlug("n", "EvalParagraph", "vimpire#backend#EvalParagraph", "")
+nnoremap <Plug>VimpireEval. :set operatorfunc=vimpire#backend#EvalOperator<CR>g@
 
 inoremap <Plug>VimpireReplEnterHook. <Esc>:call vimpire#repl#EnterHook(b:vimpire_repl)<CR>
 inoremap <Plug>VimpireReplEvaluate. <Esc>G$:call vimpire#repl#EnterHook(b:vimpire_repl)<CR>

@@ -219,80 +219,39 @@ function! vimpire#backend#EvalWithPosition(server, fname, line, column, nspace,
                 \ {})
 endfunction
 
-function! vimpire#backend#EvalFile()
-    let server  = vimpire#connection#ForBuffer()
-    let nspace  = b:vimpire_namespace
-    let content = join(getbufline(bufnr("%"), 1, line("$")), "\n")
-    let file    = vimpire#util#BufferName()
-
-    call vimpire#backend#EvalWithPosition(file, 1, 1, { ->
-                \ vimpire#connection#Eval(server,
-                \   content,
-                \   { "eval": vimpire#backend#ShowClojureResultCallback(nspace)})
-                \ })
-endfunction
-
-function! vimpire#backend#EvalLine()
-    let server  = vimpire#connection#ForBuffer()
-    let nspace  = b:vimpire_namespace
-    let theLine = line(".")
-    let content = getline(theLine)
-    let file    = vimpire#util#BufferName()
-
-    call vimpire#backend#EvalWithPosition(file, theLine, 1, { ->
-                \ vimpire#connection#Eval(server,
-                \   content,
-                \   { "eval": vimpire#backend#ShowClojureResultCallback(nspace)})
-                \ })
-endfunction
-
-function! vimpire#backend#EvalBlock()
-    let server  = vimpire#connection#ForBuffer()
-    let nspace  = b:vimpire_namespace
-    let file    = vimpire#util#BufferName()
-    let content = vimpire#util#Yank("l", 'normal! gv"ly')
-
-    call vimpire#backend#EvalWithPosition(file, line("'<") - 1, 1, { ->
-                \ vimpire#connection#Eval(server,
-                \   content,
-                \   { "eval": vimpire#backend#ShowClojureResultCallback(nspace)})
-                \ })
-endfunction
-
-function! vimpire#backend#EvalToplevel()
-    let server  = vimpire#connection#ForBuffer()
-    let nspace  = b:vimpire_namespace
-    let file    = vimpire#util#BufferName()
-    let [pos, expr] = vimpire#util#ExtractSexpr(1)
-
-    call vimpire#backend#EvalWithPosition(file, pos[0] - 1, 1, { ->
-                \ vimpire#connection#Eval(server,
-                \   expr,
-                \   { "eval": vimpire#backend#ShowClojureResultCallback(nspace)})
-                \ })
-endfunction
-
-function! VimpireEvalParagraphWorker() dict
-    normal! }
-    return line(".")
-endfunction
-
-function! vimpire#backend#EvalParagraph()
+function! s:EvalOperatorWorker(type)
     let server = vimpire#connection#ForBuffer()
+
     let nspace = b:vimpire_namespace
     let file   = vimpire#util#BufferName()
-    let startPosition = line(".")
+    let line   = 1
+    let col    = 1
 
-    let endPosition = vimpire#util#WithSavedPosition(
-                \ function("VimpireEvalParagraphWorker"))
+    if a:type == "line"
+        let line = line("'[")
+        let col  = col("'[")
+        let exp  = vimpire#util#WithSavedPosition(
+                    \ function("vimpire#util#Yank",
+                    \   ["l", "normal! '[V']\"ly"]))
+    else
+        let line = line("`[")
+        let col  = col("`[")
+        let exp  = vimpire#util#WithSavedPosition(
+                    \ function("vimpire#util#Yank",
+                    \   ["l", "normal! `[v`]\"ly"]))
+    endif
 
-    let content = join(getbufline(bufnr("%"), startPosition, endPosition), "\n")
+    call vimpire#backend#EvalWithPosition(server, file, line, col, nspace,
+                \ exp,
+                \ {"eval": vimpire#backend#ShowClojureResultCallback(nspace)})
+endfunction
 
-    call vimpire#backend#EvalWithPosition(file, startPosition - 1, 1, { ->
-                \ vimpire#connection#Eval(server,
-                \ content,
-                \   { "eval": vimpire#backend#ShowClojureResultCallback(nspace)})
-                \ })
+" We have to inline this, operatorfunc cannot take functions.
+function! vimpire#backend#EvalOperator(type)
+    call vimpire#ui#ProtectedPlug(
+                \ function("vimpire#ui#CommandPlug"),
+                \ function("s:EvalOperatorWorker"),
+                \ a:type)
 endfunction
 
 " Omni Completion

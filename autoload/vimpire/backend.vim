@@ -179,15 +179,20 @@ function! vimpire#backend#RunTests(all)
                 \ vimpire#backend#ShowClojureResultCallback(nspace))
 endfunction
 
-function! vimpire#backend#EvalWithPosition(fname, line, column, f)
+function! vimpire#backend#EvalWithPosition(server, fname, line, column, nspace,
+            \ code, handlers)
+    let nspace = a:server.namespace
+
+    call vimpire#connection#Eval(a:server, "(in-ns '" . a:nspace . ")", {})
     call vimpire#backend#Action(":set-source",
                 \ {":unrepl/sourcename": a:fname,
                 \  ":unrepl/line":       a:line,
                 \  ":unrepl/column":     a:column},
                 \ { val -> val })
 
-    call a:f()
+    call vimpire#connection#Eval(a:server, a:code, a:handlers)
 
+    call vimpire#connection#Eval(a:server, "(in-ns '" . nspace . ")", {})
     call vimpire#backend#Action(":set-source",
                 \ {":unrepl/sourcename": "Tooling Repl",
                 \  ":unrepl/line": 1,

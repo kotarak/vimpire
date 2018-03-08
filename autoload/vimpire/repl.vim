@@ -272,7 +272,7 @@ function! vimpire#repl#EnterHookPrompt(this)
     " Special Case: If inside an expression we do not send the expression,
     " but enter a newline and reindent the code.
     if line(".") < line("$")
-                \ || col(".") < vimpire#util#WithSavedPosition(function("FindLastCol"))
+                \ || col(".") < vimpire#util#WithSavedPosition(function("s:FindLastCol"))
         execute "normal! a\<CR>x"
         normal! ==x
         if getline(".") =~ '^\s*$'

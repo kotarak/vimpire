@@ -309,6 +309,7 @@ endfunction
 
 function! vimpire#repl#HandleSyntaxChecked(this, cmd, validForm)
     if a:validForm
+        call add(a:this.history, a:cmd)
         call vimpire#connection#Eval(a:this.conn, a:cmd,
                     \ {"eval":      {val -> vimpire#repl#HandleEval(a:this, val)},
                     \  "exception": {val -> vimpire#repl#HandleException(a:this, val)}})
@@ -347,7 +348,7 @@ function! vimpire#repl#UpHistory(this)
         let a:this.historyDepth = histDepth + 1
 
         call vimpire#repl#DeleteLast(a:this)
-        call vimpire#window#ShowText(a:this, a:this.prompt . " " . cmd)
+        call vimpire#window#ShowText(a:this, a:this.prompt . cmd)
     endif
 
     normal! G$
@@ -362,10 +363,10 @@ function! vimpire#repl#DownHistory(this)
         let cmd = a:this.history[a:this.historyDepth]
 
         call vimpire#repl#DeleteLast(a:this)
-        call vimpire#window#ShowText(a:this, a:this.prompt . " " . cmd)
+        call vimpire#window#ShowText(a:this, a:this.prompt . cmd)
     elseif histDepth == 0
         call vimpire#repl#DeleteLast(a:this)
-        call vimpire#window#ShowText(a:this, a:this.prompt . " ")
+        call vimpire#window#ShowText(a:this, a:this.prompt)
     endif
 
     normal! G$

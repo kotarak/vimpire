@@ -91,52 +91,6 @@
     (java-method-str parsed)
     (clojure-method-str parsed)))
 
-; Taken from pyro: https://github.com/venantius/pyro
-(defn ^:private pad-integer
-  "Right-pad an integer with spaces until it takes up 4 character spaces."
-  [n]
-  (let [len (-> n str count)]
-    (str n (apply str (repeat (- 4 len) " ")))))
-
-(defn ^:private pad-source
-  [s n]
-  (str "    " (pad-integer n) " " s))
-
-(defn ^:private pad-source-arrow
-  [s n]
-  (str "--> " (pad-integer n) " " s))
-
-(defn ^:private filepath->stream
-  [filepath]
-  (or (.getResourceAsStream (RT/baseLoader) filepath)
-      (let [file (io/file filepath)]
-        (when (.exists file)
-          (io/input-stream file)))))
-
-(defn ^:private filepath->reader
-  [filepath]
-  (some-> (filepath->stream filepath) io/reader))
-
-(defn ^:private file-source
-  [filepath]
-  (when-let [rdr (filepath->reader filepath)]
-    (with-open [rdr rdr] (doall (line-seq rdr)))))
-
-(defn ^:private source-fn
-  [filepath line number]
-  (let [lines (file-source filepath)]
-    (when (seq lines)
-      (let [content   (drop (- line (inc number)) lines)
-            pre       (take number content)
-            line-code (nth content number)
-            post      (->> content (take (inc (* number 2))) (drop (inc number)))]
-        (str (string/join "\n" (flatten
-                                 [(map pad-source pre (range (- line number) line))
-                                  (pad-source-arrow line-code line)
-                                  (map pad-source post
-                                       (range (inc line) (inc (+ line number))))]))
-             "\n")))))
-
 (defn ^:private ns->filename
   [n f]
   (let [n (-> n
@@ -161,10 +115,7 @@
 
 (defn ^:private print-trace-element
   [{:keys [class method filename line anon-fn] :as element}]
-  (println (method-str element) (source-str element))
-  (when (:clojure element)
-    (when-let [file (get-var-filename element)]
-      (some-> (source-fn file line 2) println))))
+  (println (method-str element) (source-str element)))
 
 (defn pprint-exception
   [error]

@@ -201,24 +201,20 @@ function! vimpire#connection#HandleHello(this, response)
         let a:this.sideloader = vimpire#connection#NewSideloader(a:this)
 
         " Disable elisions for tooling repl.
-        let action = vimpire#connection#ExpandAction(
-                    \ a:this.actions[":print-limits"],
+        let action = vimpire#connection#Action(
+                    \ a:this,
+                    \ ":print-limits",
                     \ {":unrepl.print/string-length": {"edn/symbol": "Long/MAX_VALUE"},
                     \  ":unrepl.print/coll-length":   {"edn/symbol": "Long/MAX_VALUE"},
                     \  ":unrepl.print/nesting-depth": {"edn/symbol": "Long/MAX_VALUE"}})
-        let code   = vimpire#edn#Write(action)
-
-        call vimpire#connection#Eval(a:this, code, {})
 
         " Set the name of the tooling repl.
-        let action = vimpire#connection#ExpandAction(
-                    \ a:this.actions[":set-source"],
+        let action = vimpire#connection#Action(
+                    \ a:this,
+                    \ ":set-source",
                     \ {":unrepl/sourcename": "Tooling Repl",
                     \  ":unrepl/line": 1,
                     \  ":unrepl/column": 1})
-        let code   = vimpire#edn#Write(action)
-
-        call vimpire#connection#Eval(a:this, code, {})
     endif
 endfunction
 
@@ -372,13 +368,13 @@ function! vimpire#connection#ExpandAction(form, bindings)
     return a:form
 endfunction
 
-function! vimpire#connection#Action(this, action, bindings, callbacks)
+function! vimpire#connection#Action(this, action, bindings, ...)
     let action = vimpire#connection#ExpandAction(
                 \ a:this.actions[a:action],
                 \ a:bindings)
     let code   = vimpire#edn#Write(action)
 
-    call vimpire#connection#Eval(a:this, code, a:callbacks)
+    call vimpire#connection#Eval(a:this, code, a:0 > 0 ? a:1 : {})
 endfunction
 
 

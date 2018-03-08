@@ -54,7 +54,7 @@ function! vimpire#connection#ForBuffer()
         endif
     endfor
 
-    throw "Vimpire: no connection found"
+    throw "Vimpire: No connection found"
 endfunction
 
 function! vimpire#connection#New(serverOrSibling)

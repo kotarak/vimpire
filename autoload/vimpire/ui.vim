@@ -73,7 +73,9 @@ function! vimpire#ui#CommandPlug(f, ...)
                     \ . "Reasons might be that the server is not running.\n\n"
                     \ . "Vimpire will *not* start the server for you or handle the classpath.\n"
                     \ . "There is a plethora of tools like ivy, maven, gradle and leiningen,\n"
-                    \ . "which do this better than Vimpire could ever do it."
+                    \ . "which do this better than Vimpire could ever do it.\n\n"
+                    \ . "Another reason might be, that you forgot to connect to the server\n"
+                    \ . "for your prefix with VimpireBite."
         throw msg
     endif
 endfunction

@@ -291,35 +291,35 @@ function! vimpire#backend#OmniCompletion(findstart, base)
 endfunction
 
 function! vimpire#backend#InitBuffer(...)
-    if !exists("b:vimpire_namespace")
-        let b:vimpire_namespace = "user"
+    if exists("b:vimpire_namespace")
+        return
+    endif
 
+    if !&previewwindow
         " Get the namespace of the buffer.
-        if !&previewwindow
-            try
-                let buffer  = bufnr("%")
-                let content = join(getbufline(buffer, 1, line("$")), "\n")
-                let server  = vimpire#connection#ForBuffer()
-                call vimpire#connection#Action(
-                            \ server,
-                            \ ":vimpire.nails/namespace-of-file",
-                            \ {":content": content},
-                            \ {"eval": { val ->
-                            \    setbufvar(buffer, "vimpire_namespace", val)
-                            \ }})
-            catch /Vimpire: No backend server found/
-                " Do nothing. Fail silently in this case.
-            catch /.*/
-                if a:000 == []
-                    call vimpire#ui#ReportError(
-                                \ "Could not determine the Namespace of the file.\n\n"
-                                \ . "This might have different reasons. Please check, that the server\n"
-                                \ . "is running and that the file does not contain syntax errors. The\n"
-                                \ . "interactive features will not be enabled.\n"
-                                \ . "\nReason:\n" . v:exception)
-                endif
-            endtry
-        endif
+        try
+            let buffer  = bufnr("%")
+            let content = join(getbufline(buffer, 1, line("$")), "\n")
+            let server  = vimpire#connection#ForBuffer()
+            call vimpire#connection#Action(
+                        \ server,
+                        \ ":vimpire.nails/namespace-of-file",
+                        \ {":content": content},
+                        \ {"eval": { val ->
+                        \    setbufvar(buffer, "vimpire_namespace", val)
+                        \ }})
+        catch /Vimpire: No connection found/
+            " Do nothing. Fail silently in this case.
+        catch /.*/
+            if a:000 == []
+                call vimpire#ui#ReportError(
+                            \ "Could not determine the Namespace of the file.\n\n"
+                            \ . "This might have different reasons. Please check, that the server\n"
+                            \ . "is running and that the file does not contain syntax errors. The\n"
+                            \ . "interactive features will not be enabled.\n"
+                            \ . "\nReason:\n" . v:exception)
+            endif
+        endtry
     endif
 endfunction
 

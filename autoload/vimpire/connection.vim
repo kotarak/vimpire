@@ -60,8 +60,9 @@ endfunction
 function! vimpire#connection#New(serverOrSibling)
     let this = {}
 
-    let this.unrepled = v:false
-    let this.running = v:false
+    let this.unrepled  = v:false
+    let this.running   = v:false
+    let this.namespace = "user"
 
     if type(a:serverOrSibling) == v:t_dict
         let this.server  = a:serverOrSibling.server
@@ -259,6 +260,10 @@ function! vimpire#connection#DoEval(this)
 endfunction
 
 function! vimpire#connection#HandlePrompt(this, response)
+    let resp = vimpire#edn#Simplify(a:response)
+    let a:this.namespace = resp[1]["clojure.core/*ns*"]
+    let a:this.evaling   = v:false
+
     if len(a:this.equeue) > 0
         let [ ctx; nextQueue ] = a:this.equeue
         let a:this.equeue = nextQueue
@@ -267,8 +272,6 @@ function! vimpire#connection#HandlePrompt(this, response)
             call ctx.callbacks.prompt(a:response)
         endif
     endif
-
-    let a:this.evaling = v:false
 
     call vimpire#connection#DoEval(a:this)
 endfunction

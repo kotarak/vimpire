@@ -85,7 +85,6 @@ function! vimpire#repl#New(sibling, namespace)
     startinsert!
 
     let b:vimpire_namespace = "user"
-    let this.namespace = "user"
     let this.prompt = "user=> "
 
     call vimpire#connection#Start(server)
@@ -129,7 +128,7 @@ endfunction
 function! vimpire#repl#ShowPrompt(this)
     call vimpire#repl#DeleteLastLineIfNecessary(a:this)
     call vimpire#window#ShowText(a:this, a:this.prompt)
-    let b:vimpire_namespace = a:this.namespace
+    let b:vimpire_namespace = a:this.conn.namespace
 
     call cursor(line("$"), col([line("$"), "$"]))
     " Although supposed to be unnecessary…
@@ -140,9 +139,9 @@ function! vimpire#repl#HandlePrompt(this, response) abort
     if !has_key(a:this, "state") || a:this.state == "eval-ended"
         let resp = vimpire#edn#Simplify(a:response)
 
-        let a:this.namespace = resp[1]["clojure.core/*ns*"]
-        let a:this.prompt = a:this.namespace . "=> "
-        let a:this.state = "prompt"
+        let a:this.conn.namespace = resp[1]["clojure.core/*ns*"]
+        let a:this.prompt = a:this.conn.namespace . "=> "
+        let a:this.state  = "prompt"
 
         call vimpire#repl#ShowPrompt(a:this)
     endif
@@ -305,7 +304,7 @@ function! vimpire#repl#EnterHookPrompt(this)
 
     let action = vimpire#connection#ExpandAction(
                 \ a:this.conn.sibling.actions[":vimpire.nails/check-syntax"],
-                \ {":nspace":  a:this.namespace,
+                \ {":nspace":  a:this.conn.namespace,
                 \  ":content": cmd})
     let code   = vimpire#edn#Write(action)
 

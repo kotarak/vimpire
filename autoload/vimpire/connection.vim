@@ -372,5 +372,15 @@ function! vimpire#connection#ExpandAction(form, bindings)
     return a:form
 endfunction
 
+function! vimpire#connection#Action(this, action, bindings, callbacks)
+    let action = vimpire#connection#ExpandAction(
+                \ a:this.actions[a:action],
+                \ a:bindings)
+    let code   = vimpire#edn#Write(action)
+
+    call vimpire#connection#Eval(a:this, code, a:callbacks)
+endfunction
+
+
 " Epilog
 let &cpo = s:save_cpo

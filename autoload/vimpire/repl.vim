@@ -263,18 +263,16 @@ function! vimpire#repl#EnterHookStdin(this)
     startinsert!
 endfunction
 
+function! s:FindLastCol()
+    normal! g_
+    return col(".")
+endfunction
+
 function! vimpire#repl#EnterHookPrompt(this)
     " Special Case: If inside an expression we do not send the expression,
     " but enter a newline and reindent the code.
-    let lastCol = {}
-
-    function lastCol.f() dict
-        normal! g_
-        return col(".")
-    endfunction
-
     if line(".") < line("$")
-                \ || col(".") < vimpire#util#WithSavedPosition(lastCol)
+                \ || col(".") < vimpire#util#WithSavedPosition(function("FindLastCol"))
         execute "normal! a\<CR>x"
         normal! ==x
         if getline(".") =~ '^\s*$'

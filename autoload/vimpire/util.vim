@@ -27,23 +27,23 @@ function! vimpire#util#SynIdName()
     return synIDattr(synID(line("."), col("."), 0), "name")
 endfunction
 
-function! vimpire#util#WithSaved(closure)
-    let v = a:closure.save()
+function! vimpire#util#WithSaved(f, save, restore)
+    let v = a:save()
     try
-        let r = a:closure.f()
+        let r = a:f()
     finally
-        call a:closure.restore(v)
+        call a:restore(v)
     endtry
     return r
 endfunction
 
-function! s:SavePosition() dict
+function! s:SavePosition()
     let [ _b, l, c, _o ] = getpos(".")
     let b = bufnr("%")
     return [b, l, c]
 endfunction
 
-function! s:RestorePosition(value) dict
+function! s:RestorePosition(value)
     let [b, l, c] = a:value
 
     if bufnr("%") != b
@@ -52,66 +52,56 @@ function! s:RestorePosition(value) dict
     call setpos(".", [0, l, c, 0])
 endfunction
 
-function! vimpire#util#WithSavedPosition(closure)
-    let a:closure.save = function("s:SavePosition")
-    let a:closure.restore = function("s:RestorePosition")
-
-    return vimpire#util#WithSaved(a:closure)
+function! vimpire#util#WithSavedPosition(f)
+    return vimpire#util#WithSaved(a:f,
+                \ function("s:SavePosition"),
+                \ function("s:RestorePosition"))
 endfunction
 
 function! s:SaveRegister(reg)
     return [a:reg, getreg(a:reg, 1), getregtype(a:reg)]
 endfunction
 
-function! s:SaveRegisters() dict
-    return map([self._register, "", "/", "-",
+function! s:SaveRegisters(reg)
+    return map([a:reg, "", "/", "-",
                 \ "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
                 \ "s:SaveRegister(v:val)")
 endfunction
 
-function! s:RestoreRegisters(registers) dict
+function! s:RestoreRegisters(registers)
     for register in a:registers
         call call(function("setreg"), register)
     endfor
 endfunction
 
-function! vimpire#util#WithSavedRegister(reg, closure)
-    let a:closure._register = a:reg
-    let a:closure.save = function("s:SaveRegisters")
-    let a:closure.restore = function("s:RestoreRegisters")
-
-    return vimpire#util#WithSaved(a:closure)
+function! vimpire#util#WithSavedRegister(reg, f)
+    return vimpire#util#WithSaved(a:f,
+                \ function("s:SaveRegisters", [a:reg]),
+                \ function("s:RestoreRegisters"))
 endfunction
 
-function! s:SaveOption() dict
-    return eval("&" . self._option)
+function! s:SaveOption(option)
+    return eval("&" . a:option)
 endfunction
 
-function! s:RestoreOption(value) dict
-    execute "let &" . self._option . " = a:value"
+function! s:RestoreOption(option, value)
+    execute "let &" . a:option . " = a:value"
 endfunction
 
 function! vimpire#util#WithSavedOption(option, closure)
-    let a:closure._option = a:option
-    let a:closure.save = function("s:SaveOption")
-    let a:closure.restore = function("s:RestoreOption")
-
-    return vimpire#util#WithSaved(a:closure)
+    return vimpire#util#WithSaved(a:closure
+                \ function("s:SaveOption", [a:option]),
+                \ function("s:RestoreOption, [a:option]))
 endfunction
 
-function! s:DoYank() dict
-    silent execute self.yank
-    return getreg(self.reg)
+function! s:DoYank(reg, yank)
+    silent execute a:yank
+    return getreg(a:reg)
 endfunction
 
 function! vimpire#util#Yank(r, how)
-    let closure = {
-                \ 'reg': a:r,
-                \ 'yank': a:how,
-                \ 'f': function("s:DoYank")
-                \ }
-
-    return vimpire#util#WithSavedRegister(a:r, closure)
+    return vimpire#util#WithSavedRegister(a:r,
+                \ function("s:DoYank", [a:r, a:how]))
 endfunction
 
 function! vimpire#util#MoveBackward()
@@ -130,7 +120,7 @@ function! vimpire#util#BufferName()
     return file
 endfunction
 
-function! s:ClojureExtractSexprWorker() dict
+function! s:ClojureExtractSexprWorker(flag)
     let pos = [0, 0]
     let start = getpos(".")
 
@@ -140,7 +130,7 @@ function! s:ClojureExtractSexprWorker() dict
     endif
 
     if pos == [0, 0]
-        let pos = searchpairpos('(', '', ')', 'bW' . self.flag,
+        let pos = searchpairpos('(', '', ')', 'bW' . a:flag,
                     \ "vimpire#util#SynIdName() !~ 'clojureParen\\|level\\d\\+c'")
     endif
 
@@ -152,13 +142,9 @@ function! s:ClojureExtractSexprWorker() dict
 endfunction
 
 function! vimpire#util#ExtractSexpr(toplevel)
-    let closure = {
-                \ "flag"  : (a:toplevel ? "r" : ""),
-                \ "level" : (a:toplevel ? "0" : '\d'),
-                \ "f"     : function("s:ClojureExtractSexprWorker")
-                \ }
-
-    return vimpire#util#WithSavedPosition(closure)
+    let flag = a:toplevel ? "r" : ""
+    return vimpire#util#WithSavedPosition(
+                \ function("s:ClojureExtractSexprWorker", [flag]))
 endfunction
 
 " Epilog

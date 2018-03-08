@@ -259,8 +259,8 @@ function! vimpire#backend#EvalParagraph()
     let file   = vimpire#util#BufferName()
     let startPosition = line(".")
 
-    let closure = { 'f' : function("VimpireEvalParagraphWorker") }
-    let endPosition = vimpire#util#WithSavedPosition(closure)
+    let endPosition = vimpire#util#WithSavedPosition(
+                \ function("VimpireEvalParagraphWorker"))
 
     let content = join(getbufline(bufnr("%"), startPosition, endPosition), "\n")
 

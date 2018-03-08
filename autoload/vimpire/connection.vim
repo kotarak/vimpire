@@ -57,11 +57,29 @@ function! vimpire#connection#ForBuffer()
     throw "Vimpire: No connection found"
 endfunction
 
+let s:DefaultHandlers = {
+            \ ":read":
+            \ { t, r -> vimpire#connection#HandleRead(t, r) },
+            \ ":start-eval":
+            \ { t, r -> vimpire#connection#HandleEvent(t, "startEval", r) },
+            \ ":eval":
+            \ { t, r -> vimpire#connection#HandleEndOfEval(t, "eval", r) },
+            \ ":prompt":
+            \ { t, r -> vimpire#connection#HandlePrompt(t, r) },
+            \ ":out":
+            \ { t, r -> vimpire#connection#HandleEvent(t, "out", r) },
+            \ ":err":
+            \ { t, r -> vimpire#connection#HandleEvent(t, "err", r) },
+            \ ":log":
+            \ { t, r -> vimpire#connection#HandleEvent(t, "log", r) },
+            \ ":exception":
+            \ { t, r -> vimpire#connection#HandleEndOfEval(t, "exception", r) }
+            \ }
+
 function! vimpire#connection#New(serverOrSibling)
     let this = {}
 
     let this.unrepled  = v:false
-    let this.running   = v:false
     let this.namespace = "user"
 
     if type(a:serverOrSibling) == v:t_dict
@@ -72,29 +90,10 @@ function! vimpire#connection#New(serverOrSibling)
         let this.sibling = v:none
     endif
 
-    let this.equeue  = []
-    let this.evaling = v:false
-
-    let this.queue   = ""
-
-    let this.handlers = {
-                \ ":read":
-                \ { t, r -> vimpire#connection#HandleEvent(t, "read", r) },
-                \ ":start-eval":
-                \ { t, r -> vimpire#connection#HandleEvent(t, "startEval", r) },
-                \ ":eval":
-                \ { t, r -> vimpire#connection#HandleEvent(t, "eval", r) },
-                \ ":prompt":
-                \ { t, r -> vimpire#connection#HandlePrompt(t, r) },
-                \ ":out":
-                \ { t, r -> vimpire#connection#HandleEvent(t, "out", r) },
-                \ ":err":
-                \ { t, r -> vimpire#connection#HandleEvent(t, "err", r) },
-                \ ":log":
-                \ { t, r -> vimpire#connection#HandleEvent(t, "log", r) },
-                \ ":exception":
-                \ { t, r -> vimpire#connection#HandleException(t, "exception", r) }
-                \ }
+    let this.equeue   = []
+    let this.state    = "raw"
+    let this.queue    = ""
+    let this.handlers = s:DefaultHandlers
 
     return this
 endfunction
@@ -146,7 +145,12 @@ endfunction
 function! vimpire#connection#HandleResponse(this, msg)
     let a:this.queue .= a:msg
 
-    while v:true
+    while len(a:this.queue) > 0
+        " Sideloader not ready, yet.
+        if a:this.state == "hello"
+            return
+        endif
+
         try
             let [ response, nextQueue ] = vimpire#edn#Read(a:this.queue)
         catch /EOF/
@@ -192,9 +196,9 @@ function! vimpire#connection#HandleHello(this, response)
         let a:this.about = payload[":about"]
     endif
 
-    let a:this.running = v:true
-
     if type(a:this.sibling) == v:t_none
+        let a:this.state = "hello"
+
         " This is the tooling repl for this backend server. We have to setup
         " the sideloader to get at the tooling venom. Also the tooling repl
         " should not use elisions.
@@ -215,11 +219,13 @@ function! vimpire#connection#HandleHello(this, response)
                     \ {":unrepl/sourcename": "Tooling Repl",
                     \  ":unrepl/line": 1,
                     \  ":unrepl/column": 1})
+    else
+        let a:this.state = "awaiting-prompt"
     endif
 endfunction
 
 function! vimpire#connection#HandleEvent(this, event, response)
-    if len(a:this.equeue) == 0
+    if a:this.state != "evaling"
         return
     endif
 
@@ -228,48 +234,72 @@ function! vimpire#connection#HandleEvent(this, event, response)
     endif
 endfunction
 
-function! vimpire#connection#HandleException(this, event, response)
-    if len(a:this.equeue) == 0
-                \ || !has_key(a:this.equeue[0].callbacks, a:event)
-        echoerr vimpire#edn#Write(a:response[1])
-        return
-    endif
+function! vimpire#connection#HandleEndOfEval(this, event, response)
+    if a:this.state == "evaling"
+        if has_key(a:this.equeue[0].callbacks, a:event)
+            call a:this.equeue[0].callbacks[a:event](a:response[1])
+        elseif a:event == "exception"
+            echoerr vimpire#edn#Write(a:response[1])
+        endif
 
-    call a:this.equeue[0].callbacks[a:event](a:response[1])
+        if a:this.equeue[0].remaining == 0
+            call remove(a:this.equeue, 0)
+            let a:this.state = "awaiting-prompt"
+        endif
+    endif
 endfunction
 
-function! vimpire#connection#Eval(this, code, callbacks)
-    let ctx = { "code": a:code, "callbacks": a:callbacks }
+function! vimpire#connection#HandlePrompt(this, response)
+    let resp = vimpire#edn#Simplify(a:response)
+    let a:this.namespace = resp[1]["clojure.core/*ns*"]
+
+    " Weirdo heuristic. Either the submitted code was just whitespace
+    " or we did a unrepl/do action. Cleanup the queue.
+    if a:this.state == "evaling" && a:this.equeue[0].remaining == 0
+        call remove(a:this.equeue, 0)
+        let a:this.state = "awaiting-prompt"
+    endif
+
+    if a:this.state == "awaiting-prompt"
+        let a:this.state = "prompt"
+        call vimpire#connection#DoEval(a:this)
+    endif
+endfunction
+
+function! vimpire#connection#HandleRead(this, response)
+    if a:this.state == "evaling"
+        let ctx = a:this.equeue[0]
+
+        if has_key(ctx.callbacks, "read")
+            call ctx.callbacks.read(a:response[1])
+        endif
+
+        let response = vimpire#edn#Simplify(a:response[1])
+
+        let ctx.remaining = ctx.remaining - response[":len"]
+    endif
+endfunction
+
+function! vimpire#connection#Eval(this, code, ...)
+    " Note: strchars + 1 for trailing newline on submit
+    let ctx = {
+                \ "code":      a:code,
+                \ "remaining": strchars(a:code) + 1,
+                \ "callbacks": (a:0 > 0 ? a:1 : {})
+                \ }
 
     call add(a:this.equeue, ctx)
     call vimpire#connection#DoEval(a:this)
 endfunction
 
 function! vimpire#connection#DoEval(this)
-    if !a:this.running || a:this.evaling || len(a:this.equeue) == 0
+    if a:this.state != "prompt" || len(a:this.equeue) == 0
         return
     endif
 
-    let a:this.evaling = v:true
+    let a:this.state = "evaling"
 
     call ch_sendraw(a:this.channel, a:this.equeue[0].code . "\n")
-endfunction
-
-function! vimpire#connection#HandlePrompt(this, response)
-    let resp = vimpire#edn#Simplify(a:response)
-    let a:this.namespace = resp[1]["clojure.core/*ns*"]
-    let a:this.evaling   = v:false
-
-    if len(a:this.equeue) > 0
-        let [ ctx; nextQueue ] = a:this.equeue
-        let a:this.equeue = nextQueue
-
-        if has_key(ctx.callbacks, "prompt")
-            call ctx.callbacks.prompt(a:response)
-        endif
-    endif
-
-    call vimpire#connection#DoEval(a:this)
 endfunction
 
 function! vimpire#connection#NewSideloader(oniisama)
@@ -278,6 +308,7 @@ function! vimpire#connection#NewSideloader(oniisama)
     let this.running  = v:false
     let this.oniisama = a:oniisama
     let this.queue    = ""
+    let this.state    = "raw"
     let this.channel  = ch_open(
                 \ a:oniisama.server, {
                 \   "mode": "raw",
@@ -309,6 +340,8 @@ function! vimpire#connection#UpgradeSideloader(this, msg)
 
         call ch_sendraw(a:this.channel, starter . "\n")
     elseif a:this.queue =~ '\[:unrepl.jvm.side-loader/hello\]'
+        let a:this.state = "waiting"
+
         let [ hello_, nextQueue ] = vimpire#edn#Read(a:this.queue)
         let a:this.queue = nextQueue
 
@@ -318,6 +351,10 @@ function! vimpire#connection#UpgradeSideloader(this, msg)
                     \ }})
 
         let a:this.running = v:true
+
+        " Tell Onii-sama and trigger queue activation.
+        let a:this.oniisama.state = "awaiting-prompt"
+        call vimpire#connection#HandleResponse(a:this.oniisama, "")
     endif
 endfunction
 

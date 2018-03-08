@@ -241,9 +241,25 @@ function! s:EvalOperatorWorker(type)
                     \   ["l", "normal! `[v`]\"ly"]))
     endif
 
-    call vimpire#backend#EvalWithPosition(server, file, line, col, nspace,
-                \ exp,
-                \ {"eval": vimpire#backend#ShowClojureResultCallback(nspace)})
+    call vimpire#connection#Action(
+                \ server,
+                \ ":vimpire.nails/check-syntax",
+                \ {":nspace":  nspace, ":content": exp},
+                \ {"eval": function("s:EvalOperatorSyntaxChecked",
+                \   [server, file, line, col, nspace, exp])})
+endfunction
+
+function! s:EvalOperatorSyntaxChecked(server, file, line, col, nspace,
+            \ exp, validSyntax)
+    if a:validSyntax
+        call vimpire#backend#EvalWithPosition(a:server,
+                    \ a:file, a:line, a:col, a:nspace,
+                    \ a:exp,
+                    \ {"eval":
+                    \  vimpire#backend#ShowClojureResultCallback(a:nspace)})
+    else
+        call vimpire#ui#ReportError("Syntax check failed:\n\n" . a:exp)
+    endif
 endfunction
 
 " We have to inline this, operatorfunc cannot take functions.

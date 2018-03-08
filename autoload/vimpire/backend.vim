@@ -219,27 +219,24 @@ function! vimpire#backend#EvalWithPosition(server, fname, line, column, nspace,
                 \ {})
 endfunction
 
+function! s:EvalOperatorExtractor(type)
+    if a:type == "line"
+        normal! '[
+        return [line("."), col("."), vimpire#util#Yank("l", "normal! V']\"ly")]
+    else
+        normal! `[
+        return [line("."), col("."), vimpire#util#Yank("l", "normal! v`]\"ly")]
+    endif
+endfunction
+
 function! s:EvalOperatorWorker(type)
     let server = vimpire#connection#ForBuffer()
 
     let nspace = b:vimpire_namespace
     let file   = vimpire#util#BufferName()
-    let line   = 1
-    let col    = 1
 
-    if a:type == "line"
-        let line = line("'[")
-        let col  = col("'[")
-        let exp  = vimpire#util#WithSavedPosition(
-                    \ function("vimpire#util#Yank",
-                    \   ["l", "normal! '[V']\"ly"]))
-    else
-        let line = line("`[")
-        let col  = col("`[")
-        let exp  = vimpire#util#WithSavedPosition(
-                    \ function("vimpire#util#Yank",
-                    \   ["l", "normal! `[v`]\"ly"]))
-    endif
+    let [ line, col, exp ] = vimpire#util#WithSavedPosition(
+                \ function("s:EvalOperatorExtractor", [a:type]))
 
     call vimpire#connection#Action(
                 \ server,

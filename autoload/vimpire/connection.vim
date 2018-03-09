@@ -59,7 +59,7 @@ endfunction
 
 let s:DefaultHandlers = {
             \ ":read":
-            \ { t, r -> vimpire#connection#HandleRead(t, r) },
+            \ { t, r -> vimpire#connection#HandleEvent(t, "read", r) },
             \ ":start-eval":
             \ { t, r -> vimpire#connection#HandleEvent(t, "startEval", r) },
             \ ":eval":
@@ -91,6 +91,7 @@ function! vimpire#connection#New(serverOrSibling)
     endif
 
     let this.equeue   = []
+    let this.offset   = 0
     let this.state    = "raw"
     let this.queue    = ""
     let this.handlers = s:DefaultHandlers
@@ -241,24 +242,32 @@ function! vimpire#connection#HandleEndOfEval(this, event, response)
         elseif a:event == "exception"
             echoerr vimpire#edn#Write(a:response[1])
         endif
-
-        if a:this.equeue[0].remaining == 0
-            call remove(a:this.equeue, 0)
-            let a:this.state = "awaiting-prompt"
-        endif
     endif
 endfunction
 
 function! vimpire#connection#HandlePrompt(this, response)
-    let resp = vimpire#edn#Simplify(a:response)
-    let a:this.namespace = resp[1]["clojure.core/*ns*"]
+    let response = vimpire#edn#Simplify(a:response[1])
+    let a:this.namespace = response["clojure.core/*ns*"]
 
     " Weirdo heuristic. Either the submitted code was just whitespace
     " or we did a unrepl/do action. Cleanup the queue.
-    if a:this.state == "evaling" && a:this.equeue[0].remaining == 0
-        call remove(a:this.equeue, 0)
-        let a:this.state = "awaiting-prompt"
+    if a:this.state == "evaling"
+        let len = response[":offset"] - a:this.offset
+        let ctx = a:this.equeue[0]
+
+        let ctx.remaining -= len
+
+        if ctx.remaining == 0
+            call remove(a:this.equeue, 0)
+            let a:this.state = "awaiting-prompt"
+        else
+            if has_key(ctx.callbacks, "prompt")
+                call ctx.prompt(a:response[1])
+            endif
+        endif
     endif
+
+    let a:this.offset = response[":offset"]
 
     if a:this.state == "awaiting-prompt"
         let a:this.state = "prompt"
@@ -266,22 +275,8 @@ function! vimpire#connection#HandlePrompt(this, response)
     endif
 endfunction
 
-function! vimpire#connection#HandleRead(this, response)
-    if a:this.state == "evaling"
-        let ctx = a:this.equeue[0]
-
-        if has_key(ctx.callbacks, "read")
-            call ctx.callbacks.read(a:response[1])
-        endif
-
-        let response = vimpire#edn#Simplify(a:response[1])
-
-        let ctx.remaining = ctx.remaining - response[":len"]
-    endif
-endfunction
-
 function! vimpire#connection#Eval(this, code, ...)
-    " Note: strchars + 1 for trailing newline on submit
+    " Note: strchars + 1 for triggering newline.
     let ctx = {
                 \ "code":      a:code,
                 \ "remaining": strchars(a:code) + 1,

@@ -2,7 +2,7 @@
  (vimpire.nails/doc-lookup #unrepl/param :nspace #unrepl/param :sym)
 
  :vimpire.nails/find-doc
- (vimpire.nails/find-doc #unrepl/param :nspace #unrepl/param :sym)
+ (vimpire.nails/find-doc #unrepl/param :query)
 
  :vimpire.nails/javadoc-path
  (vimpire.nails/javadoc-path #unrepl/param :nspace #unrepl/param :sym)

@@ -47,7 +47,7 @@ function! vimpire#backend#FindDoc()
     call vimpire#connection#Action(
                 \ server,
                 \ ":vimpire.nails/find-doc",
-                \ {":nspace": b:vimpire_namespace, ":query": pattern},
+                \ {":query": pattern},
                 \ {"eval": function("vimpire#ui#ShowResult")})
 endfunction
 

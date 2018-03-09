@@ -138,16 +138,18 @@ itself (not its value) is returned. The reader macro #'x expands to (var x)."}})
   "Prints documentation for any var whose documentation or name
   contains a match for re-string-or-pattern"
   [re-string-or-pattern]
-    (let [re (re-pattern re-string-or-pattern)
-          ms (concat (mapcat #(sort-by :name (map meta (vals (ns-interns %))))
-                             (all-ns))
-                     (map namespace-doc (all-ns))
-                     (map special-doc (keys special-doc-map)))]
-      (doseq [m ms
-              :when (and (:doc m)
-                         (or (re-find (re-matcher re (:doc m)))
-                             (re-find (re-matcher re (str (:name m))))))]
-               (print-documentation m))))
+  (let [re (re-pattern re-string-or-pattern)
+        ms (concat (mapcat #(sort-by :name (map meta (vals (ns-interns %))))
+                           (all-ns))
+                   (map namespace-doc (all-ns))
+                   (map (partial special-doc "user") (keys special-doc-map)))
+        sb (StringBuilder.)]
+    (doseq [m ms
+            :when (and (:doc m)
+                       (or (re-find (re-matcher re (:doc m)))
+                           (re-find (re-matcher re (str (:name m))))))]
+      (.append sb (print-documentation m)))
+    (str sb)))
 
 (defn javadoc-path-for-class
   "Translate the name of a Class to the path of its javadoc file."

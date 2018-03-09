@@ -39,16 +39,19 @@ function! vimpire#repl#New(sibling, namespace)
     let this = vimpire#window#New("vimpire#buffer#New")
     let this.conn = server
 
-    let this.origHandlers = server.handlers
-    let server.handlers = extend(copy(server.handlers),
+    let server.handlers =
                 \ {":started-eval":
-                \  { _t, r -> vimpire#repl#HandleStartedEval(this, r) },
+                \  { _t, r -> vimpire#repl#HandleStartedEval(this, r)},
                 \  ":prompt":
-                \  { _t, r -> vimpire#repl#HandlePrompt(this, r) },
+                \  { _t, r -> vimpire#repl#HandlePrompt(this, r)},
                 \  ":out":
-                \  { _t, r -> vimpire#repl#HandleOutput(this, r) },
+                \  { _t, r -> vimpire#repl#HandleOutput(this, r)},
                 \  ":err":
-                \  { _t, r -> vimpire#repl#HandleOutput(this, r) }})
+                \  { _t, r -> vimpire#repl#HandleOutput(this, r)},
+                \  ":eval":
+                \  { _t, r -> vimpire#repl#HandleEval(this, r)},
+                \  ":exception":
+                \  { _t, r -> vimpire#repl#HandleException(this, r)}}
 
     let this.history = []
     let this.historyDepth = 0
@@ -124,7 +127,6 @@ endfunction
 function! vimpire#repl#ShowPrompt(this)
     call vimpire#repl#DeleteLastLineIfNecessary(a:this)
     call vimpire#window#ShowText(a:this, a:this.prompt)
-    let b:vimpire_namespace = a:this.conn.namespace
 
     call cursor(line("$"), col([line("$"), "$"]))
     " Although supposed to be unnecessary…
@@ -132,18 +134,30 @@ function! vimpire#repl#ShowPrompt(this)
 endfunction
 
 function! vimpire#repl#HandlePrompt(this, response)
-    call a:this.origHandlers[":prompt"](a:this.conn, a:response)
+    let nspace = a:this.conn.namespace
+    let cmd = join(vimpire#repl#GetCommand(a:this), "\n")
 
-    if a:this.conn.state == "prompt"
-        let a:this.prompt = a:this.conn.namespace . "=> "
-        let a:this.state  = "prompt"
+    let a:this.conn.namespace = vimpire#edn#Simplify(a:response[1])["clojure.core/*ns*"]
+    let a:this.prompt = a:this.conn.namespace . "=> "
+    let a:this.state  = "prompt"
 
+    if nspace != a:this.conn.namespace || cmd !~ '^\(\s\|\n\)*$'
         call vimpire#repl#ShowPrompt(a:this)
     endif
+    let b:vimpire_namespace = a:this.conn.namespace
 endfunction
 
 function! vimpire#repl#HandleStartedEval(this, response)
+    if a:this.state == "prompt"
+        " Check if there is an empty prompt. Get rid of it if so.
+        let cmd = join(vimpire#repl#GetCommand(a:this), "\n")
+        if cmd =~ '^\(\s\|\n\)*$'
+            call vimpire#repl#DeleteLast(a:this)
+        endif
+    endif
+
     let a:this.state = "stdin"
+
     call append(line("$"), "")
     call cursor(line("$"), col([line("$"), "$"]))
     " Although supposed to be unnecessary…
@@ -165,7 +179,7 @@ endfunction
 
 function! vimpire#repl#HandleEval(this, response)
     call vimpire#repl#DeleteLastLineIfNecessary(a:this)
-    call vimpire#window#ShowText(a:this, vimpire#edn#Write(a:response))
+    call vimpire#window#ShowText(a:this, vimpire#edn#Write(a:response[1]))
     call cursor(line("$"), col([line("$"), "$"]))
 
     " Although supposed to be unnecessary…
@@ -174,7 +188,7 @@ endfunction
 
 function! vimpire#repl#HandleException(this, response)
     " Exceptions are tagged as #error.
-    let ex = vimpire#edn#SimplifyMap(a:response)[":ex"]["edn/value"]
+    let ex = vimpire#edn#SimplifyMap(a:response[1])[":ex"]["edn/value"]
     let ex = vimpire#edn#SimplifyMap(ex)
 
     let stackTrace = []
@@ -310,9 +324,7 @@ endfunction
 function! vimpire#repl#HandleSyntaxChecked(this, cmd, validForm)
     if a:validForm
         call add(a:this.history, a:cmd)
-        call vimpire#connection#Eval(a:this.conn, a:cmd,
-                    \ {"eval":      {val -> vimpire#repl#HandleEval(a:this, val)},
-                    \  "exception": {val -> vimpire#repl#HandleException(a:this, val)}})
+        call ch_sendraw(a:this.conn.channel, a:cmd . "\n")
     else
         execute "normal! a\<CR>x"
         normal! ==x

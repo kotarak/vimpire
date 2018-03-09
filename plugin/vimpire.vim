@@ -53,10 +53,10 @@ call vimpire#ui#MakeCommandPlug("n", "RequireFileAll", "vimpire#backend#RequireF
 
 call vimpire#ui#MakeCommandPlug("n", "RunTests", "vimpire#backend#RunTests", "0")
 
-call vimpire#ui#MakeCommandPlug("n", "MacroExpand",  "vimpire#backend#MacroExpand", "0")
-call vimpire#ui#MakeCommandPlug("n", "MacroExpand1", "vimpire#backend#MacroExpand", "1")
-
+" Operators
 nnoremap <Plug>VimpireEval. :set operatorfunc=vimpire#backend#EvalOperator<CR>g@
+nnoremap <Plug>VimpireMacroExpand. :set operatorfunc=vimpire#backend#MacroExpand<CR>g@
+nnoremap <Plug>VimpireMacroExpand1. :set operatorfunc=vimpire#backend#MacroExpand1<CR>g@
 
 inoremap <Plug>VimpireReplEnterHook. <Esc>:call vimpire#repl#EnterHook(b:vimpire_repl)<CR>
 inoremap <Plug>VimpireReplEvaluate. <Esc>G$:call vimpire#repl#EnterHook(b:vimpire_repl)<CR>

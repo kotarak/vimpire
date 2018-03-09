@@ -132,7 +132,7 @@
                  #(macroexpand-1 %)
                  #(macroexpand %))]
     (binding [*ns* nspace]
-      (-> (read-string form) expand pprint/pprint))))
+      (with-out-str (-> (read-string form) expand pprint/pprint)))))
 
 (defn check-syntax
   [nspace content]

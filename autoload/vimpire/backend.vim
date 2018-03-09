@@ -157,20 +157,6 @@ function! vimpire#backend#GotoSource(word)
 endfunction
 
 " Evaluators
-function! vimpire#backend#MacroExpand(firstOnly)
-    let nspace = b:vimpire_namespace
-    let [unused, sexp] = vimpire#util#ExtractSexpr(0)
-
-    let server = vimpire#connection#ForBuffer()
-    call vimpire#connection#Action(
-                \ server,
-                \ ":vimpire.nails/source-location",
-                \ {":nspace": b:vimpire_namespace,
-                \  ":one?":   (a:firstOnly ? v:true : v:false),
-                \  ":form":   sexp},
-                \ {"eval": vimpire#backend#ShowClojureResultCallback(nspace)})
-endfunction
-
 function! vimpire#backend#RequireFile(all)
     let nspace = b:vimpire_namespace
     let all = a:all ? "-all" : ""
@@ -219,7 +205,7 @@ function! vimpire#backend#EvalWithPosition(server, fname, line, column, nspace,
                 \ {})
 endfunction
 
-function! s:EvalOperatorExtractor(type)
+function! s:SexpExtractor(type)
     if a:type == "line"
         normal! '[
         return [line("."), col("."), vimpire#util#Yank("l", "normal! V']\"ly")]
@@ -236,7 +222,7 @@ function! s:EvalOperatorWorker(type)
     let file   = vimpire#util#BufferName()
 
     let [ line, col, exp ] = vimpire#util#WithSavedPosition(
-                \ function("s:EvalOperatorExtractor", [a:type]))
+                \ function("s:SexpExtractor", [a:type]))
 
     call vimpire#connection#Action(
                 \ server,
@@ -265,6 +251,38 @@ function! vimpire#backend#EvalOperator(type)
                 \ function("vimpire#ui#CommandPlug"),
                 \ function("s:EvalOperatorWorker"),
                 \ a:type)
+endfunction
+
+function! s:MacroExpandWorker(type, firstOnly)
+    let server = vimpire#connection#ForBuffer()
+    let nspace = b:vimpire_namespace
+
+    let [ line, col, exp ] = vimpire#util#WithSavedPosition(
+                \ function("s:SexpExtractor", [a:type]))
+
+    call vimpire#connection#Action(
+                \ server,
+                \ ":vimpire.nails/macro-expand",
+                \ {":nspace": nspace,
+                \  ":one?":   (a:firstOnly ? v:true : v:false),
+                \  ":form":   exp},
+                \ {"eval":    { val ->
+                \    vimpire#ui#ShowClojureResult(val, nspace)
+                \ }})
+endfunction
+
+function! vimpire#backend#MacroExpand(type)
+    call vimpire#ui#ProtectedPlug(
+                \ function("vimpire#ui#CommandPlug"),
+                \ function("s:MacroExpandWorker"),
+                \ a:type, v:false)
+endfunction
+
+function! vimpire#backend#MacroExpand1(type)
+    call vimpire#ui#ProtectedPlug(
+                \ function("vimpire#ui#CommandPlug"),
+                \ function("s:MacroExpandWorker"),
+                \ a:type, v:true)
 endfunction
 
 " Omni Completion

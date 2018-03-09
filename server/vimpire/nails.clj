@@ -59,8 +59,7 @@
   (let [nspace (util/resolve-and-load-namespace nspace)]
     (->> (symbol sym)
       (ns-resolve nspace)
-      backend/get-source
-      println)))
+      backend/get-source)))
 
 (defn meta-lookup
   [nspace sym]

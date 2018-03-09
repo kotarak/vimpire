@@ -119,7 +119,9 @@ function! vimpire#backend#SourceLookup(word)
                 \ server,
                 \ ":vimpire.nails/source-lookup",
                 \ {":nspace": b:vimpire_namespace, ":sym": a:word},
-                \ {"eval": vimpire#backend#ShowClojureResultCallback(nspace)})
+                \ {"eval": { val ->
+                \     vimpire#ui#ShowClojureResult(val, nspace)
+                \ }})
 endfunction
 
 function! vimpire#backend#MetaLookup(word)

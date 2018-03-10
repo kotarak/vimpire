@@ -154,7 +154,7 @@ itself (not its value) is returned. The reader macro #'x expands to (var x)."}})
 (defn javadoc-path-for-class
   "Translate the name of a Class to the path of its javadoc file."
   [x]
-  (-> x .getName (.replace \. \/) (.replace \$ \.) (.concat ".html")))
+  (-> x .getName (.replace \. \/) (.replace \$ \.) (str ".html")))
 
 ; Namespace Information:
 (defn meta-info

@@ -52,7 +52,7 @@ function! vimpire#backend#FindDoc()
 endfunction
 
 let s:DefaultJavadocPaths = {
-            \ "java" : "http://java.sun.com/javase/8/docs/api/",
+            \ "java" : "https://docs.oracle.com/javase/8/docs/api/",
             \ "org/apache/commons/beanutils" : "http://commons.apache.org/beanutils/api/",
             \ "org/apache/commons/chain" : "http://commons.apache.org/chain/api-release/",
             \ "org/apache/commons/cli" : "http://commons.apache.org/cli/api-release/",
@@ -67,11 +67,7 @@ if !exists("g:vimpire#JavadocPathMap")
     let vimpire#JavadocPathMap = {}
 endif
 
-for k in keys(s:DefaultJavadocPaths)
-    if !has_key(vimpire#JavadocPathMap, k)
-        let vimpire#JavadocPathMap[k] = s:DefaultJavadocPaths[k]
-    endif
-endfor
+call extend(vimpire#JavadocPathMap, s:DefaultJavadocPaths, "keep")
 
 if !exists("g:vimpire#Browser")
     if has("win32") || has("win64")
@@ -93,11 +89,12 @@ function! vimpire#backend#JavadocLookupCallback(path)
     endfor
 
     if match == ""
-        throw "Vimpire: No matching Javadoc URL found for " . a:path
+        call vimpire#ui#ReportError("Vimpire: No matching Javadoc URL found for " . a:path)
+        return
     endif
 
     let url = g:vimpire#JavadocPathMap[match] . a:path
-    call system(join([g:vimpire#Browser, url], " "))
+    call system(g:vimpire#Browser . " " . url)
 endfunction
 
 function! vimpire#backend#JavadocLookup(word)
@@ -107,7 +104,7 @@ function! vimpire#backend#JavadocLookup(word)
     call vimpire#connection#Action(
                 \ server,
                 \ ":vimpire.nails/javadoc-path",
-                \ {":nspace": b:vimpire_namespace, ":sym": pattern},
+                \ {":nspace": b:vimpire_namespace, ":sym": word},
                 \ {"eval": function("vimpire#backend#JavadocLookupCallback")})
 endfunction
 

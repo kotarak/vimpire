@@ -177,7 +177,7 @@ function! vimpire#backend#EvalWithPosition(server, fname, line, column, nspace,
                 \ a:server,
                 \ ":set-source",
                 \ {":unrepl/sourcename": a:fname,
-                \  ":unrepl/line":       a:line,
+                \  ":unrepl/line":       a:line - 1,
                 \  ":unrepl/column":     a:column},
                 \ {})
 

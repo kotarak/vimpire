@@ -323,7 +323,8 @@ endfunction
 
 function! vimpire#repl#HandleSyntaxChecked(this, cmd, validForm)
     if a:validForm
-        call add(a:this.history, a:cmd)
+        let a:this.historyDepth = 0
+        call insert(a:this.history, a:cmd)
         call ch_sendraw(a:this.conn.channel, a:cmd . "\n")
     else
         execute "normal! a\<CR>x"
@@ -371,7 +372,11 @@ function! vimpire#repl#DownHistory(this)
     let histDepth = a:this.historyDepth
 
     if histDepth > 0 && histLen > 0
-        let a:this.historyDepth = histDepth - 1
+        if histDepth == histLen
+            let a:this.historyDepth = histDepth - 2
+        else
+            let a:this.historyDepth = histDepth - 1
+        endif
         let cmd = a:this.history[a:this.historyDepth]
 
         call vimpire#repl#DeleteLast(a:this)

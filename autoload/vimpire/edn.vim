@@ -35,7 +35,7 @@ function! vimpire#edn#ReadSymbol(input, ...)
     let name = ""
 
     while len(input) > 0
-        if input[0] =~ '[A-Za-z0-9.*+!_?$%&=<>:#-]'
+        if input[0] =~ "[A-Za-z0-9.*+'!_?$%&=<>:#-]"
             let name .= input[0]
             let input = input[1:]
         elseif input[0] == "/" && (a:0 == 0 || a:1)

@@ -64,7 +64,7 @@
 (defn source-location
   [nspace sym]
   (let [nspace (util/resolve-and-load-namespace nspace)]
-    (-> (symbol sym)
+    (->> (symbol sym)
       (ns-resolve nspace)
       backend/source-position)))
 

@@ -121,18 +121,20 @@ function! vimpire#backend#SourceLookup(word)
                 \ }})
 endfunction
 
-" FIXME
-function! vimpire#backend#GotoSourceCallBack(pos)
-    if !filereadable(pos.value.file)
-        let file = globpath(&path, pos.value.file)
+function! vimpire#backend#GotoSourceCallback(pos)
+    let pos = vimpire#edn#Simplify(a:pos)
+
+    if !filereadable(pos[":file"])
+        let file = globpath(&path, pos[":file"])
         if file == ""
-            throw "Vimpire: " . pos.value.file . " not found in 'path'"
+            call vimpire#ui#ReportError("Vimpire: " . pos[":file"] . " not found in 'path'")
+            return
         endif
-        let pos.value.file = file
+        let pos[":file"] = file
     endif
 
-    execute "edit " . pos.value.file
-    execute pos.value.line
+    execute "edit " . pos[":file"]
+    execute pos[":line"]
 endfunction
 
 function! vimpire#backend#GotoSource(word)

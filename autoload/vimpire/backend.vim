@@ -121,17 +121,6 @@ function! vimpire#backend#SourceLookup(word)
                 \ }})
 endfunction
 
-function! vimpire#backend#MetaLookup(word)
-    let nspace = b:vimpire_namespace
-
-    let server = vimpire#connection#ForBuffer()
-    call vimpire#connection#Action(
-                \ server,
-                \ ":vimpire.nails/meta-lookup",
-                \ {":nspace": b:vimpire_namespace, ":sym": a:word},
-                \ {"eval": vimpire#backend#ShowClojureResultCallback(nspace)})
-endfunction
-
 " FIXME
 function! vimpire#backend#GotoSourceCallBack(pos)
     if !filereadable(pos.value.file)

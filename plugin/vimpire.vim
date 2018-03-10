@@ -39,9 +39,6 @@ call vimpire#ui#MakeCommandPlug("n", "JavadocLookupWord", "vimpire#backend#Javad
 call vimpire#ui#MakeCommandPlug("n", "JavadocLookupInteractive", "vimpire#backend#JavadocLookup", "input(\"Class to lookup: \")")
 call vimpire#ui#MakeCommandPlug("n", "FindDoc", "vimpire#backend#FindDoc", "")
 
-call vimpire#ui#MakeCommandPlug("n", "MetaLookupWord", "vimpire#backend#MetaLookup", "expand(\"<cword>\")")
-call vimpire#ui#MakeCommandPlug("n", "MetaLookupInteractive", "vimpire#backend#MetaLookup", "input(\"Symbol to look up: \")")
-
 call vimpire#ui#MakeCommandPlug("n", "SourceLookupWord", "vimpire#backend#SourceLookup", "expand(\"<cword>\")")
 call vimpire#ui#MakeCommandPlug("n", "SourceLookupInteractive", "vimpire#backend#SourceLookup", "input(\"Symbol to look up: \")")
 

@@ -147,15 +147,30 @@ function! vimpire#backend#GotoSource(word)
 endfunction
 
 " Evaluators
+function! s:RequireFileCallback(nspace, x, value)
+    let value = vimpire#edn#Write(a:value)
+    let text = a:x.output . "\n" . value
+
+    call vimpire#ui#ShowClojureResult(text, a:nspace)
+endfunction
+
 function! vimpire#backend#RequireFile(all)
     let nspace = b:vimpire_namespace
-    let all = a:all ? "-all" : ""
-    let require = "(require :reload" . all . " :verbose '". ns. ")"
+    let cmd = {"edn/list":
+                \ [{"edn/symbol":  "require"},
+                \  {"edn/keyword": (a:all ? ":reload-all" : ":reload")},
+                \  {"edn/keyword": ":verbose"},
+                \  {"edn/list":
+                \   [{"edn/symbol": "quote"},
+                \    {"edn/symbol": nspace}]}]}
 
     let server = vimpire#connection#ForBuffer()
+
+    let x = {"output" : ""}
     call vimpire#connection#Eval(server,
-                \ require,
-                \ {"eval": vimpire#backend#ShowClojureResultCallback(nspace)})
+                \ vimpire#edn#Write(cmd),
+                \ {"eval": function("s:RequireFileCallback", [nspace, x]),
+                \  "out":  {val -> extend(x, {"output": x.output . val})}})
 endfunction
 
 function! vimpire#backend#RunTests(all)

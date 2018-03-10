@@ -158,6 +158,6 @@
     (if all?
       (require :reload-all (symbol nspace))
       (require :reload (symbol nspace))))
-  (binding [clojure.test/*test-out* *out*]
-    (clojure.test/run-tests (symbol nspace)))
-  nil)
+  (with-out-str
+    (binding [clojure.test/*test-out* *out*]
+      (clojure.test/run-tests (symbol nspace)))))

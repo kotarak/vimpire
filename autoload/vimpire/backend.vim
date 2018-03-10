@@ -167,7 +167,7 @@ function! vimpire#backend#RunTests(all)
                 \ ":vimpire.nails/run-tests",
                 \ {":nspace": b:vimpire_namespace,
                 \  ":all?":   (a:all ? v:true : v:false)},
-                \ {"eval": vimpire#backend#ShowClojureResultCallback(nspace)})
+                \ {"eval": { val -> vimpire#ui#ShowResult(val) }})
 endfunction
 
 function! vimpire#backend#EvalWithPosition(server, fname, line, column, nspace,

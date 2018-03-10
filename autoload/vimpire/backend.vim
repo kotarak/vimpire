@@ -311,6 +311,44 @@ function! vimpire#backend#OmniCompletion(findstart, base)
     endif
 endfunction
 
+function! s:DynamicHighlightingCallback(this, nspace, highlights)
+    let a:this.dynamicHighlightingCache[a:nspace] = a:highlights
+
+    for [category, words] in items(a:highlights)
+        if len(words) > 0
+            execute "syntax keyword clojure" . category . " " . join(words, " ")
+        endif
+    endfor
+endfunction
+
+function! vimpire#backend#DynamicHighlighting()
+    let server = vimpire#connection#ForBuffer()
+    let nspace = b:vimpire_namespace
+
+    if !has_key(server, "dynamicHighlightingCache")
+        let server.dynamicHighlightingCache = {}
+    endif
+
+    if has_key(server.dynamicHighlightingCache, nspace)
+        return server.dynamicHighlightingCache[nspace]
+    endif
+
+    call vimpire#connection#Action(
+                \ server,
+                \ ":vimpire.nails/dynamic-highlighting",
+                \ {":nspace": b:vimpire_namespace},
+                \ {"eval":
+                \  function("s:DynamicHighlightingCallback", [server, nspace])})
+endfunction
+
+function! s:InitBufferCallback(buffer, nspace)
+    call setbufvar(a:buffer, "vimpire_namespace", a:nspace)
+    if exists("g:VimpireWantDynamicHighlighting")
+                \ && g:VimpireWantDynamicHighlighting
+        call vimpire#backend#DynamicHighlighting()
+    endif
+endfunction
+
 function! vimpire#backend#InitBuffer(...)
     if exists("b:vimpire_namespace")
         return
@@ -326,9 +364,7 @@ function! vimpire#backend#InitBuffer(...)
                         \ server,
                         \ ":vimpire.nails/namespace-of-file",
                         \ {":content": content},
-                        \ {"eval": { val ->
-                        \    setbufvar(buffer, "vimpire_namespace", val)
-                        \ }})
+                        \ {"eval": function("s:InitBufferCallback", [buffer])})
         catch /Vimpire: No connection found/
             " Do nothing. Fail silently in this case.
         catch /.*/

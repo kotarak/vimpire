@@ -17,98 +17,84 @@ let s:NormalizeSymbol = {
             \ }
 
 function! vimpire#edn#EatWhitespace(input)
-    let input = a:input
-
-    while len(input) > 0 &&
-                \ (input[0] == ","
-                \  || input[0] == "\n"
-                \  || input[0] == "\r"
-                \  || input[0] =~ '\s')
-        let input = input[1:]
-    endwhile
-
-    return input
+    let ws = matchstr(a:input, '^\([,\n\r]\|\s\)*')
+    return strpart(a:input, strlen(ws))
 endfunction
 
 function! vimpire#edn#ReadSymbol(input, ...)
-    let input = a:input
-    let name = ""
+    let sym = matchstr(a:input, "^[A-Za-z0-9.*+'!_?$%&=<>:#-]\\+")
+    let input = strpart(a:input, strlen(sym))
 
-    while len(input) > 0
-        if input[0] =~ "[A-Za-z0-9.*+'!_?$%&=<>:#-]"
-            let name .= input[0]
-            let input = input[1:]
-        elseif input[0] == "/" && (a:0 == 0 || a:1)
-            let namespace = name
-            let [name, input] = vimpire#edn#ReadSymbol(input[1:], v:false)
-            let name = namespace . "/" . name
-            break
-        else
-            break
+    if input[0] == "/"
+        let sym2 = matchstr(input, "^/[A-Za-z0-9.*+'!_?$%&=<>:#-]\\+")
+        if sym2 == ""
+            return [v:none, a:input]
         endif
-    endwhile
 
-    return [ name, input ]
+        let input = strpart(input, strlen(sym2))
+        let sym = sym . sym2
+    endif
+
+    return [sym, input]
 endfunction
 
 let s:Keywords = {}
 
 function! vimpire#edn#ReadKeyword(input)
-    let [ sym1; input ] = a:input
-    let [ sym, input ] = vimpire#edn#ReadSymbol(input)
+    let colon = a:input[0]
+    let [sym, input] = vimpire#edn#ReadSymbol(strpart(a:input, 1))
 
-    let sym = sym1 . sym
+    let sym = colon . sym
 
     if !has_key(s:Keywords, sym)
         let s:Keywords[sym] = {"edn/keyword": sym}
     endif
 
-    return [ s:Keywords[sym], input ]
+    return [s:Keywords[sym], input]
 endfunction
 
 function! vimpire#edn#ReadComment(input)
-    let input = a:input
+    let comment = matchstr(a:input, '[^\n]*\n')
+    let input   = strpart(a:input, strlen(comment))
 
-    while len(input) > 0 && input[0] != "\n"
-        let input = input[1:]
-    endwhile
-
-    return [ v:none, input ]
+    return [v:none, input]
 endfunction
 
 function! vimpire#edn#ReadNull(input)
-    let [ ignore_, input ] = vimpire#edn#ReadInput(a:input)
-    return [ v:none, input ]
+    let [ignore_, input] = vimpire#edn#ReadInput(a:input)
+    return [v:none, input]
 endfunction
 
 let s:Pair = { "[": "]", "(": ")", "{": "}" }
 let s:ReversePair = { "]": "[", ")": "(", "}": "{" }
 
 function! vimpire#edn#ReadList(input)
-    let [ delim; input ] = a:input
+    let delim = a:input[0]
+    let input = strpart(a:input, 1)
+
     let values = []
-
     while len(input) > 0
-        let [ value, input ] = vimpire#edn#ReadInput(input)
-        call add(values, value)
-
         let input = vimpire#edn#EatWhitespace(input)
-        if len(input) > 0 && input[0] == s:Pair[delim]
-            return [ values, input[1:] ]
+        if strlen(input) == 0
+            throw "EDN: EOF while reading value"
         endif
-    endwhile
 
-    throw "EDN: EOF while reading value"
+        if input[0] == s:Pair[delim]
+            return [values, strpart(input, 1)]
+        endif
+
+        let [value, input] = vimpire#edn#ReadInput(input)
+        call add(values, value)
+    endwhile
 endfunction
 
 function! vimpire#edn#ReadSet(input)
-    let [ values, input ] = vimpire#edn#ReadList(a:input)
-
-    return [ { "edn/set": values }, input ]
+    let [values, input] = vimpire#edn#ReadList(a:input)
+    return [{"edn/set": values}, input]
 endfunction
 
 function! vimpire#edn#ReadMap(input)
-    let [ values, input ] = vimpire#edn#ReadList(a:input)
+    let [values, input] = vimpire#edn#ReadList(a:input)
 
     if len(values) % 2 == 1
         throw "EDN: unbalanced key/value pairs in map literal"
@@ -118,7 +104,7 @@ function! vimpire#edn#ReadMap(input)
     let keys   = []
     let canMap = v:true
     while len(values) > 0
-        let [ key, value; values ] = values
+        let [key, value; values] = values
 
         for knownKey in keys
             if type(knownKey) == type(key) && knownKey == key
@@ -127,7 +113,7 @@ function! vimpire#edn#ReadMap(input)
         endfor
         call add(keys, key)
 
-        call add(alist, [ key, value ])
+        call add(alist, [key, value])
 
         if type(key) != type("")
             let canMap = v:false
@@ -135,57 +121,39 @@ function! vimpire#edn#ReadMap(input)
     endwhile
 
     if canMap == v:false
-        return [ {'edn/map': alist}, input ]
+        return [{'edn/map': alist}, input]
     endif
 
     let amap = {}
-    for [ key, value ] in alist
+    for [key, value] in alist
         let amap[key] = value
     endfor
 
-    return [ amap, input ]
+    return [amap, input]
 endfunction
 
 function! vimpire#edn#ReadNumber(input)
-    let [ num; input ] = a:input
-    let isFloat = v:false
+    let result = matchstr(a:input,
+                \ '^[+-]\?\d\+\(\.\d\+\)\?\([eE][+-]\?\d\+\)\?[MN]\?')
 
-    while len(input) > 0
-        if input[0] == "."
-            let isFloat = v:true
-        elseif input[0] == "E" || input[0] == "e"
-            let isFloat = v:true
-            if len(input) == 1
-                throw "EDN: EOF while reading float literal"
-            endif
-
-            if input[1] == "+" || input[1] == "-"
-                let num  .= join(input[0:1], "")
-                let input = input[2:]
-                continue
-            endif
-        elseif isFloat && input[0] == "M"
-            break
-        elseif !isFloat && input[0] == "N"
-            break
-        elseif has_key(s:Pair, input[0]) || has_key(s:ReversePair, input[0])
-            break
-        "elseif input[0] =~ '[#:",]'
-        "    break
-        elseif input[0] !~ '\d'
-            break
-        "    throw "EDN: invalid characters in number literal"
-        endif
-
-        let num  .= input[0]
-        let input = input[1:]
-    endwhile
-
-    if isFloat
-        return [ str2float(num), input ]
-    else
-        return [ str2nr(num), input ]
+    if result == ""
+        return [v:none, a:input]
     endif
+
+    let input = strpart(a:input, strlen(result))
+
+    let end = strlen(result) - 1
+    if result[end] == "M" || result[end] == "N"
+        let result = strpart(result, 0, end)
+    endif
+
+    if result =~ '\(\.\|[eEM]\)'
+        let result = str2float(result)
+    else
+        let result = str2nr(result)
+    endif
+
+    return [result, input]
 endfunction
 
 let s:StringEscapes = {
@@ -197,28 +165,16 @@ let s:StringEscapes = {
             \ }
 
 function! vimpire#edn#ReadString(input)
-    let input = a:input[1:]
-    let value = ""
+    let result = matchstr(a:input, '^"\([^"\\]*\(\\.[^"\\]*\)*\)"')
+    if result == ""
+        throw "EDN: EOF while reading value"
+    endif
 
-    while len(input) > 0 && input[0] != "\""
-        if input[0] == "\\"
-            if len(input) == 1
-                throw "EDN: EOF while reading string"
-            endif
+    let input  = strpart(a:input, strlen(result))
+    let result = strpart(result, 1, strlen(result) - 2)
+    let result = substitute(result, '\\\(.\)', '\1', "g")
 
-            if !has_key(s:StringEscapes, input[1])
-                throw "EDN: invalid string escapes sequence: \\" . input[1]
-            endif
-
-            let value .= s:StringEscapes[input[1]]
-            let input = input[2:]
-        else
-            let value .= input[0]
-            let input = input[1:]
-        endif
-    endwhile
-
-    return [ value, input[1:] ]
+    return [result, input]
 endfunction
 
 let s:CharacterCodes = [
@@ -228,17 +184,17 @@ let s:CharacterCodes = [
             \ ["tab",     "\t"]
             \ ]
 
+" FIXME: \uxxxx style unicode chars are missing.
 function! vimpire#edn#ReadCharacter(input)
-    let input = a:input[1:]
+    let result = matchstr(a:input, '^\\\(newline\|return\|space\|tab\|\S\)')
+    let input  = strpart(a:input, strlen(result))
 
-    for [ code, char ] in s:CharacterCodes
-        let l = len(code)
-        if len(input) >= l && join(input[0:l-1], "") == code
-            return [ char, input[l :] ]
-        endif
-    endfor
+    let result = strpart(result, 1)
+    if has_key(s:CharacterCodes, result)
+        let result = s:CharacterCodes[result]
+    endif
 
-    return [ input[0], input[1:] ]
+    return [result, input]
 endfunction
 
 if !exists("g:vimpire#edn#CustomReaders")
@@ -246,25 +202,29 @@ if !exists("g:vimpire#edn#CustomReaders")
 endif
 
 function! vimpire#edn#ReadTag(input)
-    let [ tag, input ] = vimpire#edn#ReadSymbol(a:input)
-    let [ value, input ] = vimpire#edn#ReadInput(input)
+    let [tag, input]   = vimpire#edn#ReadSymbol(a:input)
+    if type(tag) == v:t_none
+        throw "EDN: invalid tag symbol"
+    endif
+
+    let [value, input] = vimpire#edn#ReadInput(input)
 
     if has_key(g:vimpire#edn#CustomReaders, tag)
-        return [ g:vimpire#edn#CustomReaders[tag](value), input ]
+        return [g:vimpire#edn#CustomReaders[tag](value), input]
     else
-        return [ {"edn/tag": tag, "edn/value": value }, input ]
+        return [{"edn/tag": tag, "edn/value": value }, input]
     endif
 endfunction
 
 function! vimpire#edn#ReadHash(input)
-    if len(a:input) == 0
+    if strlen(a:input) == 0
         throw "EDN: EOF while reading value"
     endif
 
     if a:input[0] == "{"
         return vimpire#edn#ReadSet(a:input)
     elseif a:input[0] == "_"
-        return vimpire#edn#ReadNull(a:input[1:])
+        return vimpire#edn#ReadNull(strpart(a:input, 1))
     else
         return vimpire#edn#ReadTag(a:input)
     endif
@@ -275,7 +235,7 @@ function! vimpire#edn#ReadInput(input, ...)
 
     while len(input) > 0
         if input[0] == ";"
-            let [ none_, input ] = vimpire#edn#ReadComment(input)
+            let [none_, input] = vimpire#edn#ReadComment(input)
             let input = vimpire#edn#EatWhitespace(input)
         elseif input[0] == ":"
             return vimpire#edn#ReadKeyword(input)
@@ -284,38 +244,38 @@ function! vimpire#edn#ReadInput(input, ...)
         elseif input[0] == "\\"
             return vimpire#edn#ReadCharacter(input)
         elseif input[0] == "("
-            let [ value, input ] = vimpire#edn#ReadList(input)
-            return [ { "edn/list": value }, input ]
+            let [value, input] = vimpire#edn#ReadList(input)
+            return [{"edn/list": value}, input]
         elseif input[0] == "["
             return vimpire#edn#ReadList(input)
         elseif input[0] == "{"
             return vimpire#edn#ReadMap(input)
         elseif input[0] == "#"
-            let [ value, input ] = vimpire#edn#ReadHash(input[1:])
+            let [value, input] = vimpire#edn#ReadHash(strpart(input, 1))
             if type(value) != type(v:none)
-                return [ value, input ]
+                return [value, input]
             else
                 let input = vimpire#edn#EatWhitespace(input)
             endif
         elseif input[0] =~ '[+-]'
-            if len(input) == 1
+            if strlen(input) == 1
                 throw "EDN: EOF while reading value"
             endif
 
             if input[1] =~ '\d'
                 return vimpire#edn#ReadNumber(input)
             else
-                let [ sym, input ] = vimpire#edn#ReadSymbol(input)
-                return [ { "edn/symbol": sym }, input ]
+                let [sym, input] = vimpire#edn#ReadSymbol(input)
+                return [{"edn/symbol": sym}, input]
             endif
         elseif input[0] =~ '\d'
             return vimpire#edn#ReadNumber(input)
         elseif input[0] =~ '[A-Za-z.*!_?$%&=<>]'
-            let [ value, input ] = vimpire#edn#ReadSymbol(input)
+            let [value, input] = vimpire#edn#ReadSymbol(input)
             if has_key(s:NormalizeSymbol, value)
-                return [ get(s:NormalizeSymbol, value), input ]
+                return [s:NormalizeSymbol[value], input]
             else
-                return [ { "edn/symbol": value }, input ]
+                return [{"edn/symbol": value}, input]
             endif
         endif
     endwhile
@@ -324,15 +284,11 @@ function! vimpire#edn#ReadInput(input, ...)
         throw "EDN: EOF while reading value"
     endif
 
-    return [ v:none, [] ]
+    return [v:none, ""]
 endfunction
 
 function! vimpire#edn#Read(input)
-    let input  = split(a:input, '\zs')
-
-    let [ value, input ] = vimpire#edn#ReadInput(input, v:true)
-
-    return [ value, join(input, "") ]
+    return vimpire#edn#ReadInput(a:input, v:true)
 endfunction
 
 function! vimpire#edn#WriteNil()

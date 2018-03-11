@@ -193,7 +193,7 @@ itself (not its value) is returned. The reader macro #'x expands to (var x)."}})
   (let [publics (ns-map the-space)]
     (reduce (fn [completions sym]
               (if (util/splitted-match the-name (name sym) ["-"])
-                (conj completions [sym (publics sym)])
+                (conj completions [(name sym) (publics sym)])
                 completions))
             [] (keys publics))))
 

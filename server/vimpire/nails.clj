@@ -150,7 +150,7 @@
         to-complete (util/decide-completion-in nspace prefix base)
         completions (mapcat #(backend/complete % nspace prefix base)
                             to-complete)]
-    (map #(apply util/make-completion-item %) completions)))
+    (mapv #(apply util/make-completion-item %) completions)))
 
 (defn run-tests
   [nspace all?]

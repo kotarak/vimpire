@@ -62,7 +62,8 @@
 (defn decide-completion-in
   [nspace prefix base]
   (let [nom (name prefix)]
-    (if (pos? (count nom))
+    (cond
+      (pos? (count nom))
       (cond
         (or (contains? (set (map ns-name (all-ns))) prefix)
             (contains? (ns-aliases nspace) prefix))
@@ -75,10 +76,15 @@
         [:static-field]
 
         :else (throw (Exception. "Cannot determine type of prefix")))
+
+      (pos? (count base))
       (cond
         (Character/isUpperCase (char (first base))) [:import]
         (< -1 (.indexOf base (int \.)))             [:namespace]
-        :else [:full-var :alias :namespace]))))
+        :else [:full-var :alias :namespace])
+
+      :else
+      [:full-var :alias :namespace])))
 
 (defn- type-of-completion
   [thing]

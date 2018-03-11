@@ -290,40 +290,32 @@ function! vimpire#backend#MacroExpand1(type)
                 \ a:type, v:true)
 endfunction
 
-" Omni Completion
-function! vimpire#backend#OmniCompletion(findstart, base)
-    if a:findstart == 1
-        let line = getline(".")
-        let start = col(".") - 1
+" Async Completion
+function! vimpire#backend#AsyncComplete(line, col, cont)
+    let start = a:col
 
-        while start > 0 && line[start - 1] =~ '\w\|-\|\.\|+\|*\|/'
-            let start -= 1
-        endwhile
-
-        return start
-    else
-        let slash = stridx(a:base, '/')
-        if slash > -1
-            let prefix = strpart(a:base, 0, slash)
-            let base = strpart(a:base, slash + 1)
-        else
-            let prefix = ""
-            let base = a:base
-        endif
-
-        if prefix == "" && base == ""
-            return []
-        endif
-
-        let server = vimpire#backend#server#Instance()
-
-        let completions = vimpire#backend#server#Execute(server,
-                    \ {"op":     "complete",
-                    \  "prefix": prefix,
-                    \  "base":   base,
-                    \  "nspace": b:vimpire_namespace})
-        return completions.value
+    let base = matchstr(a:line, '\(\w\|[/_*<>=+-]\)\+$')
+    if base == ""
+        return
     endif
+
+    let start  = a:col - strlen(base) + 1
+
+    let prefix = ""
+    let slash = stridx(base, '/')
+    if slash > -1
+        let prefix = strpart(base, 0, slash)
+        let base   = strpart(base, slash + 1)
+    endif
+
+    let server = vimpire#connection#ForBuffer()
+    call vimpire#connection#Action(
+                \ server,
+                \ ":vimpire.nails/complete",
+                \ {":nspace": b:vimpire_namespace,
+                \  ":prefix": prefix,
+                \   ":base":  base},
+                \ {"eval": function(a:cont, [start])})
 endfunction
 
 function! s:DynamicHighlightingCallback(this, nspace, highlights)

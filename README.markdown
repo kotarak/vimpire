@@ -53,6 +53,11 @@ style.
 
 Because it's a buffer and not a terminal.
 
+## Hey, why is the namespace loaded when I open a file? I got toplevel commands!
+
+Don't have toplevel commands. Put them in a `(defn main …)` and use
+`clj -m` to run the script. Starting the rockets on the toplevel is bad style.
+
 ## Hey, your plugin sucks because X!
 
 Then don't use it.

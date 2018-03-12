@@ -71,18 +71,6 @@ new buffer pops up. So one can go back to the old behaviour.
 >
         let g:vimpire_ui_use_error_buffer = 0
 <
-Preview Window
---------------
-
-Many of the below mentioned commands open the so called preview window.
-It displays information obtained from the lookup functions and the omni
-completion. You may close the preview window with <LocalLeader>p.
-
-Note: The preview window sometimes does not adhere to the SplitPos
-variable. This is the case, eg. for omni completion. It happens when
-the preview window is created by Vim and not by Vimpire itself. At
-the moment, I don't know how to fix this.
-
 Keybindings
 -----------
 
@@ -139,7 +127,13 @@ so-called plugs for each command.
 
 <Plug>(vimpire_javadoc_lookup_word)             *VimpireJavadocLookupWord*
                         Open the javadoc for the word under the cursor
-                        in an external browser.
+                        in an external browser. You may specify URLs for
+                        package directories in the configuration variable
+                        g:vimpire_javadoc_path_map, which maps package
+                        prefixes to URLs. Longest match wins. The browser
+                        used should be the default browser configured for
+                        system, but may be changed with the configuration
+                        variable g:vimpire_browser.
 
 <Plug>(vimpire_javadoc_lookup_interactive)      *VimpireJavadocLookupInteractive*
                         Open the javadoc for an arbitrary word in an
@@ -236,10 +230,23 @@ plugin. Please refer to the asyncomplete-vimpire.vim plugin.
 If you want to support other async completion systems, you may contact me for
 extension points, so that you can write the necessary glue yourself.
 
+Dynamic Highlighting
+--------------------
+
+Upon opening a file, Vimpire loads the namespace in the backend server and
+traverses all required and aliased namespaces. It collects all functions and
+macro definitions and provides the given information back to Vim to properly
+highlight the used function and macro names. However this might be slow
+depending on the circumstances. Therefore you can disable dynamic
+highlighting.
+>
+        let g:vimpire_dynamic_highlighting = v:false
+<
+
 License
 -------
 
-Copyright (c) 2008-2011 Meikel Brandmeyer, Frankfurt am Main
+Copyright © 2008-2018 Meikel Brandmeyer, Frankfurt am Main
 All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy

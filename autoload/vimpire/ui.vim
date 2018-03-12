@@ -23,12 +23,12 @@
 let s:save_cpo = &cpo
 set cpo&vim
 
-if !exists("g:vimpire#ui#UseErrorBuffer")
-    let vimpire#ui#UseErrorBuffer = 1
+if !exists("g:vimpire_ui_use_error_buffer")
+    let g:vimpire_ui_use_error_buffer = v:true
 endif
 
 function! vimpire#ui#ReportError(msg)
-    if g:vimpire#ui#UseErrorBuffer
+    if g:vimpire_ui_use_error_buffer
         let buf = vimpire#window#resultwindow#New("vimpire#buffer#NewResultBuffer")
         call vimpire#window#ShowText(buf, a:msg)
         wincmd p

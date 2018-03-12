@@ -23,34 +23,34 @@
 let s:save_cpo = &cpo
 set cpo&vim
 
-if !exists("g:vimpire#window#SplitPos")
-    let vimpire#window#SplitPos = "top"
+if !exists("g:vimpire_window_split_pos")
+    let g:vimpire_window_split_pos = "top"
 endif
 
-if !exists("g:vimpire#window#SplitSize")
-    let vimpire#window#SplitSize = ""
+if !exists("g:vimpire_window_split_size")
+    let g:vimpire_window_split_size = ""
 endif
 
 function! vimpire#window#New(bufCtor)
     let this = {}
 
-    if g:vimpire#window#SplitPos == "left" || g:vimpire#window#SplitPos == "right"
+    if g:vimpire_window_split_pos == "left" || g:vimpire_window_split_pos == "right"
         let o_sr = &splitright
-        if g:vimpire#window#SplitPos == "left"
+        if g:vimpire_window_split_pos == "left"
             set nosplitright
         else
             set splitright
         end
-        execute printf("%svsplit", g:vimpire#window#SplitSize)
+        execute printf("%svsplit", g:vimpire_window_split_size)
         let &splitright = o_sr
     else
         let o_sb = &splitbelow
-        if g:vimpire#window#SplitPos == "bottom"
+        if g:vimpire_window_split_pos == "bottom"
             set splitbelow
         else
             set nosplitbelow
         end
-        execute printf("%ssplit", g:vimpire#window#SplitSize)
+        execute printf("%ssplit", g:vimpire_window_split_size)
         let &splitbelow = o_sb
     endif
 

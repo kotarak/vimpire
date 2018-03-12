@@ -188,8 +188,8 @@ function! vimpire#edn#ReadCharacter(input)
     return [result, input]
 endfunction
 
-if !exists("g:vimpire#edn#CustomReaders")
-    let vimpire#edn#CustomReaders = {}
+if !exists("g:vimpire_edn_custom_readers")
+    let g:vimpire_edn_custom_readers = {}
 endif
 
 function! vimpire#edn#ReadTag(input)
@@ -200,8 +200,8 @@ function! vimpire#edn#ReadTag(input)
 
     let [value, input] = vimpire#edn#ReadInput(input)
 
-    if has_key(g:vimpire#edn#CustomReaders, tag)
-        return [g:vimpire#edn#CustomReaders[tag](value), input]
+    if has_key(g:vimpire_edn_custom_readers, tag)
+        return [g:vimpire_edn_custom_readers[tag](value), input]
     else
         return [{"edn/tag": tag, "edn/value": value }, input]
     endif

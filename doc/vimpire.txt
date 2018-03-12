@@ -51,12 +51,12 @@ values are "left", "right", "top" and "bottom". The default is "top".
 
 Example:
 >
-        let vimpire#window#SplitPos = "left"
+        let g:vimpire_window_split_pos = "left"
 <
 It is also possible to specify the size of the new window. The size is
 specified in lines/columns.
 >
-        let vimpire#window#SplitSize = 10
+        let g:vimpire_window_split_size = 10
 <
 You can close the popup result window by binding the
 <Plug>(vimpire_close_result_buffer) to your liking.
@@ -69,7 +69,7 @@ more readable. In particular when they contain stacktraces from the Java
 side. However this may interfer with scripts which do not expect that a
 new buffer pops up. So one can go back to the old behaviour.
 >
-        let vimpire#ui#UseErrorBuffer = 0
+        let g:vimpire_ui_use_error_buffer = 0
 <
 Preview Window
 --------------

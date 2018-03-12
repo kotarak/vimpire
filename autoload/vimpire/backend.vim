@@ -63,26 +63,26 @@ let s:DefaultJavadocPaths = {
             \ "org/apache/commons/io" : "http://commons.apache.org/io/api-release/"
             \ }
 
-if !exists("g:vimpire#JavadocPathMap")
-    let vimpire#JavadocPathMap = {}
+if !exists("g:vimpire_javadoc_path_map")
+    let g:vimpire_javadoc_path_map = {}
 endif
 
-call extend(vimpire#JavadocPathMap, s:DefaultJavadocPaths, "keep")
+call extend(g:vimpire_javadoc_path_map, s:DefaultJavadocPaths, "keep")
 
-if !exists("g:vimpire#Browser")
+if !exists("g:vimpire_browser")
     if has("win32") || has("win64")
-        let vimpire#Browser = "start"
+        let g:vimpire_browser = "start"
     elseif has("mac")
-        let vimpire#Browser = "open"
+        let g:vimpire_browser = "open"
     else
         " some freedesktop thing, whatever, issue #67
-        let vimpire#Browser = "xdg-open"
+        let g:vimpire_browser = "xdg-open"
     endif
 endif
 
 function! vimpire#backend#JavadocLookupCallback(path)
     let match = ""
-    for pattern in keys(g:vimpire#JavadocPathMap)
+    for pattern in keys(g:vimpire_javadoc_path_map)
         if a:path =~ "^" . pattern && len(match) < len(pattern)
             let match = pattern
         endif
@@ -93,8 +93,8 @@ function! vimpire#backend#JavadocLookupCallback(path)
         return
     endif
 
-    let url = g:vimpire#JavadocPathMap[match] . a:path
-    call system(g:vimpire#Browser . " " . url)
+    let url = g:vimpire_javadoc_path_map[match] . a:path
+    call system(g:vimpire_browser . " " . url)
 endfunction
 
 function! vimpire#backend#JavadocLookup(word)
@@ -318,6 +318,10 @@ function! vimpire#backend#AsyncComplete(line, col, cont)
                 \ {"eval": function(a:cont, [start])})
 endfunction
 
+if !exists("g:vimpire_dynamic_highlighting")
+    let g:vimpire_dynamic_highlighting = v:true
+endif
+
 function! s:DynamicHighlightingCallback(this, nspace, highlights)
     let a:this.dynamicHighlightingCache[a:nspace] = a:highlights
 
@@ -350,8 +354,8 @@ endfunction
 
 function! s:InitBufferCallback(buffer, nspace)
     call setbufvar(a:buffer, "vimpire_namespace", a:nspace)
-    if exists("g:VimpireWantDynamicHighlighting")
-                \ && g:VimpireWantDynamicHighlighting
+    if exists("g:vimpire_dynamic_highlighting")
+                \ && g:vimpire_dynamic_highlighting
         call vimpire#backend#DynamicHighlighting()
     endif
 endfunction

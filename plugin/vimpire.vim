@@ -27,40 +27,42 @@ endif
 
 let vimpire_loaded = "3.0.0"
 
+" Prolog
 let s:cpo_save = &cpo
 set cpo&vim
 
 command! -nargs=? VimpireRepl call vimpire#repl#StartRepl(vimpire#connection#ForBuffer(), <f-args>)
 command! -nargs=* VimpireBite call vimpire#connection#RegisterPrefix(getcwd(), <f-args>)
 
-call vimpire#ui#MakeCommandPlug("n", "DocLookupWord", "vimpire#backend#DocLookup", "expand(\"<cword>\")")
-call vimpire#ui#MakeCommandPlug("n", "DocLookupInteractive", "vimpire#backend#DocLookup", "input(\"Symbol to look up: \")")
-call vimpire#ui#MakeCommandPlug("n", "JavadocLookupWord", "vimpire#backend#JavadocLookup", "expand(\"<cword>\")")
-call vimpire#ui#MakeCommandPlug("n", "JavadocLookupInteractive", "vimpire#backend#JavadocLookup", "input(\"Class to lookup: \")")
-call vimpire#ui#MakeCommandPlug("n", "FindDoc", "vimpire#backend#FindDoc", "")
+call vimpire#ui#MakeCommandPlug("n", "doc_lookup_word", "vimpire#backend#DocLookup", "expand(\"<cword>\")")
+call vimpire#ui#MakeCommandPlug("n", "doc_lookup_interactive", "vimpire#backend#DocLookup", "input(\"Symbol to look up: \")")
+call vimpire#ui#MakeCommandPlug("n", "javadoc_look_word", "vimpire#backend#JavadocLookup", "expand(\"<cword>\")")
+call vimpire#ui#MakeCommandPlug("n", "javadoc_look_interactive", "vimpire#backend#JavadocLookup", "input(\"Class to lookup: \")")
+call vimpire#ui#MakeCommandPlug("n", "find_doc", "vimpire#backend#FindDoc", "")
 
-call vimpire#ui#MakeCommandPlug("n", "SourceLookupWord", "vimpire#backend#SourceLookup", "expand(\"<cword>\")")
-call vimpire#ui#MakeCommandPlug("n", "SourceLookupInteractive", "vimpire#backend#SourceLookup", "input(\"Symbol to look up: \")")
+call vimpire#ui#MakeCommandPlug("n", "source_lookup_word", "vimpire#backend#SourceLookup", "expand(\"<cword>\")")
+call vimpire#ui#MakeCommandPlug("n", "source_lookup_interactive", "vimpire#backend#SourceLookup", "input(\"Symbol to look up: \")")
 
-call vimpire#ui#MakeCommandPlug("n", "GotoSourceWord", "vimpire#backend#GotoSource", "expand(\"<cword>\")")
-call vimpire#ui#MakeCommandPlug("n", "GotoSourceInteractive", "vimpire#backend#GotoSource", "input(\"Symbol to go to: \")")
+call vimpire#ui#MakeCommandPlug("n", "goto_source_word", "vimpire#backend#GotoSource", "expand(\"<cword>\")")
+call vimpire#ui#MakeCommandPlug("n", "goto_source_interactive", "vimpire#backend#GotoSource", "input(\"Symbol to go to: \")")
 
-call vimpire#ui#MakeCommandPlug("n", "RequireFile", "vimpire#backend#RequireFile", "0")
-call vimpire#ui#MakeCommandPlug("n", "RequireFileAll", "vimpire#backend#RequireFile", "1")
+call vimpire#ui#MakeCommandPlug("n", "require_file", "vimpire#backend#RequireFile", "0")
+call vimpire#ui#MakeCommandPlug("n", "require_file_all", "vimpire#backend#RequireFile", "1")
 
-call vimpire#ui#MakeCommandPlug("n", "RunTests", "vimpire#backend#RunTests", "0")
+call vimpire#ui#MakeCommandPlug("n", "run_tests", "vimpire#backend#RunTests", "0")
 
 " Operators
-nnoremap <Plug>VimpireEval. :set operatorfunc=vimpire#backend#EvalOperator<CR>g@
-nnoremap <Plug>VimpireMacroExpand. :set operatorfunc=vimpire#backend#MacroExpand<CR>g@
-nnoremap <Plug>VimpireMacroExpand1. :set operatorfunc=vimpire#backend#MacroExpand1<CR>g@
+nnoremap <Plug>(vimpire_eval) :set operatorfunc=vimpire#backend#EvalOperator<CR>g@
+nnoremap <Plug>(vimpire_macro_expand) :set operatorfunc=vimpire#backend#MacroExpand<CR>g@
+nnoremap <Plug>(vimpire_macro_expand1) :set operatorfunc=vimpire#backend#MacroExpand1<CR>g@
 
-inoremap <Plug>VimpireReplEnterHook. <Esc>:call vimpire#repl#EnterHook(b:vimpire_repl)<CR>
-inoremap <Plug>VimpireReplEvaluate. <Esc>G$:call vimpire#repl#EnterHook(b:vimpire_repl)<CR>
-nnoremap <Plug>VimpireReplHatHook. :call vimpire#repl#HatHook(b:vimpire_repl)<CR>
-inoremap <Plug>VimpireReplUpHistory. <C-O>:call vimpire#repl#UpHistory(b:vimpire_repl)<CR>
-inoremap <Plug>VimpireReplDownHistory. <C-O>:call vimpire#repl#DownHistory(b:vimpire_repl)<CR>
+inoremap <Plug>(vimpire_repl_enter_hook) <Esc>:call vimpire#repl#EnterHook(b:vimpire_repl)<CR>
+inoremap <Plug>(vimpire_repl_evaluate) <Esc>G$:call vimpire#repl#EnterHook(b:vimpire_repl)<CR>
+nnoremap <Plug>(vimpire_repl_hat_hook) :call vimpire#repl#HatHook(b:vimpire_repl)<CR>
+inoremap <Plug>(vimpire_repl_up_history) <C-O>:call vimpire#repl#UpHistory(b:vimpire_repl)<CR>
+inoremap <Plug>(vimpire_repl_down_history) <C-O>:call vimpire#repl#DownHistory(b:vimpire_repl)<CR>
 
-nnoremap <Plug>VimpireCloseResultBuffer. :call vimpire#window#resultwindow#CloseWindow()<CR>
+nnoremap <Plug>(vimpire_close_result_buffer) :call vimpire#window#resultwindow#CloseWindow()<CR>
 
+" Epilog
 let &cpo = s:cpo_save

@@ -52,13 +52,13 @@ endfunction
 
 " Key mappings and Plugs
 function! vimpire#ui#MakeProtectedPlug(mode, plug, f, args)
-    execute a:mode . "noremap <Plug>Vimpire" . a:plug . "."
+    execute a:mode . "noremap <Plug>(vimpire_" . a:plug . ")"
                 \ . " :<C-U>call vimpire#ui#ProtectedPlug("
                 \ . "\"" . a:f . "\", " . a:args . ")<CR>"
 endfunction
 
 function! vimpire#ui#MakeCommandPlug(mode, plug, f, args)
-    execute a:mode . "noremap <Plug>Vimpire" . a:plug . "."
+    execute a:mode . "noremap <Plug>(vimpire_" . a:plug . ")"
                 \ . " :<C-U>call vimpire#ui#ProtectedPlug("
                 \ . " \"vimpire#ui#CommandPlug\", "
                 \ . " \"" . a:f . "\", " . a:args . ")<CR>"

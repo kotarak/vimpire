@@ -79,8 +79,8 @@ function! vimpire#buffer#NewResultBuffer()
     setlocal buftype=nofile
     setlocal bufhidden=wipe
 
-    if !hasmapto("<Plug>VimpireCloseResultBuffer.", "n")
-        nmap <buffer> <silent> <LocalLeader>q <Plug>VimpireCloseResultBuffer.
+    if !hasmapto("<Plug>(vimpire_close_result_buffer)", "n")
+        nmap <buffer> <silent> <LocalLeader>q <Plug>(vimpire_close_result_buffer)
     endif
 
     call vimpire#buffer#Clear(this)

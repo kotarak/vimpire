@@ -62,20 +62,20 @@ function! vimpire#repl#New(sibling, namespace)
     let b:vimpire_repl = this
     set filetype=vimpire.clojure
 
-    if !hasmapto("<Plug>VimpireReplEnterHook.", "i")
-        imap <buffer> <silent> <CR> <Plug>VimpireReplEnterHook.
+    if !hasmapto("<Plug>(vimpire_repl_enter_hook)", "i")
+        imap <buffer> <silent> <CR> <Plug>(vimpire_repl_enter_hook)
     endif
-    if !hasmapto("<Plug>VimpireReplEvaluate.", "i")
-        imap <buffer> <silent> <C-CR> <Plug>VimpireReplEvaluate.
+    if !hasmapto("<Plug>(vimpire_repl_evaluate)", "i")
+        imap <buffer> <silent> <C-CR> <Plug>(vimpire_repl_evaluate)
     endif
-    if !hasmapto("<Plug>VimpireReplHatHook.", "n")
-        nmap <buffer> <silent> ^ <Plug>VimpireReplHatHook.
+    if !hasmapto("<Plug>(vimpire_repl_hat_hook)", "n")
+        nmap <buffer> <silent> ^ <Plug>(vimpire_repl_hat_hook)
     endif
-    if !hasmapto("<Plug>VimpireReplUpHistory.", "i")
-        imap <buffer> <silent> <C-Up> <Plug>VimpireReplUpHistory.
+    if !hasmapto("<Plug>(vimpire_repl_up_history)", "i")
+        imap <buffer> <silent> <C-Up> <Plug>(vimpire_repl_up_history)
     endif
-    if !hasmapto("<Plug>VimpireReplDownHistory.", "i")
-        imap <buffer> <silent> <C-Down> <Plug>VimpireReplDownHistory.
+    if !hasmapto("<Plug>(vimpire_repl_down_history)", "i")
+        imap <buffer> <silent> <C-Down> <Plug>(vimpire_repl_down_history)
     endif
 
     call append(line("$"), "Clojure")

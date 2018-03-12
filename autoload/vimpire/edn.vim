@@ -156,14 +156,6 @@ function! vimpire#edn#ReadNumber(input)
     return [result, input]
 endfunction
 
-let s:StringEscapes = {
-            \ "t": "\t",
-            \ "n": "\n",
-            \ "r": "\r",
-            \ "\\": "\\",
-            \ "\"": "\""
-            \ }
-
 function! vimpire#edn#ReadString(input)
     let result = matchstr(a:input, '^"\([^"\\]*\(\\.[^"\\]*\)*\)"')
     if result == ""
@@ -171,8 +163,7 @@ function! vimpire#edn#ReadString(input)
     endif
 
     let input  = strpart(a:input, strlen(result))
-    let result = strpart(result, 1, strlen(result) - 2)
-    let result = substitute(result, '\\\(.\)', '\1', "g")
+    let result = eval(result)
 
     return [result, input]
 endfunction

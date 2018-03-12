@@ -168,12 +168,12 @@ function! vimpire#edn#ReadString(input)
     return [result, input]
 endfunction
 
-let s:CharacterCodes = [
-            \ ["newline", "\n"],
-            \ ["return",  "\r"],
-            \ ["space",   " " ],
-            \ ["tab",     "\t"]
-            \ ]
+let s:CharacterCodes = {
+            \ "newline": "\n",
+            \ "return":  "\r",
+            \ "space":   " " ,
+            \ "tab":     "\t"
+            \ }
 
 " FIXME: \uxxxx style unicode chars are missing.
 function! vimpire#edn#ReadCharacter(input)

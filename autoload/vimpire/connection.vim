@@ -41,11 +41,7 @@ function! vimpire#connection#ForBuffer()
     let path = expand("%:p")
 
     if path == ""
-       if exists("b:vimpire_connection")
-           return b:vimpire_connection
-       else
-           let path = getcwd()
-       endif
+        let path = getcwd()
     endif
 
     for [ candidate, conn ] in items(s:Registry)

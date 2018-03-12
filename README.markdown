@@ -26,6 +26,37 @@ start the backend server connection.
 
         :VimpireBite <host>:<port>
 
+No further setup is required. The backend part of Vimpire is completely
+zero config and self contained. Also, there is no conflict of several
+Vimpire instances connecting to the same backend server. They share code
+in case of being of the same version. Otherwise they are completely
+separated.
+
+# Demo
+
+I created a small [demo screencast](https://kotka.de/vimpire/demo.webm).
+
+# FAQs
+
+## Hey, I'd like nifty feature X to be supported!
+
+Have fun implementing it. I'll support in providing extension points to
+reuse Vimpire's infrastructure, but I don't care about including it in
+Vimpire itself.
+
+## Hey, why are there no default bindings set up?
+
+Obviously the opinions are too different on this one. So pick your own
+style.
+
+## Hey, why is my repl messed up when I delete the prompt?
+
+Because it's a buffer and not a terminal.
+
+## Hey, your plugin sucks because X!
+
+Then don't use it.
+
 -- 
 Meikel Branmdeyer <mb@kotka.de>
-Erlensee, 2017
+Erlensee, 2018

@@ -7,7 +7,7 @@ Introduction
 ------------
 
 Vimpire is a development environment for Clojure. It provides interactive
-features like omni completion, documentation lookup and a Repl running in a
+features like async completion, documentation lookup and a Repl running in a
 Vim buffer.
 
 Socket Server
@@ -16,23 +16,32 @@ Socket Server
 To use the interactive part you have to start a socket server on the clojure
 side. Example invocation:
 >
-        java -cp clojure.jar -Dclojure.server.repl="{:port 5432 :accept clojure.core.server/repl}" clojure.main
+        clj '-J-Dclojure.server.repl={:port 5432 :accept clojure.core.server/repl}' -r
 <
-This may look different depending on your system.
+This may look different depending on your system. Note, that no further setup
+on the backend is necessary.
 
 Before using the interactive features you have to connect to the Clojure
 backend server.
 
-:VimpireBite <server> [<scope>]     *:VimpireBite*
+:VimpireBite <server>               *:VimpireBite*
                         Start a new connection to the backend server.
                         <server> are coordinates of the form <host>:<port>.
-                        <scope> can be *global* , *buffer* or *tab* .
-                        Commands always use the "nearest" connection.
-                        If left out, <scope> is *global* .
                         Example:
 >
                             :VimpireBite localhost:5432
 <
+There may be connections to several different backend servers. Start one
+connection in the root of one project. Change you current working directory to
+the second project. Start the second connection. Now all the files should see
+the correct connection depending on their project root.
+
+If a buffer has no associated filename, the current working directory is used
+to the select the backend connection.
+
+However, this functionality is not really well tested, since I usually don't
+work that way. So expect mayhem.
+
 Windows
 -------
 
@@ -79,24 +88,10 @@ Vimpire does not define any keybindings on its own. However it provides
 so-called plugs for each command. Simply prepend "<Plug>" to the given
 command name and append a ".".
 
-VimpireEvalTopLevel                             *VimpireEvalToplevel*
-                        Send off the toplevel sexpression currently
-                        containing the cursor to the Clojure server.
-
-VimpureEvalFile                                 *VimpireEvalFile*
-                        Send off the current file to the Clojure Server.
-
-VimpireEvalBlock                                *VimpireEvalBlock*
-                        Send off the marked visual block to the
-                        Note: This does not check for structure.
-
-VimpureEvalLine                                 *VimpireEvalLine*
-                        Send off the current line to the Clojure Server.
-                        Note: This does not check for structure.
-
-VimpireEvalParagraph                            *VimpireEvalParagraph*
-                        Send off the current paragraph to the Clojure Server.
-                        Note: This does not check for structure.
+VimpireEval                                     *VimpireEval*
+                        The eval operator. Send off the expression covered
+                        by the following motion to the backend server.
+                        This plays with the vim-sexp plugin.
 
 VimpireRequireFile                              *VimpireRequireFile*
                         Require the namespace of the current file with
@@ -121,8 +116,10 @@ VimpireRunTests                                 *VimpireRunTests*
                         issuing the command, eg. via scp or NFS.
 
 VimpireMacroExpand                              *VimpireMacroExpand*
-                        Expand the innermost sexpression currently
-                        containing the cursor using macroexpand.
+                        The macro expansion operator. Send the expression
+                        covered by the following motion to the backend
+                        server for macro expansion. Play well with the
+                        vim-sexp plugin.
 
 VimpireMacroExpand1                             *VimpireMacroExpand1*
                         Same as MacroExpand, but use macroexpand-1.
@@ -173,13 +170,6 @@ VimpireGotoSourceInteractive                    *VimpireGotoSourceInteractive*
                         CLOJURE_SOURCE_DIRS environment variable will be added
                         to the |'path'| setting.
 
-VimpireMetaLookupWord                           *VimpireMetaLookupWord*
-                        Lookup the meta data of the word under the cursor.
-
-VimpireMetaLookupInteractive                    *VimpireMetaLookupInteractive*
-                        Lookup the meta data of an arbitrary word. The
-                        user is prompted for input.
-
 Vim Repl
 --------
 
@@ -213,9 +203,13 @@ The Plugs are:
 The following convenience commands are provided:
 
  - ,close - close the Repl and free the Repl resources in the server process
- - ,st - print a stack trace of *e as with clojure.stacktrace
- - ,ct - print a cause trace of *e as with clojure.stacktrace
- - ,toggle-pprint - toggle pretty-printing of evaluated values
+
+After command submission the repl changes into stdin mode until a new prompt
+is requested by the backend side. In this mode each typed line will be sent
+over the wire after hitting <CR>. If this input is not consumed by your
+previously submitted command, it will be consumed by the repl after the
+prompt. However it will not show up in the repl history in this case. So be
+warned of race conditions.
 
 :VimpireRepl                                    *:VimpireRepl*
                         Start a new Vim Repl in a fresh buffer. There
@@ -223,34 +217,27 @@ The following convenience commands are provided:
                         command works independently of any loaded clojure
                         files.
 
-Omni Completion
----------------
+Here be Dragons!
 
-Vimpire supports omni completion for clojure code. Hitting <C-X><C-O> in
-insert mode will try to provide completions for the item in front of the
-cursor.
+The repl is just a buffer. It's not a terminal. So we have to sync on
+something. That something is the prompt. If you delete it, you will get into
+trouble. If you don't allow the repl to sync up with the backend and keep its
+state clean, you will get into trouble.
 
-The completion tries to be somewhat intelligent in what it completes.
+The repl is all in all functional, but rather fragile. If you cannot cope
+with that, then don't use it.
 
- - a word starting with an upper case letter will be completed to an
-   imported class.
-     Str<C-x><C-o> => String, StringBuilder, ...
+Async Completion
+----------------
 
- - a word containing dots will be completed to a namespace.
-     c.c<C-x><C-o> => clojure.core, clojure.contrib.repl-utils, ...
-
- - everything else will be completed to a Var, an alias or namespace.
-
- - a word containing a slash will be handled differently
-   - if the word starts with an upper case letter, will complete
-     static fields of the given class
-       String/va<C-x><C-o> => String/valueOf
-
-   - otherwise it is treated as a namespace or alias
-       clojure.core/re<C-x><C-o> => clojure.core/read, ...
-
-The completion uses certain characters to split the matching. This are
-hyphens and (for namespaces) dots. So r-s<C-x><C-o> matches read-string.
+Vimpire supports async completion for clojure code via the asyncomplete.vim
+plugin. Please refer to the asyncomplete-vimpire.vim plugin.
+>
+        https://bitbucket.org/kotarak/asyncomplete-vimpire.vim
+        https://github.com/kotarak/asyncomplete-vimpire.vim
+<
+If you want to support other async completion systems, you may contact me for
+extension points, so that you can write the necessary glue yourself.
 
 License
 -------

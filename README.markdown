@@ -41,6 +41,7 @@ I created a small set of short demos:
 * [Goto source](https://kotka.de/vimpire/vimpire_goto_source.webm)
 * [Show source](https://kotka.de/vimpire/vimpire_show_source.webm)
 * [Eval and macro expand operators](https://kotka.de/vimpire/vimpire_operators.webm)
+* [Async completion](https://kotka.de/vimpire/vimpire_completion.webm)
 * Last but not least: [The repl](https://kotka.de/vimpire/vimpire_repl.webm)
 
 # FAQs

@@ -32,9 +32,16 @@ Vimpire instances connecting to the same backend server. They share code
 in case of being of the same version. Otherwise they are completely
 separated.
 
-# Demo
+# Demos
 
-I created a small [demo screencast](https://kotka.de/vimpire/demo.webm).
+I created a small set of short demos:
+
+* [Stalking the prey](https://kotka.de/vimpire/vimpire_connect.webm)
+* [Documentation lookup](https://kotka.de/vimpire/vimpire_doclookup.webm)
+* [Goto source](https://kotka.de/vimpire/vimpire_goto_source.webm)
+* [Show source](https://kotka.de/vimpire/vimpire_show_source.webm)
+* [Eval and macro expand operators](https://kotka.de/vimpire/vimpire_operators.webm)
+* Last but not least: [The repl](https://kotka.de/vimpire/vimpire_repl.webm)
 
 # FAQs
 

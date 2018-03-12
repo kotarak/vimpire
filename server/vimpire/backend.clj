@@ -110,13 +110,13 @@ itself (not its value) is returned. The reader macro #'x expands to (var x)."}})
           (prn-str arglists))
         (if (:special-form m)
           (str "Special Form\n"
-               " " (:doc m) \newline
+               "  " (:doc m) \newline
                (if (contains? m :url)
                  (when (:url m)
                    (str "\n  Please see http://clojure.org/" (:url m))))
                (str "\n  Please see http://clojure.org/special_forms#" (:name m)))
           (str (when (:macro m) "Macro\n")
-               " " (:doc m) \newline))]
+               "  " (:doc m) \newline))]
     (interpose \newline)
     (apply str)))
 

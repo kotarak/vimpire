@@ -24,6 +24,30 @@
 let s:save_cpo = &cpo
 set cpo&vim
 
+function! s:Ready()
+    let fangs = [
+                \ '        __   __',
+                \ '     .-''  "."  ''-.',
+                \ '   .''   ___,___   ''.',
+                \ '  ;__.-; | | | ;-.__;',
+                \ '  | \  | | | | |  / |',
+                \ '   \ \/`"`"`"`"`\/ /',
+                \ '    \_.-,-,-,-,-._/',
+                \ '     \`-:_|_|_:-''/',
+                \ 'jgs   ''.       .''',
+                \ '        `''---''`',
+                \ ]
+
+    let padding = repeat(" ", (winwidth(0) - 20) / 2)
+
+    return join(
+                \ map(
+                \   copy(fangs),
+                \     { idx_, line -> padding . line }),
+                \   "\n")
+                \ . "\n"
+endfunction
+
 let s:Location = expand("<sfile>:p:h:h:h") . "/"
 
 if !exists("s:Registry")
@@ -220,6 +244,11 @@ function! vimpire#connection#HandleHello(this, response)
                     \ {":unrepl/sourcename": "Tooling Repl",
                     \  ":unrepl/line": 1,
                     \  ":unrepl/column": 1})
+
+        call vimpire#connection#Eval(
+                    \ a:this,
+                    \ "true",
+                    \ { "eval": { val_ -> vimpire#ui#ShowResult(s:Ready()) }})
     else
         let a:this.state = "awaiting-prompt"
     endif

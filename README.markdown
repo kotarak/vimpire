@@ -3,6 +3,22 @@
 Vimpire is the undead body of VimClojure which returned into the
 Clojuresphere.
 
+```
+                            _..._
+                          .'     '.
+                         ; __   __ ;
+                         |/  \ /  \|
+                       |\| -- ' -- |/|
+                       |(| \o| |o/ |)|
+                       _\|     >   |/_
+                    .-'  | ,.___., |  '-.
+                    \    ;  V'-'V  ;    /
+                     `\   \       /   /`
+                       `\  '-...-'  /`
+                         `\  / \  /`
+                    jgs    `\\_//`
+```
+
 Vimpire is not intended to be an easy to use Clojure IDE, but a plugin
 to make life easier for people already familiar with Vim. So you should
 be familiar with Vim and/or Java. Eg. Vimpire won't help you in any way
@@ -70,6 +86,13 @@ Don't have toplevel commands. Put them in a `(defn main …)` and use
 
 Then don't use it.
 
+# Sources
+
+The ASCII art was taken from [here](http://www.chris.com/ascii/joan/www.geocities.com/SoHo/7373/haloween.html).
+Take care. It tries to play a midi.
+
+<pre>
 -- 
 Meikel Branmdeyer <mb@kotka.de>
 Erlensee, 2018
+</pre>

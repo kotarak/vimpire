@@ -64,5 +64,10 @@ inoremap <Plug>(vimpire_repl_down_history) <C-O>:call vimpire#repl#DownHistory(b
 
 nnoremap <Plug>(vimpire_close_result_buffer) :call vimpire#window#resultwindow#CloseWindow()<CR>
 
+let s:Here = expand("<sfile>:p:h:h")
+
+call vimpire#venom#Register("vimpire",
+            \ vimpire#sunscreen#Apply("vimpire", s:Here . "/server/", s:Here . "/actions.clj"))
+
 " Epilog
 let &cpo = s:cpo_save

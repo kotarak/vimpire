@@ -91,6 +91,7 @@ function! vimpire#connection#New(serverOrSibling)
     let this.state    = "raw"
     let this.queue    = ""
     let this.handlers = s:DefaultHandlers
+    let this.venom    = vimpire#venom#Inject()
 
     return this
 endfunction
@@ -121,8 +122,11 @@ function! vimpire#connection#UpgradeRepl(this, msg)
                         \  a:this.sibling.actions[":start-aux"],
                         \  {}))
         else
-            let starter = join(readfile(s:Location . "venom/unrepl/blob.clj"),
-                        \ "\n")
+            let starter = join(
+                        \   add(
+                        \     readfile(s:Location . "venom/unrepl/blob.clj"),
+                        \     a:this.venom.actions),
+                        \   "\n")
         endif
 
         call ch_sendraw(a:this.channel, starter . "\n")
@@ -350,14 +354,10 @@ function! vimpire#connection#UpgradeSideloader(this, msg)
 endfunction
 
 function! vimpire#connection#HandleSideloadedResource(this, response)
-    let fname = s:Location . "venom/" . a:response[1] . ".b64"
-    if filereadable(fname)
-        " Join without newline here, since files are wrapped.
-        let data = vimpire#edn#Write(join(readfile(fname), ""))
-        call ch_sendraw(a:this.channel, data . "\n")
-    else
-        call ch_sendraw(a:this.channel, "nil\n")
-    endif
+    call ch_sendraw(a:this.channel,
+                \ vimpire#edn#Write(get(a:this.oniisama.venom.resources,
+                \   a:response[1], v:null))
+                \ . "\n")
 endfunction
 
 function! vimpire#connection#ExpandAction(form, bindings)
@@ -404,7 +404,6 @@ function! vimpire#connection#Action(this, action, bindings, ...)
 
     call vimpire#connection#Eval(a:this, code, a:0 > 0 ? a:1 : {})
 endfunction
-
 
 " Epilog
 let &cpo = s:save_cpo

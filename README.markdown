@@ -91,8 +91,8 @@ Then don't use it.
 The ASCII art was taken from [here](http://www.chris.com/ascii/joan/www.geocities.com/SoHo/7373/haloween.html).
 Take care. It tries to play a midi.
 
-<pre>
+```
 -- 
 Meikel Branmdeyer <mb@kotka.de>
 Erlensee, 2018
-</pre>
+```

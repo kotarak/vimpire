@@ -391,12 +391,15 @@ endfunction
 
 function! vimpire#connection#ExpandAction(form, bindings)
     if type(a:form) == v:t_dict
-        if has_key(a:form, "edn/tag") && a:form["edn/tag"] == "unrepl/param"
-            if has_key(a:bindings, a:form["edn/value"]["edn/keyword"])
-                return a:bindings[a:form["edn/value"]["edn/keyword"]]
-            else
-                return v:null
+        if vimpire#edn#IsTaggedLiteral(a:form,
+                    \ {"edn/namespace": "unrepl", "edn/symbol": "param"})
+            let k = vimpire#edn#Simplify(a:form["edn/value"])
+
+            if !has_key(a:bindings, k)
+                throw "Vimpire: binding " . k . "missing in action expansion"
             endif
+
+            return a:bindings[k]
         endif
     endif
 

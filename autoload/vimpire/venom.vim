@@ -57,8 +57,6 @@ function! vimpire#venom#Inject()
         endtry
     endfor
 
-    call map(s:Venom.actions, 'vimpire#edn#Read(v:val)[0]')
-
     let actions = []
     let keys    = []
     for amap in s:Venom.actions

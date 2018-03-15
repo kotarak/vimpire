@@ -69,7 +69,7 @@ nnoremap <Plug>(vimpire_close_result_buffer) :call vimpire#window#resultwindow#C
 let s:Here = expand("<sfile>:p:h:h")
 
 call vimpire#venom#Register("vimpire",
-            \ vimpire#sunscreen#Apply("vimpire", s:Here . "/server/", s:Here . "/actions.clj"))
+            \ vimpire#sunscreen#Apply(["vimpire"], s:Here . "/server/", s:Here . "/actions.clj"))
 
 " Epilog
 let &cpo = s:cpo_save

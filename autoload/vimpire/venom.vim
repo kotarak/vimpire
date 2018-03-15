@@ -39,12 +39,6 @@ function! s:Force(val)
     endif
 endfunction
 
-function! vimpire#venom#DeMap(map)
-    return substitute(
-                \ substitute(a:map, '^\(;.*\n\)*{', '', ''),
-                \ '}\(\s\|\n\)*$', '', '')
-endfunction
-
 function! vimpire#venom#Inject()
     if s:Venom isnot g:vimpire#Nil
         return s:Venom
@@ -63,8 +57,27 @@ function! vimpire#venom#Inject()
         endtry
     endfor
 
-    call map(s:Venom.actions, 'vimpire#venom#DeMap(v:val)')
-    let s:Venom.actions = "{" . join(s:Venom.actions, "\n") . "}"
+    call map(s:Venom.actions, 'vimpire#edn#Read(v:val)[0]')
+
+    let actions = []
+    let keys    = []
+    for amap in s:Venom.actions
+        for [k, v] in (vimpire#edn#IsMagical(amap, "edn/map")
+                    \ ? amap["edn/map"]
+                    \ : items(amap))
+            if index(keys, k) > -1
+                throw "Vimpire: "
+                            \ . peer
+                            \ . " is trying to overwrite existing action "
+                            \ . vimpire#edn#Write(k)
+            endif
+
+            call add(keys, k)
+            call add(actions, [k, v])
+        endfor
+    endfor
+
+    let s:Venom.actions = vimpire#edn#Write({"edn/map": actions})
 
     return s:Venom
 endfunction

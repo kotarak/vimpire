@@ -83,21 +83,6 @@ function! vimpire#window#ShowText(this, text)
     call vimpire#buffer#ShowText(a:this.buffer, a:text)
 endfunction
 
-function! vimpire#window#ShowOutput(this, output)
-    call vimpire#window#GoHere(a:this)
-    if type(a:output.value) == v:t_none
-        if a:output.stdout != ""
-            call vimpire#buffer#ShowText(a:this.buffer, a:output.stdout)
-        endif
-        if a:output.stderr != ""
-            call vimpire#buffer#ShowText(a:this.buffer, "=== STDERR ===")
-            call vimpire#buffer#ShowText(a:this.buffer, a:output.stderr)
-        endif
-    else
-        call vimpire#buffer#ShowText(a:this.buffer, a:output.value)
-    endif
-endfunction
-
 function! vimpire#window#Clear(this)
     call vimpire#window#GoHere(a:this)
     call vimpire#buffer#Clear(a:this.buffer)

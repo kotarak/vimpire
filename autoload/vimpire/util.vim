@@ -23,10 +23,6 @@
 let s:save_cpo = &cpo
 set cpo&vim
 
-function! vimpire#util#SynIdName()
-    return synIDattr(synID(line("."), col("."), 0), "name")
-endfunction
-
 function! vimpire#util#WithSaved(f, save, restore)
     let v = a:save()
     try
@@ -104,47 +100,12 @@ function! vimpire#util#Yank(r, how)
                 \ function("s:DoYank", [a:r, a:how]))
 endfunction
 
-function! vimpire#util#MoveBackward()
-    call search('\S', 'Wb')
-endfunction
-
-function! vimpire#util#MoveForward()
-    call search('\S', 'W')
-endfunction
-
 function! vimpire#util#BufferName()
     let file = expand("%")
     if file == ""
         let file = "UNNAMED"
     endif
     return file
-endfunction
-
-function! s:ClojureExtractSexprWorker(flag)
-    let pos = [0, 0]
-    let start = getpos(".")
-
-    if getline(start[1])[start[2] - 1] == "("
-                \ && vimpire#util#SynIdName() =~ 'clojureParen\|level\d\+c'
-        let pos = [start[1], start[2]]
-    endif
-
-    if pos == [0, 0]
-        let pos = searchpairpos('(', '', ')', 'bW' . a:flag,
-                    \ "vimpire#util#SynIdName() !~ 'clojureParen\\|level\\d\\+c'")
-    endif
-
-    if pos == [0, 0]
-        throw "Error: Not in a s-expression!"
-    endif
-
-    return [pos, vimpire#util#Yank('l', 'normal! "ly%')]
-endfunction
-
-function! vimpire#util#ExtractSexpr(toplevel)
-    let flag = a:toplevel ? "r" : ""
-    return vimpire#util#WithSavedPosition(
-                \ function("s:ClojureExtractSexprWorker", [flag]))
 endfunction
 
 " Epilog

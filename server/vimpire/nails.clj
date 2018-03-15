@@ -23,7 +23,6 @@
 (ns vimpire.nails
   (:require
     [vimpire.backend :as backend]
-    [vimpire.repl    :as repl]
     [vimpire.util    :as util]
     [clojure.pprint  :as pprint]
     clojure.set

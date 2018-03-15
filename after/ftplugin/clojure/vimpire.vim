@@ -33,13 +33,4 @@ catch /.*/
     echohl None
 endtry
 
-if exists("b:vimpire_namespace")
-    setlocal omnifunc=vimpire#backend#OmniCompletion
-
-    augroup Vimpire
-        au!
-        autocmd CursorMovedI <buffer> if pumvisible() == 0 | pclose | endif
-    augroup END
-endif
-
 let &cpo = s:cpo_save

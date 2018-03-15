@@ -25,7 +25,7 @@ let s:save_cpo = &cpo
 set cpo&vim
 
 let s:Registry = {}
-let s:Venom = v:none
+let s:Venom = g:vimpire#Nil
 
 function! vimpire#venom#Register(name, venom)
     let s:Registry[a:name] = a:venom
@@ -46,7 +46,7 @@ function! vimpire#venom#DeMap(map)
 endfunction
 
 function! vimpire#venom#Inject()
-    if type(s:Venom) == v:t_dict
+    if s:Venom isnot g:vimpire#Nil
         return s:Venom
     endif
 

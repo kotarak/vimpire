@@ -107,7 +107,7 @@ function! vimpire#connection#New(serverOrSibling)
         let this.sibling = a:serverOrSibling
     else
         let this.server  = a:serverOrSibling
-        let this.sibling = v:none
+        let this.sibling = g:vimpire#Nil
     endif
 
     let this.equeue   = []
@@ -140,7 +140,7 @@ function! vimpire#connection#UpgradeRepl(this, msg)
         let a:this.queue = ""
 
         let starter = ""
-        if type(a:this.sibling) != v:t_none
+        if a:this.sibling isnot g:vimpire#Nil
             let starter = vimpire#edn#Write(
                         \ vimpire#connection#ExpandAction(
                         \  a:this.sibling.actions[":start-aux"],
@@ -179,13 +179,13 @@ function! vimpire#connection#HandleResponse(this, msg)
         try
             let [ response, nextQueue ] = vimpire#edn#Read(a:this.queue)
         catch /EOF/
-            let response = v:none
+            let response = g:vimpire#Nil
             let nextQueue = a:this.queue
         endtry
 
         let a:this.queue = nextQueue
 
-        if type(response) == v:t_none
+        if response is g:vimpire#Nil
             break
         endif
 
@@ -221,7 +221,7 @@ function! vimpire#connection#HandleHello(this, response)
         let a:this.about = payload[":about"]
     endif
 
-    if type(a:this.sibling) == v:t_none
+    if a:this.sibling is g:vimpire#Nil
         let a:this.state = "hello"
 
         " This is the tooling repl for this backend server. We have to setup

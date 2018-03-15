@@ -28,7 +28,7 @@ function! vimpire#edn#ReadSymbol(input, ...)
     if input[0] == "/"
         let sym2 = matchstr(input, "^/[A-Za-z0-9.*+'!_?$%&=<>:#-]\\+")
         if sym2 == ""
-            return [v:none, a:input]
+            return [g:vimpire#Nil, a:input]
         endif
 
         let input = strpart(input, strlen(sym2))
@@ -57,12 +57,12 @@ function! vimpire#edn#ReadComment(input)
     let comment = matchstr(a:input, '[^\n]*\n')
     let input   = strpart(a:input, strlen(comment))
 
-    return [v:none, input]
+    return [g:vimpire#Nil, input]
 endfunction
 
 function! vimpire#edn#ReadNull(input)
     let [ignore_, input] = vimpire#edn#ReadInput(a:input)
-    return [v:none, input]
+    return [g:vimpire#Nil, input]
 endfunction
 
 let s:Pair = { "[": "]", "(": ")", "{": "}" }
@@ -137,7 +137,7 @@ function! vimpire#edn#ReadNumber(input)
                 \ '^[+-]\?\d\+\(\.\d\+\)\?\([eE][+-]\?\d\+\)\?[MN]\?')
 
     if result == ""
-        return [v:none, a:input]
+        return [g:vimpire#Nil, a:input]
     endif
 
     let input = strpart(a:input, strlen(result))
@@ -194,7 +194,7 @@ endif
 
 function! vimpire#edn#ReadTag(input)
     let [tag, input]   = vimpire#edn#ReadSymbol(a:input)
-    if type(tag) == v:t_none
+    if tag is g:vimpire#Nil
         throw "EDN: invalid tag symbol"
     endif
 
@@ -243,7 +243,7 @@ function! vimpire#edn#ReadInput(input, ...)
             return vimpire#edn#ReadMap(input)
         elseif input[0] == "#"
             let [value, input] = vimpire#edn#ReadHash(strpart(input, 1))
-            if type(value) != type(v:none)
+            if value isnot g:vimpire#Nil
                 return [value, input]
             else
                 let input = vimpire#edn#EatWhitespace(input)
@@ -275,7 +275,7 @@ function! vimpire#edn#ReadInput(input, ...)
         throw "EDN: EOF while reading value"
     endif
 
-    return [v:none, ""]
+    return [g:vimpire#Nil, ""]
 endfunction
 
 function! vimpire#edn#Read(input)
@@ -387,7 +387,7 @@ endfunction
 function! vimpire#edn#Write(thing)
     let t = type(a:thing)
 
-    if t == v:t_none
+    if a:thing is v:null
         return vimpire#edn#WriteNil()
     elseif t == v:t_bool
         return vimpire#edn#WriteBool(a:thing)
@@ -422,7 +422,7 @@ function! vimpire#edn#Simplify(form)
             " elision is for the key of a map. We return a pure string
             " to be able use a vim map. The true elision is put in the
             " value.
-            if type(a:form["edn/value"]) == v:t_none
+            if a:form["edn/value"] is v:null
                 return "unrepl/..."
             else
                 return a:form

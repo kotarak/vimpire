@@ -31,6 +31,8 @@ let vimpire_loaded = "3.0.0"
 let s:cpo_save = &cpo
 set cpo&vim
 
+let g:vimpire#Nil = []
+
 command! -nargs=? VimpireRepl call vimpire#repl#StartRepl(vimpire#connection#ForBuffer(), <f-args>)
 command! -nargs=* VimpireBite call vimpire#connection#RegisterPrefix(getcwd(), <f-args>)
 

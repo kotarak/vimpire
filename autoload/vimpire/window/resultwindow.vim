@@ -55,7 +55,7 @@ endfunction
 function! vimpire#window#resultwindow#Demote(buffer)
     if exists("t:vimpire_result_window")
         if t:vimpire_result_window.buffer is a:buffer
-            let t:vimpire_result_window.buffer = v:none
+            let t:vimpire_result_window.buffer = g:vimpire#Nil
         endif
     endif
 endfunction

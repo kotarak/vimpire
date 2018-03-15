@@ -47,18 +47,23 @@ endfunction
 
 let s:Keywords = {}
 
-function! vimpire#edn#ReadKeyword(input)
-    let [sym, input] = vimpire#edn#ReadSymbol(strpart(a:input, 1))
+function! vimpire#edn#Keyword(kw)
+    let kw = vimpire#edn#Write(a:kw)
 
-    let sym["edn/keyword"] = sym["edn/symbol"]
-    call remove(sym, "edn/symbol")
-
-    let kw = vimpire#edn#Write(sym)
     if !has_key(s:Keywords, kw)
-        let s:Keywords[kw] = sym
+        let s:Keywords[kw] = a:kw
     endif
 
-    return [s:Keywords[sym], input]
+    return s:Keywords[kw]
+endfunction
+
+function! vimpire#edn#ReadKeyword(input)
+    let [kw, input] = vimpire#edn#ReadSymbol(strpart(a:input, 1))
+
+    let kw["edn/keyword"] = kw["edn/symbol"]
+    call remove(kw, "edn/symbol")
+
+    return [vimpire#edn#Keyword(kw), input]
 endfunction
 
 function! vimpire#edn#ReadComment(input)

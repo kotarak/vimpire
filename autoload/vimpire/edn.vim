@@ -1,5 +1,6 @@
 function! vimpire#edn#IsMagical(form, type)
-    return has_key(a:form, a:type) ? v:true : v:false
+    return (type(a:form) == v:t_dict && has_key(a:form, a:type))
+                \ ? v:true : v:false
 endfunction
 
 function! vimpire#edn#IsTaggedLiteral(form, ...)
@@ -209,6 +210,60 @@ function! vimpire#edn#ReadCharacter(input)
     return [result, input]
 endfunction
 
+function! vimpire#edn#ReadNamespacedMap(input)
+    let [tag, input] = vimpire#edn#ReadSymbol(a:input)
+    if !vimpire#edn#IsMagical(tag, "edn/symbol")
+                \ || has_key(tag, "edn/namespace")
+        throw "Vimpire: tag for namespaced map must be a unqualified symbol"
+    endif
+
+    let input = vimpire#edn#EatWhitespace(input)
+
+    let [m, input] = vimpire#edn#ReadMap(input)
+    if !vimpire#edn#IsMagical(m, "edn/map")
+        return [m, input]
+    endif
+
+    let nm = []
+    for pair in m["edn/map"]
+        let [k, v] = pair
+
+        if !vimpire#edn#IsMagical(k, "edn/symbol")
+                    \ && !vimpire#edn#IsMagical(k, "edn/keyword")
+            call add(nm, pair)
+            continue
+        endif
+
+        if !has_key(k, "edn/namespace")
+            if vimpire#edn#IsMagical(k, "edn/keyword")
+                let k = vimpire#edn#Keyword(k["edn/keyword"],
+                            \ tag["edn/symbol"])
+                call add(nm, [k, v])
+            else
+                let k = vimpire#edn#Symbol(k["edn/symbol"],
+                            \ tag["edn/symbol"])
+                call add(nm, [k, v])
+            endif
+            continue
+        endif
+
+        if k["edn/namespace"] == "_"
+            if vimpire#edn#IsMagical(k, "edn/keyword")
+                let k = vimpire#edn#Keyword(k["edn/keyword"])
+                call add(nm, [k, v])
+            else
+                let k = vimpire#edn#Symbol(k["edn/symbol"])
+                call add(nm, [k, v])
+            endif
+            continue
+        endif
+
+        call add(nm, pair)
+    endfor
+
+    return [{"edn/map": nm}, input]
+endfunction
+
 if !exists("g:vimpire_edn_custom_readers")
     let g:vimpire_edn_custom_readers = {}
 endif
@@ -238,6 +293,8 @@ function! vimpire#edn#ReadHash(input)
         return vimpire#edn#ReadSet(a:input)
     elseif a:input[0] == "_"
         return vimpire#edn#ReadNull(strpart(a:input, 1))
+    elseif a:input[0] == ":"
+        return vimpire#edn#ReadNamespacedMap(strpart(a:input, 1))
     else
         return vimpire#edn#ReadTag(a:input)
     endif

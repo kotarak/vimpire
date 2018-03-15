@@ -21,7 +21,16 @@ function! vimpire#edn#EatWhitespace(input)
     return strpart(a:input, strlen(ws))
 endfunction
 
-function! vimpire#edn#ReadSymbol(input, ...)
+function! vimpire#edn#Symbol(sym, ...)
+    let sym = {"edn/symbol": a:sym}
+    if a:0 > 0 && a:1 isnot g:vimpire#Nil
+        let sym["edn/namespace"] = a:1
+    endif
+
+    return sym
+endfunction
+
+function! vimpire#edn#ReadSymbol(input)
     let nspace = g:vimpire#Nil
     let sym    = matchstr(a:input, "^[A-Za-z0-9.*+'!_?$%&=<>:#-]\\+")
     let input  = strpart(a:input, strlen(sym))
@@ -37,33 +46,32 @@ function! vimpire#edn#ReadSymbol(input, ...)
         let sym   = strpart(sym, 1)
     endif
 
-    let value = {"edn/symbol": sym}
-    if nspace isnot g:vimpire#Nil
-        let value["edn/namespace"] = nspace
-    endif
-
-    return [value, input]
+    return [vimpire#edn#Symbol(sym, nspace), input]
 endfunction
 
 let s:Keywords = {}
 
-function! vimpire#edn#Keyword(kw)
-    let kw = vimpire#edn#Write(a:kw)
-
-    if !has_key(s:Keywords, kw)
-        let s:Keywords[kw] = a:kw
+function! vimpire#edn#Keyword(kw, ...)
+    let kw = {"edn/keyword": a:kw}
+    if a:0 > 0 && a:1 isnot g:vimpire#Nil
+        let kw["edn/namespace"] = a:1
     endif
 
-    return s:Keywords[kw]
+    let k = vimpire#edn#Write(kw)
+    if !has_key(s:Keywords, k)
+        let s:Keywords[k] = kw
+    endif
+
+    return s:Keywords[k]
 endfunction
 
 function! vimpire#edn#ReadKeyword(input)
     let [kw, input] = vimpire#edn#ReadSymbol(strpart(a:input, 1))
 
-    let kw["edn/keyword"] = kw["edn/symbol"]
-    call remove(kw, "edn/symbol")
+    let kw = vimpire#edn#Keyword(kw["edn/symbol"],
+                \ get(kw, "edn/namespace", g:vimpire#Nil))
 
-    return [vimpire#edn#Keyword(kw), input]
+    return [kw, input]
 endfunction
 
 function! vimpire#edn#ReadComment(input)
@@ -442,7 +450,7 @@ function! vimpire#edn#Simplify(form)
     elseif t == v:t_dict
         " Special case: Elisions are left alone.
         if vimpire#edn#IsTaggedLiteral(a:form,
-                    \ {"edn/namespace": "unrepl", "edn/symbol": "..."})
+                    \ vimpire#edn#Symbol("...", "unrepl"))
             " Special case: If the associated value is nil, then this
             " elision is for the key of a map. We return a pure string
             " to be able use a vim map. The true elision is put in the
@@ -454,7 +462,7 @@ function! vimpire#edn#Simplify(form)
             endif
         " Special case: Namespaces have their symbol translated.
         elseif vimpire#edn#IsTaggedLiteral(a:form,
-                    \ {"edn/namespace": "unrepl", "edn/symbol": "ns"})
+                    \ vimpire#edn#Symbol("ns", "unrepl"))
             return vimpire#edn#Simplify(a:form["edn/value"])
         " Special case: Other tagged literals are stringified.
         elseif vimpire#edn#IsTaggedLiteral(a:form)

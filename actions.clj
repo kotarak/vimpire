@@ -1,41 +1,42 @@
-{:vimpire.nails/doc-lookup
+#:vimpire.nails
+{:doc-lookup
  (vimpire.nails/doc-lookup #unrepl/param :nspace #unrepl/param :sym)
 
- :vimpire.nails/find-doc
+ :find-doc
  (vimpire.nails/find-doc #unrepl/param :query)
 
- :vimpire.nails/javadoc-path
+ :javadoc-path
  (vimpire.nails/javadoc-path #unrepl/param :nspace #unrepl/param :sym)
 
- :vimpire.nails/source-lookup
+ :source-lookup
  (vimpire.nails/source-lookup #unrepl/param :nspace #unrepl/param :sym)
 
- :vimpire.nails/source-location
+ :source-location
  (vimpire.nails/source-location #unrepl/param :nspace #unrepl/param :sym)
 
- :vimpire.nails/meta-lookup
+ :meta-lookup
  (vimpire.nails/meta-lookup #unrepl/param :nspace #unrepl/param :sym)
 
- :vimpire.nails/dynamic-highlighting
+ :dynamic-highlighting
  (vimpire.nails/dynamic-highlighting #unrepl/param :nspace)
 
- :vimpire.nails/namespace-of-file
+ :namespace-of-file
  (vimpire.nails/namespace-of-file #unrepl/param :content)
 
- :vimpire.nails/namespace-info
+ :namespace-info
  (vimpire.nails/namespace-info #unrepl/param :content)
 
- :vimpire.nails/macro-expand
+ :macro-expand
  (vimpire.nails/macro-expand #unrepl/param :nspace #unrepl/param :form #unrepl/param :one?)
 
- :vimpire.nails/complete
+ :complete
  (vimpire.nails/complete #unrepl/param :nspace #unrepl/param :prefix #unrepl/param :base)
 
- :vimpire.nails/check-syntax
+ :check-syntax
  (vimpire.nails/check-syntax #unrepl/param :nspace #unrepl/param :content)
 
- :vimpire.nails/run-tests
+ :run-tests
  (vimpire.nails/run-tests #unrepl/param :nspace #unrepl/param :all?)
 
- :vimpire.nails/pprint-exception
+ :pprint-exception
  (vimpire.pprint/pprint-exception #unrepl/param :ex)}

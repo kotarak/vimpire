@@ -47,6 +47,9 @@ function! vimpire#venom#Inject()
     call map(s:Registry, { k_, v -> s:Force(v) })
 
     let s:Venom = {"actions": [], "resources": {}}
+
+    let actions = []
+    let keys    = []
     for [peer, val] in items(s:Registry)
         call add(s:Venom.actions, val.actions)
         try
@@ -55,14 +58,10 @@ function! vimpire#venom#Inject()
         catch
             throw "Vimpire: " . peer . " is trying to overwrite existing resources"
         endtry
-    endfor
 
-    let actions = []
-    let keys    = []
-    for amap in s:Venom.actions
-        for [k, v] in (vimpire#edn#IsMagical(amap, "edn/map")
-                    \ ? amap["edn/map"]
-                    \ : items(amap))
+        for [k, v] in (vimpire#edn#IsMagical(val.actions, "edn/map")
+                    \ ? val.actions["edn/map"]
+                    \ : items(val.actions))
             if index(keys, k) > -1
                 throw "Vimpire: "
                             \ . peer

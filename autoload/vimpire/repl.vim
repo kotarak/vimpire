@@ -251,7 +251,7 @@ function! vimpire#repl#GetCommand(this)
 endfunction
 
 function! vimpire#repl#CloseCommand(this)
-    call ch_close(a:this.conn.channel)
+    call vimpire#connection#Disconnect(a:this.conn.channel)
     call vimpire#window#Close(a:this)
     stopinsert
 endfunction
@@ -261,7 +261,7 @@ let s:ReplCommands = {
             \ }
 
 function! vimpire#repl#EnterHookStdin(this)
-    call ch_sendraw(a:this.conn.channel, getline(line(".")) . "\n")
+    call vimpire#connection#Send(a:this.conn.channel, getline(line(".")))
     call append(line("$"), "")
     call cursor(line("$"), col([line("$"), "$"]))
     redraw
@@ -325,7 +325,7 @@ function! vimpire#repl#HandleSyntaxChecked(this, cmd, validForm)
     if a:validForm
         let a:this.historyDepth = 0
         call insert(a:this.history, a:cmd)
-        call ch_sendraw(a:this.conn.channel, a:cmd . "\n")
+        call vimpire#connection#Send(a:this.conn.channel, a:cmd)
     else
         execute "normal! a\<CR>x"
         normal! ==x

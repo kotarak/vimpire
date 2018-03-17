@@ -24,6 +24,52 @@
 let s:save_cpo = &cpo
 set cpo&vim
 
+if !has("nvim")
+    function! vimpire#connection#Connect(this, initCallback)
+        return ch_open(a:this.server,
+                    \ {"mode":     "raw",
+                    \  "callback": { ch_, msg -> a:initCallback(msg)}})
+    endfunction
+
+    function! vimpire#connection#Disconnect(this)
+        call ch_close(a:this)
+    endfunction
+
+    function! vimpire#connection#Send(this, code)
+        call ch_sendraw(a:this, a:code . "\n")
+    endfunction
+else
+    function! vimpire#connection#Connect(this, initCallback)
+        return sockconnect("tcp", a:this.server,
+                    \ {"on_data":
+                    \  vimpire#connection#Dispatch(a:this, a:initCallback)})
+    endfunction
+
+    function! vimpire#connection#Disconnect(this)
+        call chanclose(a:this)
+    endfunction
+
+    function! vimpire#connection#Send(this, code)
+        call chansend(a:this, a:code . "\n")
+    endfunction
+
+    function! vimpire#connection#DoDispatch(this, initCallback, msg)
+        let msg = join(a:msg, "\n")
+
+        if a:this.state != "raw"
+            call vimpire#connection#HandleResponse(a:this, msg)
+        else
+            call a:initCallback(msg)
+        endif
+    endfunction
+
+    function! vimpire#connection#Dispatch(this, initCallback)
+        return { t_, msg, e_ ->
+                    \ vimpire#connection#DoDispatch(a:this, a:initCallback, msg)
+                    \ }
+    endfunction
+endif
+
 function! s:Ready()
     let fangs = [
                 \ '        __   __',
@@ -121,19 +167,16 @@ function! vimpire#connection#New(serverOrSibling)
 endfunction
 
 function! vimpire#connection#Start(this)
-    let a:this.channel = ch_open(
-                \ a:this.server,
-                \ { "mode": "raw",
-                \   "callback" : { ch, msg ->
-                \      vimpire#connection#UpgradeRepl(a:this, msg)
-                \ }})
+    let a:this.channel = vimpire#connection#Connect(
+                \ a:this,
+                \ { msg -> vimpire#connection#UpgradeRepl(a:this, msg)})
 endfunction
 
 function! vimpire#connection#UpgradeRepl(this, msg)
     let a:this.queue .= a:msg
 
     if a:this.queue =~ '\[:unrepl.upgrade/failed\]'
-        call ch_close(a:this.channel)
+        call vimpire#connection#Disconnect(a:this.channel)
         throw "Vimpire: Couldn't upgrade to unrepl."
     elseif a:this.queue =~ 'user=> ' && !a:this.unrepled
         let a:this.unrepled = v:true
@@ -153,15 +196,19 @@ function! vimpire#connection#UpgradeRepl(this, msg)
                         \   "\n")
         endif
 
-        call ch_sendraw(a:this.channel, starter . "\n")
+        call vimpire#connection#Send(a:this.channel, starter)
     elseif a:this.queue =~ '\[:unrepl/hello'
+        let a:this.state = "greeted"
+
         " Get rid of any possible remnants of a prompt or the like.
         let a:this.queue = substitute(a:this.queue, "^.*\[:unrepl/hello", "[:unrepl/hello", "")
 
-        call ch_setoptions(a:this.channel,
-                    \ { "callback": { ch, msg ->
-                    \   vimpire#connection#HandleResponse(a:this, msg)
-                    \ }})
+        if !has("nvim")
+            call ch_setoptions(a:this.channel,
+                        \ { "callback": { ch, msg ->
+                        \   vimpire#connection#HandleResponse(a:this, msg)
+                        \ }})
+        endif
 
         call vimpire#connection#HandleResponse(a:this, "")
     endif
@@ -323,30 +370,31 @@ function! vimpire#connection#DoEval(this)
 
     let a:this.state = "evaling"
 
-    call ch_sendraw(a:this.channel, a:this.equeue[0].code . "\n")
+    call vimpire#connection#Send(a:this.channel, a:this.equeue[0].code)
 endfunction
+
+let s:SideloaderHandlers = {
+            \   ":resource":
+            \   function("vimpire#connection#HandleSideloadedResource"),
+            \   ":class":
+            \   { t, response ->
+            \     vimpire#connection#Send(t.channel, "nil")
+            \   }
+            \ }
 
 function! vimpire#connection#NewSideloader(oniisama)
     let this = {}
 
+    let this.server   = a:oniisama.server
     let this.running  = v:false
     let this.oniisama = a:oniisama
     let this.queue    = ""
     let this.state    = "raw"
-    let this.channel  = ch_open(
-                \ a:oniisama.server, {
-                \   "mode": "raw",
-                \   "callback" : { ch, msg ->
-                \      vimpire#connection#UpgradeSideloader(this, msg)
-                \   }
-                \ })
+    let this.channel  = vimpire#connection#Connect(
+                \ this,
+                \ { msg -> vimpire#connection#UpgradeSideloader(this, msg) })
 
-    let this.handlers = {
-                \   ":resource":
-                \   function("vimpire#connection#HandleSideloadedResource"),
-                \   ":class":
-                \   { this, response -> ch_sendraw(this.channel, "nil\n") }
-                \ }
+    let this.handlers = s:SideloaderHandlers
 
     return this
 endfunction
@@ -362,17 +410,19 @@ function! vimpire#connection#UpgradeSideloader(this, msg)
                     \  a:this.oniisama.actions[":unrepl.jvm/start-side-loader"],
                     \  {}))
 
-        call ch_sendraw(a:this.channel, starter . "\n")
+        call vimpire#connection#Send(a:this.channel, starter)
     elseif a:this.queue =~ '\[:unrepl.jvm.side-loader/hello\]'
         let a:this.state = "waiting"
 
         let [ hello_, nextQueue ] = vimpire#edn#Read(a:this.queue)
         let a:this.queue = nextQueue
 
-        call ch_setoptions(a:this.channel,
-                    \ { "callback": { ch, msg ->
-                    \   vimpire#connection#HandleResponse(a:this, msg)
-                    \ }})
+        if !has("nvim")
+            call ch_setoptions(a:this.channel,
+                        \ { "callback": { ch_, msg ->
+                        \   vimpire#connection#HandleResponse(a:this, msg)
+                        \ }})
+        endif
 
         let a:this.running = v:true
 
@@ -383,10 +433,9 @@ function! vimpire#connection#UpgradeSideloader(this, msg)
 endfunction
 
 function! vimpire#connection#HandleSideloadedResource(this, response)
-    call ch_sendraw(a:this.channel,
+    call vimpire#connection#Send(a:this.channel,
                 \ vimpire#edn#Write(get(a:this.oniisama.venom.resources,
-                \   a:response[1], v:null))
-                \ . "\n")
+                \   a:response[1], v:null)))
 endfunction
 
 function! vimpire#connection#ExpandAction(form, bindings)

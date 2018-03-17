@@ -194,7 +194,8 @@ function! vimpire#repl#HandleException(this, response)
     let stackTrace = []
     let incomplete = v:false
     for elem in ex[":trace"]
-        if vimpire#edn#IsTaggedLiteral(elem, "unrepl/...")
+        if vimpire#edn#IsTaggedLiteral(elem,
+                    \ vimpire#edn#Symbol("...", "unrepl"))
             let incomplete = v:true
             break
         endif
@@ -203,8 +204,8 @@ function! vimpire#repl#HandleException(this, response)
     endfor
 
     let exToPrint = {"edn/map": [
-                \ [{"edn/keyword": ":cause"}, ex[":cause"]],
-                \ [{"edn/keyword": ":trace"}, stackTrace]
+                \ [vimpire#edn#Keyword("cause"), ex[":cause"]],
+                \ [vimpire#edn#Keyword("trace"), stackTrace]
                 \ ]}
 
     call vimpire#connection#Action(a:this.conn.sibling,

@@ -4,7 +4,8 @@ function! vimpire#edn#IsMagical(form, type)
 endfunction
 
 function! vimpire#edn#IsTaggedLiteral(form, ...)
-    return (len(a:form) == 2
+    return (type(a:form) == v:t_dict
+                \   && len(a:form) == 2
                 \   && has_key(a:form, "edn/tag")
                 \   && has_key(a:form, "edn/value")
                 \   && (a:0 == 0 || a:form["edn/tag"] == a:1))

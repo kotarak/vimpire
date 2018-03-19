@@ -2,3 +2,8 @@ syntax: glob
 .DS_Store
 *-keys.txt
 .cpcache
+
+# External deps
+.git*
+project.clj
+*_test.clj

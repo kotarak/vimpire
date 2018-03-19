@@ -138,26 +138,10 @@ function! vimpire#sunscreen#Shade(contents, rootNamespaces, marker)
     return shadedContents
 endfunction
 
-function! vimpire#sunscreen#ShadeActions(form, marker, rootNamespaces)
-    if vimpire#edn#IsMagical(a:form, "edn/list")
-        return vimpire#edn#List(
-                    \ map(copy(a:form["edn/list"]),
-                    \ "vimpire#sunscreen#ShadeActions(v:val, a:marker, a:rootNamespaces)"))
-    elseif vimpire#edn#IsMagical(a:form, "edn/map")
-        let alist = []
-        for [k, v] in a:form["edn/map"]
-            let k = vimpire#sunscreen#ShadeActions(k, a:marker, a:rootNamespaces)
-            let v = vimpire#sunscreen#ShadeActions(v, a:marker, a:rootNamespaces)
-            call add(alist, [k, v])
-        endfor
-        return vimpire#edn#Map(alist)
-    elseif vimpire#edn#IsMagical(a:form, "edn/set")
-        return vimpire#edn#Set(
-                    \ map(copy(a:form["edn/set"]),
-                    \ "vimpire#sunscreen#ShadeActions(v:val, a:marker, a:rootNamespaces)"))
-    elseif vimpire#edn#IsTaggedLiteral(a:form)
-        let t = vimpire#sunscreen#ShadeActions(a:form["edn/tag"],
-                    \ a:marker, a:rootNamespaces)
+function! vimpire#sunscreen#ShadeActionsLeafs(marker, rootNamespaces, form)
+    if vimpire#edn#IsTaggedLiteral(a:form)
+        let t = vimpire#sunscreen#ShadeActionsLeafs(
+                    \ a:marker, a:rootNamespaces, a:form["edn/tag"])
         let v = vimpire#sunscreen#ShadeActions(a:form["edn/value"],
                     \ a:marker, a:rootNamespaces)
         return {"edn/tag": t, "edn/value": v}
@@ -175,12 +159,15 @@ function! vimpire#sunscreen#ShadeActions(form, marker, rootNamespaces)
         endif
         return vimpire#edn#Keyword(a:form["edn/keyword"],
                     \ a:marker . "." . a:form["edn/namespace"])
-    elseif type(a:form) == v:t_list || type(a:form) == v:t_dict
-        return map(copy(a:form),
-                    \ "vimpire#sunscreen#ShadeActions(v:val, a:marker, a:rootNamespaces)")
     else
         return a:form
     endif
+endfunction
+
+function! vimpire#sunscreen#ShadeActions(form, marker, rootNamespaces)
+    return vimpire#edn#Traverse(a:form,
+                \ function("vimpire#sunscreen#ShadeActionsLeafs",
+                \   [a:marker, a:rootNamespaces]))
 endfunction
 
 function! vimpire#sunscreen#DoApply(rootNamespaces, resourcesRoot, actionsFile)

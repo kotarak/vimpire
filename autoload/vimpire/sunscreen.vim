@@ -140,9 +140,9 @@ endfunction
 
 function! vimpire#sunscreen#ShadeActions(form, marker, rootNamespaces)
     if vimpire#edn#IsMagical(a:form, "edn/list")
-        return {"edn/list":
+        return vimpire#edn#List(
                     \ map(copy(a:form["edn/list"]),
-                    \ "vimpire#sunscreen#ShadeActions(v:val, a:marker, a:rootNamespaces)")}
+                    \ "vimpire#sunscreen#ShadeActions(v:val, a:marker, a:rootNamespaces)"))
     elseif vimpire#edn#IsMagical(a:form, "edn/map")
         let alist = []
         for [k, v] in a:form["edn/map"]
@@ -150,11 +150,11 @@ function! vimpire#sunscreen#ShadeActions(form, marker, rootNamespaces)
             let v = vimpire#sunscreen#ShadeActions(v, a:marker, a:rootNamespaces)
             call add(alist, [k, v])
         endfor
-        return {"edn/map": alist}
+        return vimpire#edn#Map(alist)
     elseif vimpire#edn#IsMagical(a:form, "edn/set")
-        return {"edn/set":
+        return vimpire#edn#Set(
                     \ map(copy(a:form["edn/set"]),
-                    \ "vimpire#sunscreen#ShadeActions(v:val, a:marker, a:rootNamespaces)")}
+                    \ "vimpire#sunscreen#ShadeActions(v:val, a:marker, a:rootNamespaces)"))
     elseif vimpire#edn#IsTaggedLiteral(a:form)
         let t = vimpire#sunscreen#ShadeActions(a:form["edn/tag"],
                     \ a:marker, a:rootNamespaces)
@@ -201,7 +201,7 @@ function! vimpire#sunscreen#DoApply(rootNamespaces, resourcesRoot, actionsFile)
                         \ marker, rootNspaces)
             call add(alist, [k, v])
         endfor
-        let actions = {"edn/map": alist}
+        let actions = vimpire#edn#Map(alist)
     else
         let actions = map(copy(actions),
                     \ "vimpire#sunscreen#ShadeActions(v:val, a:marker, rootNspaces)")

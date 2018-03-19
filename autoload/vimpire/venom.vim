@@ -74,7 +74,7 @@ function! vimpire#venom#Inject()
         endfor
     endfor
 
-    let s:Venom.actions = vimpire#edn#Write({"edn/map": actions})
+    let s:Venom.actions = vimpire#edn#Write(vimpire#edn#Map(actions))
 
     return s:Venom
 endfunction

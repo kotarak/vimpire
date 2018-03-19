@@ -91,6 +91,10 @@ endfunction
 let s:Pair = { "[": "]", "(": ")", "{": "}" }
 let s:ReversePair = { "]": "[", ")": "(", "}": "{" }
 
+function! vimpire#edn#List(elements)
+    return {"edn/list": a:elements}
+endfunction
+
 function! vimpire#edn#ReadList(input)
     let delim = a:input[0]
     let input = strpart(a:input, 1)
@@ -111,9 +115,29 @@ function! vimpire#edn#ReadList(input)
     endwhile
 endfunction
 
+function! vimpire#edn#Set(elements)
+    return {"edn/set": a:elements}
+endfunction
+
 function! vimpire#edn#ReadSet(input)
     let [values, input] = vimpire#edn#ReadList(a:input)
-    return [{"edn/set": values}, input]
+    return [vimpire#edn#Set(values), input]
+endfunction
+
+function! vimpire#edn#Map(list)
+    let map = {}
+    for [k, v] in a:list
+        if type(k) != v:t_string
+            break
+        endif
+        let map[k] = v
+    endfor
+
+    if len(map) == len(a:list)
+        return map
+    else
+        return {"edn/map": a:list}
+    endif
 endfunction
 
 function! vimpire#edn#ReadMap(input)
@@ -125,7 +149,6 @@ function! vimpire#edn#ReadMap(input)
 
     let alist  = []
     let keys   = []
-    let canMap = v:true
     while len(values) > 0
         let [key, value; values] = values
 
@@ -137,22 +160,9 @@ function! vimpire#edn#ReadMap(input)
         call add(keys, key)
 
         call add(alist, [key, value])
-
-        if type(key) != type("")
-            let canMap = v:false
-        endif
     endwhile
 
-    if canMap == v:false
-        return [{'edn/map': alist}, input]
-    endif
-
-    let amap = {}
-    for [key, value] in alist
-        let amap[key] = value
-    endfor
-
-    return [amap, input]
+    return [vimpire#edn#Map(alist), input]
 endfunction
 
 function! vimpire#edn#ReadNumber(input)
@@ -262,6 +272,9 @@ function! vimpire#edn#ReadNamespacedMap(input)
         call add(nm, pair)
     endfor
 
+    " We know that we cannot turn into a normal vim map.
+    " It would have been one in the first place. So we
+    " can save the try.
     return [{"edn/map": nm}, input]
 endfunction
 
@@ -316,7 +329,7 @@ function! vimpire#edn#ReadInput(input, ...)
             return vimpire#edn#ReadCharacter(input)
         elseif input[0] == "("
             let [value, input] = vimpire#edn#ReadList(input)
-            return [{"edn/list": value}, input]
+            return [vimpire#edn#List(value), input]
         elseif input[0] == "["
             return vimpire#edn#ReadList(input)
         elseif input[0] == "{"

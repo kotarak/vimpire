@@ -203,10 +203,10 @@ function! vimpire#repl#HandleException(this, response)
         call add(stackTrace, vimpire#edn#Simplify(elem))
     endfor
 
-    let exToPrint = {"edn/map": [
+    let exToPrint = vimpire#edn#Map([
                 \ [vimpire#edn#Keyword("cause"), ex[":cause"]],
                 \ [vimpire#edn#Keyword("trace"), stackTrace]
-                \ ]}
+                \ ])
 
     call vimpire#connection#Action(a:this.conn.sibling,
                 \ ":vimpire.nails/pprint-exception",

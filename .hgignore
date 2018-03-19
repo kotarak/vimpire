@@ -7,3 +7,8 @@ syntax: glob
 .git*
 project.clj
 *_test.clj
+
+# Compliment
+venom/complete/.travis.yml
+venom/complete/doc
+venom/complete/test

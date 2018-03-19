@@ -292,22 +292,19 @@ endfunction
 
 " Async Completion
 function! vimpire#backend#AsyncComplete(line, col, cont)
-    let start = a:col
-
-    let base = matchstr(a:line, '\(\w\|[/_*<>=+-]\)\+$')
-    if base == ""
+    let prefix = matchstr(a:line, '\(\w\|[/_*.<>=+-]\)\+$')
+    if prefix == ""
         return
     endif
 
-    let start  = a:col - strlen(base) + 1
+    let start  = a:col - strlen(prefix) + 1
 
     let server = vimpire#connection#ForBuffer()
     call vimpire#connection#Action(
                 \ server,
                 \ ":vimpire/complete",
                 \ {":nspace": b:vimpire_namespace,
-                \  ":prefix": base,
-                \  ":base":   base},
+                \  ":prefix": prefix},
                 \ {"eval": function(a:cont, [start])})
 endfunction
 

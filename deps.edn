@@ -1,2 +1,2 @@
-{:paths ["server"]
+{:paths ["server" "venom/complete/src"]
  :deps  {net.cgrand/unrepl {:mvn/version "0.1.0-SNAPSHOT"}}}

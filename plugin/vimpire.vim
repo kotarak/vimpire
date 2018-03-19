@@ -81,7 +81,7 @@ call vimpire#venom#Register(
             \   "vimpire-complete",
             \   [s:Here . "/venom/complete/src/"],
             \   ["vimpire.complete"],
-            \   ["complete.core"],
+            \   ["compliment"],
             \   s:Here . "/venom/complete/actions.clj"))
 
 " Epilog

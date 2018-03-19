@@ -24,47 +24,75 @@
 let s:save_cpo = &cpo
 set cpo&vim
 
-let s:Registry = {}
-let s:Venom = g:vimpire#Nil
+let vimpire#venom#PoisonCabinet = []
+let vimpire#venom#Venom = g:vimpire#Nil
 
-function! vimpire#venom#Register(name, venom)
-    let s:Registry[a:name] = a:venom
+function! vimpire#venom#Register(venom)
+    call add(g:vimpire#venom#PoisonCabinet, a:venom)
 endfunction
 
-function! s:Force(val)
-    if type(a:val) == v:t_func
-        return a:val()
-    else
-        return a:val
-    endif
+function! vimpire#venom#NamespacesToRegex(namespaces)
+    return '\(' . escape(join(a:namespaces, '\|'), '.') . '\)'
 endfunction
 
 function! vimpire#venom#Inject()
-    if s:Venom isnot g:vimpire#Nil
-        return s:Venom
+    if g:vimpire#venom#Venom isnot g:vimpire#Nil
+        return g:vimpire#venom#Venom
     endif
 
-    call map(s:Registry, { k_, v -> s:Force(v) })
+    " Step 1+2: Read resources & actions and generate markers.
+    let markers = {}
+    for vial in g:vimpire#venom#PoisonCabinet
+        let vial.resources =
+                    \ vimpire#sunscreen#GetResources(vial.roots)
+        let vial.actions =
+                    \ vimpire#edn#Read(join(readfile(vial.actions), "\n"))[0]
+        let vial.marker =
+                    \ vimpire#sunscreen#GenerateMarker(vial.resources)
+        if len(vial.exposed) > 0
+            let markers[vial.marker] =
+                        \ vimpire#venom#NamespacesToRegex(vial.exposed)
+        endif
+    endfor
 
-    let s:Venom = {"actions": [], "resources": {}}
+    " Step 3: Shade resources and actions.
+    for vial in g:vimpire#venom#PoisonCabinet
+        let localMarkers = copy(markers)
+        if len(vial.exposed) > 0 || len(vial.hidden) > 0
+            let localMarkers[vial.marker] = vimpire#venom#NamespacesToRegex(
+                        \ vial.exposed + vial.hidden)
+        endif
 
-    let actions = []
-    let keys    = []
-    for [peer, val] in items(s:Registry)
-        call add(s:Venom.actions, val.actions)
+        let vial.resources = vimpire#sunscreen#ShadeResourceNames(
+                    \ vial.marker, vial.resources)
+        let vial.resources = vimpire#sunscreen#ShadeResources(
+                    \ localMarkers, vial.resources)
+        let vial.resources = vimpire#sunscreen#Base64EncodeResources(
+                    \ vial.resources)
+        let vial.actions = vimpire#sunscreen#ShadeActions(
+                    \ localMarkers, vial.actions)
+    endfor
+
+    " Step 4: Distill the venom!
+    let resources = {}
+    let actions   = []
+    let keys      = []
+    for vial in g:vimpire#venom#PoisonCabinet
         try
             " It is an error for peers to overwrite each others resources.
-            call extend(s:Venom.resources, val.resources, "error")
+            " In fact this should never happen. But hey, you never know
+            " what people come up with.
+            call extend(resources, vial.resources, "error")
         catch
-            throw "Vimpire: " . peer . " is trying to overwrite existing resources"
+            throw "Vimpire: " . vial.name . " is trying to overwrite existing resources"
         endtry
 
-        for [k, v] in (vimpire#edn#IsMagical(val.actions, "edn/map")
-                    \ ? val.actions["edn/map"]
-                    \ : items(val.actions))
+        for [k, v] in (vimpire#edn#IsMagical(vial.actions, "edn/map")
+                    \ ? vial.actions["edn/map"]
+                    \ : items(vial.actions))
             if index(keys, k) > -1
                 throw "Vimpire: "
-                            \ . peer
+                            \ . vial.name
                             \ . " is trying to overwrite existing action "
                             \ . vimpire#edn#Write(k)
             endif
@@ -74,9 +102,11 @@ function! vimpire#venom#Inject()
         endfor
     endfor
 
-    let s:Venom.actions = vimpire#edn#Write(vimpire#edn#Map(actions))
+    let actions = vimpire#edn#Write(vimpire#edn#Map(actions))
 
-    return s:Venom
+    let g:vimpire#venom#Venom = {"actions": actions, "resources": resources}
+
+    return g:vimpire#venom#Venom
 endfunction
 
 " Epilog

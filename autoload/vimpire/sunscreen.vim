@@ -24,17 +24,19 @@
 let s:save_cpo = &cpo
 set cpo&vim
 
-function! vimpire#sunscreen#GetResources(root)
-    let files = glob(a:root . "**/*.clj", v:false, v:true)
+function! vimpire#sunscreen#GetResources(roots)
+    let resources = {}
+    for root in a:roots
+        let files = glob(root . "**/*", v:false, v:true)
+        call filter(files, 'getftype(v:val) == "file"')
 
-    let contents = {}
-
-    for f in files
-        let resource = substitute(strpart(f, strlen(a:root)), '\\', '/', 'g')
-        let contents[resource] = join(readfile(f), "\n")
+        for f in files
+            let resource = substitute(strpart(f, strlen(root)), '\\', '/', 'g')
+            let resources[resource] = join(readfile(f), "\n")
+        endfor
     endfor
 
-    return contents
+    return resources
 endfunction
 
 function! vimpire#sunscreen#StringToBytes(input)
@@ -112,94 +114,126 @@ function! vimpire#sunscreen#Marker(input)
     return vimpire#sunscreen#Base64(bytes, table)
 endfunction
 
-function! vimpire#sunscreen#GenerateMarker(contents)
-    let allContent = []
-    for f in sort(keys(a:contents))
-        call add(allContent, a:contents[f])
+function! vimpire#sunscreen#GenerateMarker(resources)
+    let content = []
+    for f in sort(keys(a:resources))
+        call add(content, a:resources[f])
     endfor
 
-    let marker = "vv-" . vimpire#sunscreen#Marker(join(allContent, "\n"))
+    let marker = "vv-" . vimpire#sunscreen#Marker(join(content, "\n"))
 
     return marker
 endfunction
 
-function! vimpire#sunscreen#Shade(contents, rootNamespaces, marker)
-    let markerDir = substitute(a:marker, '-', '_', 'g')
-
-    let shadedContents = {}
-    for [ resource, content ] in items(a:contents)
-        let shadedContents[markerDir . "/" . resource] =
-                    \ vimpire#sunscreen#Base64(
-                    \ vimpire#sunscreen#StringToBytes(
-                    \ substitute(content, ':\@<!' . a:rootNamespaces,
-                    \   a:marker . '.\1', "g")))
-    endfor
-
-    return shadedContents
+function! vimpire#sunscreen#Base64EncodeResources(resources)
+    return map(copy(a:resources), { k_, val ->
+                \ vimpire#sunscreen#Base64(
+                \ vimpire#sunscreen#StringToBytes(val))
+                \ })
 endfunction
 
-function! vimpire#sunscreen#ShadeActionsLeafs(marker, rootNamespaces, form)
+function! vimpire#sunscreen#ShadeResourceNames(marker, resources)
+    let markerDir = substitute(a:marker, '-', '_', 'g')
+
+    let shadedResources = {}
+    for resource in keys(a:resources)
+        let nresource = markerDir . '/' . resource
+        let shadedResources[nresource] = a:resources[resource]
+    endfor
+
+    return shadedResources
+endfunction
+
+function! vimpire#sunscreen#ShadeResources(namespaceShades, resources)
+    let shadedResources = copy(a:resources)
+
+    for [ marker, shadedNamespaceRoots ] in items(a:namespaceShades)
+        let markerDir = substitute(marker, '-', '_', 'g')
+
+        let strsToShade = '"' . substitute(shadedNamespaceRoots,
+                    \ '\.', '/', 'g')
+
+        call map(shadedResources, { resource_, content ->
+                    \   substitute(
+                    \     substitute(
+                    \       content,
+                    \       shadedNamespaceRoots,
+                    \       marker . '.\1', 'g'),
+                    \   strsToShade, '"' . markerDir . '/\1', 'g')
+                    \ })
+    endfor
+
+    return shadedResources
+endfunction
+
+function! vimpire#sunscreen#ShadeActionsLeafs(namespaceShades, form)
     if vimpire#edn#IsTaggedLiteral(a:form)
         let t = vimpire#sunscreen#ShadeActionsLeafs(
-                    \ a:marker, a:rootNamespaces, a:form["edn/tag"])
-        let v = vimpire#sunscreen#ShadeActions(a:form["edn/value"],
-                    \ a:marker, a:rootNamespaces)
+                    \ a:namespaceShades, a:form["edn/tag"])
+        let v = vimpire#sunscreen#ShadeActionsTree(
+                    \ a:namespaceShades, a:form["edn/value"])
         return {"edn/tag": t, "edn/value": v}
     elseif vimpire#edn#IsMagical(a:form, "edn/symbol")
         if !has_key(a:form, "edn/namespace")
-                    \ || a:form["edn/namespace"] !~ '^' . a:rootNamespaces
             return a:form
         endif
-        return vimpire#edn#Symbol(a:form["edn/symbol"],
-                    \ a:marker . "." . a:form["edn/namespace"])
+
+        for [marker, namespaces] in items(a:namespaceShades)
+            if a:form["edn/namespace"] =~ '^' . namespaces
+                return vimpire#edn#Symbol(a:form["edn/symbol"],
+                            \ marker . "." . a:form["edn/namespace"])
+            endif
+        endfor
+
+        return a:form
     elseif vimpire#edn#IsMagical(a:form, "edn/keyword")
         if !has_key(a:form, "edn/namespace")
-                    \ || a:form["edn/namespace"] !~ '^' . a:rootNamespaces
             return a:form
         endif
-        return vimpire#edn#Keyword(a:form["edn/keyword"],
-                    \ a:marker . "." . a:form["edn/namespace"])
+
+        for [marker, namespaces] in items(a:namespaceShades)
+            if a:form["edn/namespace"] =~ '^' . namespaces
+                return vimpire#edn#Keyword(a:form["edn/keyword"],
+                            \ marker . "." . a:form["edn/namespace"])
+            endif
+        endfor
+
+        return a:form
     else
         return a:form
     endif
 endfunction
 
-function! vimpire#sunscreen#ShadeActions(form, marker, rootNamespaces)
+function! vimpire#sunscreen#ShadeActionsTree(namespaceShades, form)
     return vimpire#edn#Traverse(a:form,
                 \ function("vimpire#sunscreen#ShadeActionsLeafs",
-                \   [a:marker, a:rootNamespaces]))
+                \   [a:namespaceShades]))
 endfunction
 
-function! vimpire#sunscreen#DoApply(rootNamespaces, resourcesRoot, actionsFile)
-    let resources = vimpire#sunscreen#GetResources(a:resourcesRoot)
-    let marker    = vimpire#sunscreen#GenerateMarker(resources)
-    let rootNspaces = '\(' . escape(join(a:rootNamespaces, '\|'), '.') . '\)'
+function! vimpire#sunscreen#ShadeActions(namespaceShades, form)
+    let actions = []
+    for [k, v] in (vimpire#edn#IsMagical(a:form, "edn/map")
+                \ ? a:form["edn/map"] : items(a:form))
+        call add(actions, [k, vimpire#sunscreen#ShadeActionsTree(
+                \ a:namespaceShades, a:form))])
+    endfor
 
-    let shadedResources = vimpire#sunscreen#Shade(resources,
-                \ rootNspaces, marker)
-
-    let [actions, trailingGarbageIgnored_] =
-                \ vimpire#edn#Read(join(readfile(a:actionsFile), "\n"))
-
-    if vimpire#edn#IsMagical(actions, "edn/map")
-        let alist = []
-        for [k, v] in actions["edn/map"]
-            let v = vimpire#sunscreen#ShadeActions(v,
-                        \ marker, rootNspaces)
-            call add(alist, [k, v])
-        endfor
-        let actions = vimpire#edn#Map(alist)
-    else
-        let actions = map(copy(actions),
-                    \ "vimpire#sunscreen#ShadeActions(v:val, a:marker, rootNspaces)")
-    endif
-
-    return {"resources": shadedResources, "actions": actions}
+    return vimpire#edn#Map(actions)
 endfunction
 
-function! vimpire#sunscreen#Apply(rootNamespaces, resourcesRoot, actionsFile)
-    return function("vimpire#sunscreen#DoApply",
-                \ [a:rootNamespaces, a:resourcesRoot, a:actionsFile])
+function! vimpire#sunscreen#Apply(
+            \ name,
+            \ roots,
+            \ exposedNamespaceRoots,
+            \ hiddenNamespaceRoots,
+            \ actionsFile)
+    return {
+                \ "name":    a:name,
+                \ "roots":   a:roots,
+                \ "exposed": a:exposedNamespaceRoots,
+                \ "hidden":  a:hiddenNamespaceRoots,
+                \ "actions": a:actionsFile
+                \ }
 endfunction
 
 " Epilog

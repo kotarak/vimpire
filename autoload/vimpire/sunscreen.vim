@@ -223,7 +223,7 @@ function! vimpire#sunscreen#ShadeActions(namespaceShades,
     for [k, v] in (vimpire#edn#IsMagical(a:form, "edn/map")
                 \ ? a:form["edn/map"] : items(a:form))
         call add(actions, [k, vimpire#sunscreen#ShadeActionsTree(
-                \ a:namespaceShades, a:initNamespaces, a:form))])
+                \ a:namespaceShades, a:initNamespaces, v)])
     endfor
 
     return vimpire#edn#Map(actions)

@@ -1,6 +1,17 @@
-function! vimpire#edn#IsMagical(form, type)
-    return (type(a:form) == v:t_dict && has_key(a:form, a:type))
-                \ ? v:true : v:false
+function! vimpire#edn#IsMagical(form, ...)
+    if type(a:form) == v:t_dict
+        if a:0 > 0
+            return has_key(a:form, a:1) ? v:true : v:false
+        elseif has_key(a:form, "edn/list")
+                    \ || has_key(a:form, "edn/set")
+                    \ || has_key(a:form, "edn/map")
+                    \ || has_key(a:form, "edn/symbol")
+                    \ || has_key(a:form, "edn/keyword")
+                    \ || has_key(a:form, "edn/tag")
+            return v:true
+        endif
+    endif
+    return v:false
 endfunction
 
 function! vimpire#edn#IsTaggedLiteral(form, ...)

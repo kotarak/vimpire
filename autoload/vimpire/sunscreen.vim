@@ -166,12 +166,16 @@ function! vimpire#sunscreen#ShadeResources(namespaceShades, resources)
     return shadedResources
 endfunction
 
-function! vimpire#sunscreen#ShadeActionsLeafs(namespaceShades, form)
+function! vimpire#sunscreen#ShadeActionsLeafs(namespaceShades,
+            \ initNamespaces, form)
     if vimpire#edn#IsTaggedLiteral(a:form)
+        " Note: We do not propagate namespace requires into
+        " tags, since they are not necessarily existing in general.
+        " We only care for the symbols on the executable level.
         let t = vimpire#sunscreen#ShadeActionsLeafs(
-                    \ a:namespaceShades, a:form["edn/tag"])
+                    \ a:namespaceShades, [], a:form["edn/tag"])
         let v = vimpire#sunscreen#ShadeActionsTree(
-                    \ a:namespaceShades, a:form["edn/value"])
+                    \ a:namespaceShades, [], a:form["edn/value"])
         return {"edn/tag": t, "edn/value": v}
     elseif vimpire#edn#IsMagical(a:form, "edn/symbol")
         if !has_key(a:form, "edn/namespace")
@@ -180,8 +184,10 @@ function! vimpire#sunscreen#ShadeActionsLeafs(namespaceShades, form)
 
         for [marker, namespaces] in items(a:namespaceShades)
             if a:form["edn/namespace"] =~ '^' . namespaces
+                let shadedNamespace = marker . "." . a:form["edn/namespace"]
+                call add(a:initNamespaces, shadedNamespace)
                 return vimpire#edn#Symbol(a:form["edn/symbol"],
-                            \ marker . "." . a:form["edn/namespace"])
+                            \ shadedNamespace)
             endif
         endfor
 
@@ -204,18 +210,20 @@ function! vimpire#sunscreen#ShadeActionsLeafs(namespaceShades, form)
     endif
 endfunction
 
-function! vimpire#sunscreen#ShadeActionsTree(namespaceShades, form)
+function! vimpire#sunscreen#ShadeActionsTree(namespaceShades,
+            \ initNamespaces, form)
     return vimpire#edn#Traverse(a:form,
                 \ function("vimpire#sunscreen#ShadeActionsLeafs",
-                \   [a:namespaceShades]))
+                \   [a:namespaceShades, a:initNamespaces]))
 endfunction
 
-function! vimpire#sunscreen#ShadeActions(namespaceShades, form)
+function! vimpire#sunscreen#ShadeActions(namespaceShades,
+            \ initNamespaces, form)
     let actions = []
     for [k, v] in (vimpire#edn#IsMagical(a:form, "edn/map")
                 \ ? a:form["edn/map"] : items(a:form))
         call add(actions, [k, vimpire#sunscreen#ShadeActionsTree(
-                \ a:namespaceShades, a:form))])
+                \ a:namespaceShades, a:initNamespaces, a:form))])
     endfor
 
     return vimpire#edn#Map(actions)

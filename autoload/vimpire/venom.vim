@@ -56,6 +56,7 @@ function! vimpire#venom#Inject()
     endfor
 
     " Step 3: Shade resources and actions.
+    let initNamespaces = []
     for vial in g:vimpire#venom#PoisonCabinet
         let localMarkers = copy(markers)
         if len(vial.exposed) > 0 || len(vial.hidden) > 0
@@ -70,7 +71,7 @@ function! vimpire#venom#Inject()
         let vial.resources = vimpire#sunscreen#Base64EncodeResources(
                     \ vial.resources)
         let vial.actions = vimpire#sunscreen#ShadeActions(
-                    \ localMarkers, vial.actions)
+                    \ localMarkers, initNamespaces, vial.actions)
     endfor
 
     " Step 4: Distill the venom!
@@ -103,8 +104,19 @@ function! vimpire#venom#Inject()
     endfor
 
     let actions = vimpire#edn#Write(vimpire#edn#Map(actions))
+    call map(uniq(sort(initNamespaces)), { idx_, nspace ->
+                \   vimpire#edn#List([
+                \     vimpire#edn#Symbol("symbol", "clojure.core"),
+                \     nspace
+                \   ])
+                \ })
 
-    let g:vimpire#venom#Venom = {"actions": actions, "resources": resources}
+    let g:vimpire#venom#Venom = {
+                \ "actions":   actions,
+                \ "resources": resources,
+                \ "init":      vimpire#edn#Write(vimpire#edn#List([
+                \   vimpire#edn#Symbol("require", "clojure.core")
+                \ ] + initNamespaces))}
 
     return g:vimpire#venom#Venom
 endfunction

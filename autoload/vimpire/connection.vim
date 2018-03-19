@@ -284,6 +284,9 @@ function! vimpire#connection#HandleHello(this, response)
                     \  ":unrepl.print/coll-length":   {"edn/symbol": "Long/MAX_VALUE"},
                     \  ":unrepl.print/nesting-depth": {"edn/symbol": "Long/MAX_VALUE"}})
 
+        " Require the venom namespaces.
+        call vimpire#connection#Eval(a:this, a:this.venom.init, {})
+
         " Set the name of the tooling repl.
         let action = vimpire#connection#Action(
                     \ a:this,
@@ -292,6 +295,7 @@ function! vimpire#connection#HandleHello(this, response)
                     \  ":unrepl/line": 1,
                     \  ":unrepl/column": 1})
 
+        " Await the previous commands to finish.
         call vimpire#connection#Eval(
                     \ a:this,
                     \ "true",

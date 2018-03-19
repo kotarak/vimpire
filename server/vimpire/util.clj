@@ -54,6 +54,12 @@
                                      candidate-split))))
     (.startsWith candidate pattern)))
 
+(defn safe-ns-resolve
+  [nspace sym]
+  (try
+    (ns-resolve nspace sym)
+    (catch ClassNotFoundException _ nil)))
+
 (defn safe-var-get
   [the-var]
   (when (.isBound the-var)

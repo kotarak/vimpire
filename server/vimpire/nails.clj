@@ -142,15 +142,6 @@
               false
               (throw exc))))))))
 
-(defn complete
-  [nspace prefix base]
-  (let [nspace      (util/resolve-and-load-namespace nspace)
-        prefix      (symbol prefix)
-        to-complete (util/decide-completion-in nspace prefix base)
-        completions (mapcat #(backend/complete % nspace prefix base)
-                            to-complete)]
-    (mapv #(apply util/make-completion-item %) completions)))
-
 (defn run-tests
   [nspace all?]
   (when (not= "user" nspace)

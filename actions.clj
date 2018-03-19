@@ -29,9 +29,6 @@
  :macro-expand
  (vimpire.nails/macro-expand #unrepl/param :nspace #unrepl/param :form #unrepl/param :one?)
 
- :complete
- (vimpire.nails/complete #unrepl/param :nspace #unrepl/param :prefix #unrepl/param :base)
-
  :check-syntax
  (vimpire.nails/check-syntax #unrepl/param :nspace #unrepl/param :content)
 

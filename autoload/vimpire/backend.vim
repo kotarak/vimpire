@@ -301,20 +301,13 @@ function! vimpire#backend#AsyncComplete(line, col, cont)
 
     let start  = a:col - strlen(base) + 1
 
-    let prefix = ""
-    let slash = stridx(base, '/')
-    if slash > -1
-        let prefix = strpart(base, 0, slash)
-        let base   = strpart(base, slash + 1)
-    endif
-
     let server = vimpire#connection#ForBuffer()
     call vimpire#connection#Action(
                 \ server,
-                \ ":vimpire.nails/complete",
+                \ ":vimpire/complete",
                 \ {":nspace": b:vimpire_namespace,
-                \  ":prefix": prefix,
-                \   ":base":  base},
+                \  ":prefix": base,
+                \  ":base":   base},
                 \ {"eval": function(a:cont, [start])})
 endfunction
 

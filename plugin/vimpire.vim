@@ -72,9 +72,17 @@ call vimpire#venom#Register(
             \ vimpire#sunscreen#Apply(
             \   "vimpire",
             \   [s:Here . "/server/"],
-            \   ["vimpire"],
-            \   [],
+            \   ["vimpire.util"],
+            \   ["vimpire.nails", "vimpire.backend", "vimpire.pprint"],
             \   s:Here . "/actions.clj"))
+
+call vimpire#venom#Register(
+            \ vimpire#sunscreen#Apply(
+            \   "vimpire-complete",
+            \   [s:Here . "/venom/complete/src/"],
+            \   ["vimpire.complete"],
+            \   ["complete.core"],
+            \   s:Here . "/venom/complete/actions.clj"))
 
 " Epilog
 let &cpo = s:cpo_save

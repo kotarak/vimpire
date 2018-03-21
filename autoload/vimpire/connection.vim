@@ -162,7 +162,7 @@ function! vimpire#connection#New(serverOrSibling)
     let this.queue    = ""
     let this.handlers = s:DefaultHandlers
     let this.venom    = vimpire#venom#Inject()
-    let this.currentEvalID = 0
+    let this.evalUnit = { "id": 0, "output": [] }
 
     return this
 endfunction
@@ -317,10 +317,14 @@ function! vimpire#connection#HandleEvent(this, event, response)
 endfunction
 
 function! vimpire#connection#HandleEndOfEval(this, event, response)
+    let a:this.evalUnit.result = [a:event, a:response[1]]
+
     if a:this.state == "evaling"
         if has_key(a:this.equeue[0].callbacks, a:event)
             call a:this.equeue[0].callbacks[a:event](a:response[1])
-        elseif a:event == "exception"
+        endif
+    else
+        if a:event == "exception"
             echoerr vimpire#edn#Write(a:response[1])
         endif
     endif
@@ -338,7 +342,16 @@ function! vimpire#connection#HandlePrompt(this, response)
 
         let ctx.remaining -= len
 
+        " If the current eval unit has no result,
+        " this was a spurious prompt.
+        if has_key(a:this.evalUnit, "result")
+            call add(ctx.evalUnits, a:this.evalUnit)
+        endif
+
         if ctx.remaining == 0
+            if has_key(ctx.callbacks, "result")
+                call ctx.callbacks.result(ctx.evalUnits)
+            endif
             call remove(a:this.equeue, 0)
             let a:this.state = "awaiting-prompt"
         else
@@ -349,7 +362,7 @@ function! vimpire#connection#HandlePrompt(this, response)
     endif
 
     let a:this.offset = response[":offset"]
-    let a:this.currentEvalID = a:response[2]
+    let a:this.evalUnit = { "id": a:response[2], "output": [] }
 
     if a:this.state == "awaiting-prompt"
         let a:this.state = "prompt"
@@ -358,11 +371,20 @@ function! vimpire#connection#HandlePrompt(this, response)
 endfunction
 
 function! vimpire#connection#HandleOutput(this, event, response)
-    if a:response[2] != a:this.currentEvalID
+    if a:response[2] != a:this.evalUnit.id
         return
     endif
 
-    call vimpire#connection#HandleEvent(a:this, a:event, a:response)
+    if a:this.state != "evaling"
+        return
+    endif
+
+    if has_key(a:this.equeue[0].callbacks, a:event)
+        call a:this.equeue[0].callbacks[a:event](a:response[1])
+    endif
+
+    call add(a:this.evalUnit.output,
+                \ [a:event, split(a:response[1], '\r\?\n')])
 endfunction
 
 function! vimpire#connection#Eval(this, code, ...)
@@ -383,6 +405,8 @@ function! vimpire#connection#DoEval(this)
     endif
 
     let a:this.state = "evaling"
+
+    let a:this.equeue[0].evalUnits = []
 
     call vimpire#connection#Send(a:this.channel, a:this.equeue[0].code)
 endfunction

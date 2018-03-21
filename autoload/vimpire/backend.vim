@@ -23,8 +23,20 @@
 let s:save_cpo = &cpo
 set cpo&vim
 
-function! vimpire#backend#ShowClojureResultCallback(nspace)
-    return { val -> vimpire#ui#ShowClojureResult(vimpire#edn#Write(val), a:nspace) }
+function! vimpire#backend#ShowClojureResultCallback(nspace, results)
+    let text = []
+    for unit in a:results
+        echomsg string(unit)
+        if len(unit.output) > 0
+            for [event_, output] in unit.output
+                call extend(text, map(output, '"; " . v:val'))
+            endfor
+        endif
+        " FIXME: Handle exceptions
+        call extend(text, split(vimpire#edn#Write(unit.result[1]), '\r\?\n'))
+    endfor
+
+    call vimpire#ui#ShowClojureResult(text, a:nspace)
 endfunction
 
 function! vimpire#backend#DocLookup(word)
@@ -147,13 +159,6 @@ function! vimpire#backend#GotoSource(word)
 endfunction
 
 " Evaluators
-function! s:RequireFileCallback(nspace, x, value)
-    let value = vimpire#edn#Write(a:value)
-    let text = a:x.output . "\n" . value
-
-    call vimpire#ui#ShowClojureResult(text, a:nspace)
-endfunction
-
 function! vimpire#backend#RequireFile(all)
     let nspace = b:vimpire_namespace
     let cmd = vimpire#edn#List(
@@ -166,11 +171,12 @@ function! vimpire#backend#RequireFile(all)
 
     let server = vimpire#connection#ForBuffer()
 
-    let x = {"output" : ""}
     call vimpire#connection#Eval(server,
                 \ vimpire#edn#Write(cmd),
-                \ {"eval": function("s:RequireFileCallback", [nspace, x]),
-                \  "out":  {val -> extend(x, {"output": x.output . val})}})
+                \ {"result":
+                \  function("vimpire#backend#ShowClojureResultCallback",
+                \    [nspace])
+                \ })
 endfunction
 
 function! vimpire#backend#RunTests(all)
@@ -243,8 +249,10 @@ function! s:EvalOperatorSyntaxChecked(server, file, line, col, nspace,
         call vimpire#backend#EvalWithPosition(a:server,
                     \ a:file, a:line, a:col, a:nspace,
                     \ a:exp,
-                    \ {"eval":
-                    \  vimpire#backend#ShowClojureResultCallback(a:nspace)})
+                    \ {"result":
+                    \  function("vimpire#backend#ShowClojureResultCallback",
+                    \    [a:nspace])
+                    \ })
     else
         call vimpire#ui#ReportError("Syntax check failed:\n\n" . a:exp)
     endif

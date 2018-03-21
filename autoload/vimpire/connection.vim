@@ -133,9 +133,9 @@ let s:DefaultHandlers = {
             \ ":prompt":
             \ { t, r -> vimpire#connection#HandlePrompt(t, r) },
             \ ":out":
-            \ { t, r -> vimpire#connection#HandleEvent(t, "out", r) },
+            \ { t, r -> vimpire#connection#HandleOutput(t, "out", r) },
             \ ":err":
-            \ { t, r -> vimpire#connection#HandleEvent(t, "err", r) },
+            \ { t, r -> vimpire#connection#HandleOutput(t, "err", r) },
             \ ":log":
             \ { t, r -> vimpire#connection#HandleEvent(t, "log", r) },
             \ ":exception":
@@ -162,6 +162,7 @@ function! vimpire#connection#New(serverOrSibling)
     let this.queue    = ""
     let this.handlers = s:DefaultHandlers
     let this.venom    = vimpire#venom#Inject()
+    let this.currentEvalID = 0
 
     return this
 endfunction
@@ -348,11 +349,20 @@ function! vimpire#connection#HandlePrompt(this, response)
     endif
 
     let a:this.offset = response[":offset"]
+    let a:this.currentEvalID = a:response[2]
 
     if a:this.state == "awaiting-prompt"
         let a:this.state = "prompt"
         call vimpire#connection#DoEval(a:this)
     endif
+endfunction
+
+function! vimpire#connection#HandleOutput(this, event, response)
+    if a:response[2] != a:this.currentEvalID
+        return
+    endif
+
+    call vimpire#connection#HandleEvent(a:this, a:event, a:response)
 endfunction
 
 function! vimpire#connection#Eval(this, code, ...)

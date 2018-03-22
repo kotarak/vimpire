@@ -101,17 +101,19 @@ endfunction
 " Idea taken from Christophe Grand's unrepl
 function! vimpire#sunscreen#Marker(input)
     " Note: This is a one way street.
-    let table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789AB"
+    let table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-A"
 
-    " Note: We cut off two bytes to avoid padding.
-    let sha = sha256(a:input)[4:64]
+    let sha = sha256(a:input)
     let bytes = []
 
     for i in range(strlen(sha) / 2)
         call add(bytes, str2nr(sha[i:i+1], 16))
     endfor
 
-    return vimpire#sunscreen#Base64(bytes, table)
+    let marker = vimpire#sunscreen#Base64(bytes, table)
+
+    " Cut off the padding.
+    return strpart(marker, 0, strlen(marker) - 1)
 endfunction
 
 function! vimpire#sunscreen#GenerateMarker(resources)

@@ -589,6 +589,32 @@ function! vimpire#edn#SimplifyMap(form)
     endif
 endfunction
 
+function! vimpire#edn#Items(form)
+    if type(a:form) == v:t_list
+        return a:form
+    elseif vimpire#edn#IsMagical(a:form, "edn/list")
+        return a:form["edn/list"]
+    elseif vimpire#edn#IsMagical(a:form, "edn/set")
+        return a:form["edn/set"]
+    elseif vimpire#edn#IsMagical(a:form, "edn/map")
+        return a:form["edn/map"]
+    else
+        return items(a:form)
+    endif
+endfunction
+
+function! vimpire#edn#SameAs(elems, form)
+    if type(a:form) == v:t_list
+        return a:elems
+    elseif vimpire#edn#IsMagical(a:form, "edn/list")
+        return vimpire#edn#List(a:elems)
+    elseif vimpire#edn#IsMagical(a:form, "edn/set")
+        return vimpire#edn#Set(a:elems)
+    else
+        return vimpire#edn#Map(a:elems)
+    endif
+endfunction
+
 function! vimpire#edn#Traverse(form, f, ...)
     let Compoundf = { val -> val }
     if a:0 > 0

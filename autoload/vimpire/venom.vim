@@ -88,9 +88,7 @@ function! vimpire#venom#Inject()
             throw "Vimpire: " . vial.name . " is trying to overwrite existing resources"
         endtry
 
-        for [k, v] in (vimpire#edn#IsMagical(vial.actions, "edn/map")
-                    \ ? vial.actions["edn/map"]
-                    \ : items(vial.actions))
+        for [k, v] in vimpire#edn#Items(vial.actions)
             if index(keys, k) > -1
                 throw "Vimpire: "
                             \ . vial.name

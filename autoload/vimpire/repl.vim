@@ -85,6 +85,7 @@ function! vimpire#repl#New(sibling, namespace)
 
     let b:vimpire_namespace = "user"
     let this.prompt = "user=> "
+    let this.value  = {"form": v:null, "elisions": {}}
 
     call vimpire#connection#Start(server)
 
@@ -177,9 +178,28 @@ function! vimpire#repl#HandleOutput(this, response)
                 \ function("vimpire#window#ShowText", [a:this, a:response[1]]))
 endfunction
 
+let g:vimpire#repl#Printers = {
+            \ "clojure/var":
+            \ { val, ps -> "#'" . vimpire#edn#Write(val, ps) },
+            \ "unrepl/ratio":
+            \ { val, ps_ -> val[0] . "/" . val[1] },
+            \ "unrepl/...":
+            \ { val, ps_ -> val is v:null ? "…" : "vv" . val },
+            \ "unrepl/string":
+            \ { val, ps ->
+            \   vimpire#edn#WriteString(val[0] . "…")
+            \     . vimpire#edn#Write(val[1], ps)
+            \ }}
+
 function! vimpire#repl#HandleEval(this, response)
+    let a:this.value = vimpire#repl#ExtractElisions(a:response[1])
+
     call vimpire#repl#DeleteLastLineIfNecessary(a:this)
-    call vimpire#window#ShowText(a:this, vimpire#edn#Write(a:response[1]))
+
+    let a:this.value.start = line("$") + 1
+
+    call vimpire#window#ShowText(a:this,
+                \ vimpire#edn#Write(a:this.value.form, g:vimpire#repl#Printers))
     call cursor(line("$"), col([line("$"), "$"]))
 
     " Although supposed to be unnecessary…
@@ -398,6 +418,158 @@ function! vimpire#repl#DeleteLast(this)
     endwhile
 
     normal! dd
+endfunction
+
+" Elision Handling
+let s:ElisionSymbol = vimpire#edn#Symbol("...", "unrepl")
+let s:ElisionString = vimpire#edn#Symbol("string", "unrepl")
+let s:VimpireSplice = vimpire#edn#Symbol("splice", "vimpire")
+
+function! s:ExtractElisionsWorker(unit, elision)
+    if vimpire#edn#IsTaggedLiteral(a:elision, s:ElisionString)
+        let el = copy(a:elision)
+        let el["edn/value"] = vimpire#edn#Traverse(el["edn/value"],
+                    \ function("s:ExtractElisionsWorker", [a:unit]))
+        return el
+    endif
+
+    if !vimpire#edn#IsTaggedLiteral(a:elision, s:ElisionSymbol)
+        return a:elision
+    endif
+
+    " This is the elided map key.
+    if a:elision["edn/value"] is v:null
+        return a:elision
+    endif
+
+    " Already known elision of a previous value, which is now
+    " expanded in some other part.
+    if type(a:elision["edn/value"]) == v:t_number
+        return a:elision
+    endif
+
+    let elision = vimpire#edn#SimplifyMap(a:elision["edn/value"])
+
+    let id = a:unit.id
+    let a:unit.id += 1
+    let a:unit.elisions[id] = elision[":get"]
+
+    return {"edn/tag": s:ElisionSymbol, "edn/value": id}
+endfunction
+
+function! vimpire#repl#ExtractElisions(form, ...)
+    let unit = a:0 > 0 ? a:1 : {"id": 1, "elisions": {}}
+
+    let unit.form = vimpire#edn#Traverse(a:form,
+                \ function("s:ExtractElisionsWorker", [unit]))
+
+    return unit
+endfunction
+
+function! s:ElisionReplaceWorker(id, val, form)
+    " unrepl/string may be spliced with a pure string or
+    " another unrepl/string. In case of the latter we merge
+    " the strings and take over the new elision. The string
+    " is the simple case. There is no more elision so we can
+    " happily replace the unrepl/string.
+    if vimpire#edn#IsTaggedLiteral(a:form, s:ElisionString)
+                \ && a:form["edn/value"][1]["edn/value"] == a:id
+        if vimpire#edn#IsTaggedLiteral(a:val, s:ElisionString)
+            return {"edn/tag": s:ElisionString,
+                        \ "edn/value":
+                        \   [a:form["edn/value"][0] . a:val["edn/value"][0],
+                        \    a:val["edn/value"][1]]}
+        else
+            return a:form["edn/value"][0] . a:val
+        endif
+    endif
+
+    if !vimpire#edn#IsTaggedLiteral(a:form, s:ElisionSymbol)
+        return a:form
+    endif
+
+    " For non-strings we replace the elision with a custom
+    " marker since the elision has to be spliced in the
+    " surrounding compound form. If the expansion failed,
+    " we get a null elision literal as value. In this case
+    " we simply insert this value.
+    if a:form["edn/value"] == a:id
+        if vimpire#edn#IsTaggedLiteral(a:val, s:ElisionSymbol)
+            return a:val
+        else
+            return {"edn/tag": s:VimpireSplice, "edn/value": a:val}
+        endif
+    else
+        return a:form
+    endif
+endfunction
+
+function! s:ElisionSpliceWorker(form)
+    let elems = []
+    if vimpire#edn#IsMagical(a:form, "edn/map")
+                \ || (type(a:form) == v:t_dict
+                \   && !vimpire#edn#IsMagical(a:form))
+        for [k, v] in vimpire#edn#Items(a:form)
+            if vimpire#edn#IsTaggedLiteral(v, s:VimpireSplice)
+                call extend(elems, vimpire#edn#Items(v["edn/value"]))
+            else
+                call add(elems, [k, v])
+            endif
+        endfor
+    else
+        for elem in vimpire#edn#Items(a:form)
+            if vimpire#edn#IsTaggedLiteral(elem, s:VimpireSplice)
+                call extend(elems, vimpire#edn#Items(elem["edn/value"]))
+            else
+                call add(elems, elem)
+            endif
+        endfor
+    endif
+    return vimpire#edn#SameAs(elems, a:form)
+endfunction
+
+function! s:ShowUpdatedElision(this)
+    execute a:this.value.start ",$delete _"
+    call vimpire#window#ShowText(a:this,
+                \ vimpire#edn#Write(a:this.value.form, g:vimpire#repl#Printers))
+endfunction
+
+function! vimpire#repl#ExpandElisionCallback(this, id, val)
+    " If we got an elision literal, the elision could not
+    " be resolved. There won't be a :get. Since vim has no
+    " sets, we can safely set the contents here to v:null
+    " for simple printing.
+    if vimpire#edn#IsTaggedLiteral(a:val, s:ElisionSymbol)
+        let a:val["edn/value"] = v:null
+    endif
+
+    unlet a:this.value.elisions[a:id]
+    let a:this.value.form = vimpire#edn#Traverse(a:this.value.form,
+                \ function("s:ElisionReplaceWorker", [a:id, a:val]),
+                \ function("s:ElisionSpliceWorker"))
+
+    let a:this.value = vimpire#repl#ExtractElisions(
+                \ a:this.value.form, a:this.value)
+
+    call vimpire#repl#WithProtectedPrompt(a:this,
+                \ function("s:ShowUpdatedElision", [a:this]))
+endfunction
+
+function! vimpire#repl#ExpandElision(this, id)
+    if !has_key(a:this.value.elisions, a:id)
+        echomsg "Unknown id: " . a:id
+        return
+    endif
+
+    call vimpire#connection#Eval(a:this.conn.sibling,
+                \ vimpire#edn#Write(a:this.value.elisions[a:id]),
+                \ {"eval":
+                \  function("vimpire#repl#ExpandElisionCallback",
+                \    [a:this, a:id])})
+endfunction
+
+function! vimpire#repl#GetElisionId(word)
+    return substitute(a:word, '.*vv\(\d\+\)', '\1', '')
 endfunction
 
 " Epilog

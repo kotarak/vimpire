@@ -218,6 +218,59 @@ state clean, you will get into trouble.
 The repl is all in all functional, but rather fragile. If you cannot cope
 with that, then don't use it.
 
+Unrepl Elisions
+---------------
+
+Unrepl provides so-called elisions. From the standard clojure repl we
+know that eg. very long collections are cut-off to prevent an overflow
+of printed information. Unrepl lifts that to the next level in providing
+a way to actually retrieve the elided values and extend the already shown
+information. The Vimpire repl shows at the corresponding points so called
+elision markers. <Plug>(vimpire_repl_expand_elision) may be used to
+expand the elision marker under the cursor. Likewise, to specify the
+elision id manually <Plug>(vimpire_repl_expand_elision_interactive) may
+be used. Example:
+>
+        user=> (range)
+        (0 1 2 3 4 5 6 7 8 9 vv1)
+        user=>
+<
+As you can see the normally very dangerous act of printing an infinite
+sequence, works perfectly well with this approach since the values are
+cut-off at some point. The fangs at the end of the printed sequence
+indicate, that there are more values which can be sucked from the victim
+process. Placing the cursor marker and executing the <Plug> expands the
+marker in place.
+>
+        user=> (range)
+        (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 vv2)
+        user=>
+<
+Again, there is another marker, so the process may be repeated. Of course
+the prompt and any already entered text will be kept intact. Should the
+expansion of the elision not be possible anymore, the marker is turned
+into an ellipsis.
+>
+        user=> (range)
+        (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 …)
+        user=>
+<
+This works also for vectors, sets, maps and string. While for the
+collections the markers are displayed in line with the other values,
+for strings the marker immediately follows the string, which also ends
+in a ellipsis to indicate that there are more characters available.
+>
+        user=> (apply str (repeat 200 \a))
+        "aaaaaaaaaa…"vv1
+        user=> (vec (take 25 (range)))
+        [0 1 2 3 4 5 6 7 8 9 vv1]
+        user=> (set (take 25 (range)))
+        #{0 7 20 1 24 4 15 21 13 22 vv1}
+        user=> (into {} (map-indexed vector (repeat 25 \a)))
+        {0 "a" 7 "a" 20 "a" 1 "a" 24 "a" 4 "a" 15 "a" 21 "a" … vv1}
+        user=>
+<
+
 Async Completion
 ----------------
 

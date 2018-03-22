@@ -64,6 +64,9 @@ nnoremap <Plug>(vimpire_repl_hat_hook) :call vimpire#repl#HatHook(b:vimpire_repl
 inoremap <Plug>(vimpire_repl_up_history) <C-O>:call vimpire#repl#UpHistory(b:vimpire_repl)<CR>
 inoremap <Plug>(vimpire_repl_down_history) <C-O>:call vimpire#repl#DownHistory(b:vimpire_repl)<CR>
 
+nnoremap <silent> <Plug>(vimpire_repl_expand_elision) :call vimpire#repl#ExpandElision(b:vimpire_repl, vimpire#repl#GetElisionId(expand("<cword>")))<CR>
+nnoremap <silent> <Plug>(vimpire_repl_expand_elision_interactive) :call vimpire#repl#ExpandElision(b:vimpire_repl, input("Elision ID: "))<CR>
+
 nnoremap <Plug>(vimpire_close_result_buffer) :call vimpire#window#resultwindow#CloseWindow()<CR>
 
 let s:Here = expand("<sfile>:p:h:h")

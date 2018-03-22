@@ -97,7 +97,7 @@ function! vimpire#repl#New(sibling, namespace)
     return this
 endfunction
 
-function! vimpire#repl#ShowWithProtectedPrompt(this, f)
+function! vimpire#repl#WithProtectedPrompt(this, f)
     if a:this.state == "prompt"
         let [ _buf, cline, ccol, _off ] = getpos(".")
         let lline = line("$")
@@ -172,7 +172,7 @@ function! vimpire#repl#DeleteLastLineIfNecessary(this)
 endfunction
 
 function! vimpire#repl#HandleOutput(this, response)
-    call vimpire#repl#ShowWithProtectedPrompt(
+    call vimpire#repl#WithProtectedPrompt(
                 \ a:this,
                 \ function("vimpire#window#ShowText", [a:this, a:response[1]]))
 endfunction
@@ -212,7 +212,7 @@ function! vimpire#repl#HandleException(this, response)
                 \ ":vimpire.nails/pprint-exception",
                 \ {":ex": exToPrint},
                 \ { "eval": { val ->
-                \   vimpire#repl#ShowWithProtectedPrompt(
+                \   vimpire#repl#WithProtectedPrompt(
                 \     a:this,
                 \     function("vimpire#repl#ShowException",
                 \       [a:this, val, incomplete]))

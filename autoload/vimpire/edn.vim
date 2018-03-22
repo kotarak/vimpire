@@ -398,16 +398,16 @@ function! vimpire#edn#WriteNumber(thing)
     return string(a:thing)
 endfunction
 
-function! vimpire#edn#WriteList(thing, delim)
+function! vimpire#edn#WriteList(thing, delim, printers)
     " Special case: Empty list. Otherwise the first fails.
     if len(a:thing) == 0
         return a:delim . s:Pair[a:delim]
     endif
 
     let [ first; rest ] = a:thing
-    let s = a:delim . vimpire#edn#Write(first)
+    let s = a:delim . vimpire#edn#Write(first, a:printers)
     for x in rest
-        let s .= " " . vimpire#edn#Write(x)
+        let s .= " " . vimpire#edn#Write(x, a:printers)
     endfor
     let s .= s:Pair[a:delim]
 
@@ -426,7 +426,7 @@ function! vimpire#edn#WriteKeyword(kw)
                 \ . a:kw["edn/keyword"]
 endfunction
 
-function! vimpire#edn#WriteDict(thing)
+function! vimpire#edn#WriteDict(thing, printers)
     let thing = a:thing
 
     " Special case: Empty dict. Otherwise the first fails.
@@ -436,18 +436,23 @@ function! vimpire#edn#WriteDict(thing)
 
     " Special case: tagged literal
     if vimpire#edn#IsTaggedLiteral(thing)
-        return "#" . vimpire#edn#Write(thing["edn/tag"])
-                    \ . " " . vimpire#edn#Write(thing["edn/value"])
+        let t = vimpire#edn#Write(thing["edn/tag"])
+        if has_key(a:printers, t)
+            return a:printers[t](thing["edn/value"], a:printers)
+        else
+            return "#" . t . " "
+                        \ . vimpire#edn#Write(thing["edn/value"], a:printers)
+        endif
     endif
 
     " Special case: a list, not a vector
     if vimpire#edn#IsMagical(thing, "edn/list")
-        return vimpire#edn#WriteList(thing["edn/list"], "(")
+        return vimpire#edn#WriteList(thing["edn/list"], "(", a:printers)
     endif
 
     " Special case: a set, not a vector
     if vimpire#edn#IsMagical(thing, "edn/set")
-        return "#" . vimpire#edn#WriteList(thing["edn/set"], "{")
+        return "#" . vimpire#edn#WriteList(thing["edn/set"], "{", a:printers)
     endif
 
     " Special case: a keyword, not a string
@@ -468,10 +473,11 @@ function! vimpire#edn#WriteDict(thing)
     endif
 
     let [ firstPair; rest ] = thing
-    let s = "{" . vimpire#edn#Write(firstPair[0])
-                \ . " " . vimpire#edn#Write(firstPair[1])
+    let s = "{" . vimpire#edn#Write(firstPair[0], a:printers)
+                \ . " " . vimpire#edn#Write(firstPair[1], a:printers)
     for [ key, value ] in rest
-        let s .= " " . vimpire#edn#Write(key) . " " . vimpire#edn#Write(value)
+        let s .= " " . vimpire#edn#Write(key, a:printers)
+                    \ . " " . vimpire#edn#Write(value, a:printers)
     endfor
     let s .= "}"
 
@@ -496,7 +502,9 @@ function! vimpire#edn#WriteFunc(thing)
     return "#vim/function " . vimpire#edn#Write(fnName)
 endfunction
 
-function! vimpire#edn#Write(thing)
+function! vimpire#edn#Write(thing, ...)
+    let printers = (a:0 > 0 ? a:1 : {})
+
     let t = type(a:thing)
 
     if a:thing is v:null
@@ -506,9 +514,9 @@ function! vimpire#edn#Write(thing)
     elseif t == v:t_number || t == v:t_float
         return vimpire#edn#WriteNumber(a:thing)
     elseif t == v:t_list
-        return vimpire#edn#WriteList(a:thing, "[")
+        return vimpire#edn#WriteList(a:thing, "[", printers)
     elseif t == v:t_dict
-        return vimpire#edn#WriteDict(a:thing)
+        return vimpire#edn#WriteDict(a:thing, printers)
     elseif t == v:t_string
         return vimpire#edn#WriteString(a:thing)
     elseif t == v:t_func

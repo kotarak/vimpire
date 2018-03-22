@@ -45,7 +45,7 @@ call vimpire#venom#Register(vimpire#sunscreen#Apply(
 This is an example of such a declaration by the “vimpire-complete” family.
 The high lord `vimpire.complete` will be known through out the House of Vim
 and other families may call upon him. The `compliment` branch of the
-family will leave in the House of Vim as well, however it shall be left
+family will live in the House of Vim as well, however it shall be left
 alone as if it was not there at all. To ensure this, the family is
 assigned a dedicated room and every element is transferred too the new
 space.

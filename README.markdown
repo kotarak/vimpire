@@ -28,7 +28,7 @@ yourself comfortable with Clojure, the JVM and Vim.
 
 # Requirements
 
-The plugin is ready to be used with pathogen.
+The plugin is ready to be used as a package.
 
 It uses channels, so you'll need a Vim 8 or later.
 
@@ -63,29 +63,25 @@ I created a small set of short demos:
 
 # FAQs
 
-## Hey, I'd like nifty feature X to be supported!
+- **Hey, I'd like nifty feature X to be supported!**<br>
+  Have fun implementing it. I'll support in providing extension points to
+  reuse Vimpire's infrastructure, but I don't care about including it in
+  Vimpire itself.
 
-Have fun implementing it. I'll support in providing extension points to
-reuse Vimpire's infrastructure, but I don't care about including it in
-Vimpire itself.
+- **Hey, why are there no default bindings set up?**<br>
+  Obviously the opinions are too different on this one. So pick your own
+  style.
 
-## Hey, why are there no default bindings set up?
+- **Hey, why is my repl messed up when I delete the prompt?**<br>
+  Because it's a buffer and not a terminal.
 
-Obviously the opinions are too different on this one. So pick your own
-style.
+- **Hey, why is the namespace loaded when I open a file? I got toplevel commands!**<br>
+  Don't have toplevel commands. Put them in a `(defn main …)` and use
+  `clj -m` to run the script. Starting the rockets on the toplevel is bad
+  style.
 
-## Hey, why is my repl messed up when I delete the prompt?
-
-Because it's a buffer and not a terminal.
-
-## Hey, why is the namespace loaded when I open a file? I got toplevel commands!
-
-Don't have toplevel commands. Put them in a `(defn main …)` and use
-`clj -m` to run the script. Starting the rockets on the toplevel is bad style.
-
-## Hey, your plugin sucks because X!
-
-Then don't use it.
+- **Hey, your plugin sucks because X!** <br>
+  Then don't use it.
 
 # Sources
 

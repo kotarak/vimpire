@@ -414,10 +414,10 @@ function! vimpire#repl#DeleteLast(this)
     normal! G
 
     while getline("$") !~ a:this.prompt
-        normal! dd
+        delete _
     endwhile
 
-    normal! dd
+    delete _
 endfunction
 
 " Elision Handling

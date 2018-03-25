@@ -20,7 +20,7 @@
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 ; THE SOFTWARE.
 
-(ns vimpire.nails
+(ns vimpire.actions
   (:require
     [vimpire.backend :as backend]
     [vimpire.util    :as util]

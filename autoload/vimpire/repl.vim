@@ -229,7 +229,7 @@ function! vimpire#repl#HandleException(this, response)
                 \ ])
 
     call vimpire#connection#Action(a:this.conn.sibling,
-                \ ":vimpire.nails/pprint-exception",
+                \ ":vimpire/pprint-exception",
                 \ {":ex": exToPrint},
                 \ { "eval": { val ->
                 \   vimpire#repl#WithProtectedPrompt(
@@ -331,7 +331,7 @@ function! vimpire#repl#EnterHookPrompt(this)
 
     call vimpire#connection#Action(
                 \ a:this.conn.sibling,
-                \ ":vimpire.nails/check-syntax",
+                \ ":vimpire/check-syntax",
                 \ {":nspace":  a:this.conn.namespace,
                 \  ":content": cmd},
                 \ {"eval":
@@ -534,7 +534,7 @@ function! s:ShowUpdatedElision(this)
                 \ vimpire#edn#Write(a:this.value.form, g:vimpire#repl#Printers))
 endfunction
 
-function! vimpire#repl#ExpandElisionCallback(this, id, val)
+function! s:ExpandElisionCallback(this, id, val)
     " If we got an elision literal, the elision could not
     " be resolved. There won't be a :get. Since vim has no
     " sets, we can safely set the contents here to v:null
@@ -564,8 +564,7 @@ function! vimpire#repl#ExpandElision(this, id)
     call vimpire#connection#Eval(a:this.conn.sibling,
                 \ vimpire#edn#Write(a:this.value.elisions[a:id]),
                 \ {"eval":
-                \  function("vimpire#repl#ExpandElisionCallback",
-                \    [a:this, a:id])})
+                \  function("s:ExpandElisionCallback", [a:this, a:id])})
 endfunction
 
 function! vimpire#repl#GetElisionId(word)

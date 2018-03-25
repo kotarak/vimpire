@@ -1,39 +1,39 @@
-#:vimpire.nails
+#:vimpire
 {:doc-lookup
- (vimpire.nails/doc-lookup #unrepl/param :nspace #unrepl/param :sym)
+ (vimpire.actions/doc-lookup #unrepl/param :nspace #unrepl/param :sym)
 
  :find-doc
- (vimpire.nails/find-doc #unrepl/param :query)
+ (vimpire.actions/find-doc #unrepl/param :query)
 
  :javadoc-path
- (vimpire.nails/javadoc-path #unrepl/param :nspace #unrepl/param :sym)
+ (vimpire.actions/javadoc-path #unrepl/param :nspace #unrepl/param :sym)
 
  :source-lookup
- (vimpire.nails/source-lookup #unrepl/param :nspace #unrepl/param :sym)
+ (vimpire.actions/source-lookup #unrepl/param :nspace #unrepl/param :sym)
 
  :source-location
- (vimpire.nails/source-location #unrepl/param :nspace #unrepl/param :sym)
+ (vimpire.actions/source-location #unrepl/param :nspace #unrepl/param :sym)
 
  :meta-lookup
- (vimpire.nails/meta-lookup #unrepl/param :nspace #unrepl/param :sym)
+ (vimpire.actions/meta-lookup #unrepl/param :nspace #unrepl/param :sym)
 
  :dynamic-highlighting
- (vimpire.nails/dynamic-highlighting #unrepl/param :nspace)
+ (vimpire.actions/dynamic-highlighting #unrepl/param :nspace)
 
  :namespace-of-file
- (vimpire.nails/namespace-of-file #unrepl/param :content)
+ (vimpire.actions/namespace-of-file #unrepl/param :content)
 
  :namespace-info
- (vimpire.nails/namespace-info #unrepl/param :content)
+ (vimpire.actions/namespace-info #unrepl/param :content)
 
  :macro-expand
- (vimpire.nails/macro-expand #unrepl/param :nspace #unrepl/param :form #unrepl/param :one?)
+ (vimpire.actions/macro-expand #unrepl/param :nspace #unrepl/param :form #unrepl/param :one?)
 
  :check-syntax
- (vimpire.nails/check-syntax #unrepl/param :nspace #unrepl/param :content)
+ (vimpire.actions/check-syntax #unrepl/param :nspace #unrepl/param :content)
 
  :run-tests
- (vimpire.nails/run-tests #unrepl/param :nspace #unrepl/param :all?)
+ (vimpire.actions/run-tests #unrepl/param :nspace #unrepl/param :all?)
 
  :pprint-exception
  (vimpire.pprint/pprint-exception #unrepl/param :ex)}

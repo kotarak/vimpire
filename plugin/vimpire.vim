@@ -36,27 +36,27 @@ let g:vimpire#Nil = []
 command! -nargs=? VimpireRepl call vimpire#repl#StartRepl(vimpire#connection#ForBuffer(), <f-args>)
 command! -nargs=* VimpireBite call vimpire#connection#RegisterPrefix(getcwd(), <f-args>)
 
-call vimpire#ui#MakeCommandPlug("n", "doc_lookup_word", "vimpire#backend#DocLookup", "expand(\"<cword>\")")
-call vimpire#ui#MakeCommandPlug("n", "doc_lookup_interactive", "vimpire#backend#DocLookup", "input(\"Symbol to look up: \")")
-call vimpire#ui#MakeCommandPlug("n", "javadoc_look_word", "vimpire#backend#JavadocLookup", "expand(\"<cword>\")")
-call vimpire#ui#MakeCommandPlug("n", "javadoc_look_interactive", "vimpire#backend#JavadocLookup", "input(\"Class to lookup: \")")
-call vimpire#ui#MakeCommandPlug("n", "find_doc", "vimpire#backend#FindDoc", "")
+call vimpire#ui#MakeCommandPlug("n", "doc_lookup_word", "vimpire#backend#doc#DocLookup", "expand(\"<cword>\")")
+call vimpire#ui#MakeCommandPlug("n", "doc_lookup_interactive", "vimpire#backend#doc#DocLookup", "input(\"Symbol to look up: \")")
+call vimpire#ui#MakeCommandPlug("n", "javadoc_look_word", "vimpire#backend#doc#JavadocLookup", "expand(\"<cword>\")")
+call vimpire#ui#MakeCommandPlug("n", "javadoc_look_interactive", "vimpire#backend#doc#JavadocLookup", "input(\"Class to lookup: \")")
+call vimpire#ui#MakeCommandPlug("n", "find_doc", "vimpire#backend#doc#FindDoc", "")
 
-call vimpire#ui#MakeCommandPlug("n", "source_lookup_word", "vimpire#backend#SourceLookup", "expand(\"<cword>\")")
-call vimpire#ui#MakeCommandPlug("n", "source_lookup_interactive", "vimpire#backend#SourceLookup", "input(\"Symbol to look up: \")")
+call vimpire#ui#MakeCommandPlug("n", "source_lookup_word", "vimpire#backend#doc#SourceLookup", "expand(\"<cword>\")")
+call vimpire#ui#MakeCommandPlug("n", "source_lookup_interactive", "vimpire#backend#doc#SourceLookup", "input(\"Symbol to look up: \")")
 
-call vimpire#ui#MakeCommandPlug("n", "goto_source_word", "vimpire#backend#GotoSource", "expand(\"<cword>\")")
-call vimpire#ui#MakeCommandPlug("n", "goto_source_interactive", "vimpire#backend#GotoSource", "input(\"Symbol to go to: \")")
+call vimpire#ui#MakeCommandPlug("n", "goto_source_word", "vimpire#backend#nav#GotoSource", "expand(\"<cword>\")")
+call vimpire#ui#MakeCommandPlug("n", "goto_source_interactive", "vimpire#backend#nav#GotoSource", "input(\"Symbol to go to: \")")
 
-call vimpire#ui#MakeCommandPlug("n", "require_file", "vimpire#backend#RequireFile", "0")
-call vimpire#ui#MakeCommandPlug("n", "require_file_all", "vimpire#backend#RequireFile", "1")
+call vimpire#ui#MakeCommandPlug("n", "require_file", "vimpire#backend#eval#RequireFile", "0")
+call vimpire#ui#MakeCommandPlug("n", "require_file_all", "vimpire#backend#eval#RequireFile", "1")
 
-call vimpire#ui#MakeCommandPlug("n", "run_tests", "vimpire#backend#RunTests", "0")
+call vimpire#ui#MakeCommandPlug("n", "run_tests", "vimpire#backend#test#RunTests", "0")
 
 " Operators
-nnoremap <Plug>(vimpire_eval) :set operatorfunc=vimpire#backend#EvalOperator<CR>g@
-nnoremap <Plug>(vimpire_macro_expand) :set operatorfunc=vimpire#backend#MacroExpand<CR>g@
-nnoremap <Plug>(vimpire_macro_expand1) :set operatorfunc=vimpire#backend#MacroExpand1<CR>g@
+nnoremap <Plug>(vimpire_eval) :set operatorfunc=vimpire#backend#eval#EvalOperator<CR>g@
+nnoremap <Plug>(vimpire_macro_expand) :set operatorfunc=vimpire#backend#eval#MacroExpand<CR>g@
+nnoremap <Plug>(vimpire_macro_expand1) :set operatorfunc=vimpire#backend#eval#MacroExpand1<CR>g@
 
 inoremap <Plug>(vimpire_repl_enter_hook) <Esc>:call vimpire#repl#EnterHook(b:vimpire_repl)<CR>
 inoremap <Plug>(vimpire_repl_evaluate) <Esc>G$:call vimpire#repl#EnterHook(b:vimpire_repl)<CR>
@@ -76,7 +76,7 @@ call vimpire#venom#Register(
             \   "vimpire",
             \   [s:Here . "/server/"],
             \   ["vimpire.util"],
-            \   ["vimpire.nails", "vimpire.backend", "vimpire.pprint"],
+            \   ["vimpire.actions", "vimpire.backend", "vimpire.pprint"],
             \   s:Here . "/actions.clj"))
 
 call vimpire#venom#Register(

@@ -108,5 +108,15 @@ function! vimpire#util#BufferName()
     return file
 endfunction
 
+function! vimpire#util#OpTextExtractor(type)
+    if a:type == "line"
+        normal! '[
+        return [line("."), col("."), vimpire#util#Yank("l", "normal! V']\"ly")]
+    else
+        normal! `[
+        return [line("."), col("."), vimpire#util#Yank("l", "normal! v`]\"ly")]
+    endif
+endfunction
+
 " Epilog
 let &cpo = s:save_cpo

@@ -2,6 +2,6 @@ venom/unrepl/blob.clj:
 	java -cp $(M2REPO)\org\clojure\clojure\1.8.0\clojure-1.8.0.jar;$(M2REPO)\net\cgrand\unrepl\0.1.0-SNAPSHOT\unrepl-0.1.0-SNAPSHOT.jar clojure.main -m unrepl.make-blob venom/unrepl/blob.clj
 
 clean:
-	rm -r venom
+	rm venom/unrepl/blob.clj
 
 .PHONY: clean

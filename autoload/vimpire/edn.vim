@@ -7,6 +7,7 @@ function! vimpire#edn#IsMagical(form, ...)
                     \ || has_key(a:form, "edn/map")
                     \ || has_key(a:form, "edn/symbol")
                     \ || has_key(a:form, "edn/keyword")
+                    \ || has_key(a:form, "edn/char")
                     \ || has_key(a:form, "edn/tag")
             return v:true
         endif
@@ -230,6 +231,13 @@ let s:CharacterCodes = {
             \ "tab":     "\t"
             \ }
 
+let s:ReverseCharacterCodes = {
+            \ "\n": "newline",
+            \ "\r": "return",
+            \ " ":  "space",
+            \ "\t": "tab"
+            \ }
+
 " FIXME: \uxxxx style unicode chars are missing.
 function! vimpire#edn#ReadCharacter(input)
     let result = matchstr(a:input, '^\\\(newline\|return\|space\|tab\|\S\)')
@@ -240,7 +248,7 @@ function! vimpire#edn#ReadCharacter(input)
         let result = s:CharacterCodes[result]
     endif
 
-    return [result, input]
+    return [{"edn/char": result}, input]
 endfunction
 
 function! vimpire#edn#ReadNamespacedMap(input)
@@ -439,6 +447,12 @@ function! vimpire#edn#WriteKeyword(kw)
                 \ . a:kw["edn/keyword"]
 endfunction
 
+" FIXME: \uxxxx character codes.
+function! vimpire#edn#WriteChar(char)
+    return '\' . get(s:ReverseCharacterCodes,
+                \ a:char["edn/char"], a:char["edn/char"])
+endfunction
+
 function! vimpire#edn#WriteDict(thing, printers)
     let thing = a:thing
 
@@ -476,6 +490,11 @@ function! vimpire#edn#WriteDict(thing, printers)
     " Special case: a symbol, not a string
     if vimpire#edn#IsMagical(thing, "edn/symbol")
         return vimpire#edn#WriteSymbol(thing)
+    endif
+
+    " Special case: a character, not a string
+    if vimpire#edn#IsMagical(thing, "edn/char")
+        return vimpire#edn#WriteChar(thing)
     endif
 
     " Special case: a map, not a vector
@@ -565,6 +584,9 @@ function! vimpire#edn#DoSimplifyLeaf(form)
     " Special case: Keywords are translated to strings.
     elseif vimpire#edn#IsMagical(a:form, "edn/keyword")
         return vimpire#edn#Write(a:form)
+    " Special case: Characters are translated to strings.
+    elseif vimpire#edn#IsMagical(a:form, "edn/char")
+        return a:form["edn/char"]
     " Other non-compound values, we can leave alone.
     else
         return a:form

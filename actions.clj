@@ -27,13 +27,12 @@
  (vimpire.actions/namespace-info #unrepl/param :content)
 
  :macro-expand
- (vimpire.actions/macro-expand #unrepl/param :nspace #unrepl/param :form #unrepl/param :one?)
+ (vimpire.actions/macro-expand #unrepl/param :nspace
+                               #unrepl/param :form
+                               #unrepl/param :one?)
 
  :check-syntax
  (vimpire.actions/check-syntax #unrepl/param :nspace #unrepl/param :content)
 
  :run-tests
- (vimpire.actions/run-tests #unrepl/param :nspace #unrepl/param :all?)
-
- :pprint-exception
- (vimpire.pprint/pprint-exception #unrepl/param :ex)}
+ (vimpire.actions/run-tests #unrepl/param :nspace #unrepl/param :all?)}

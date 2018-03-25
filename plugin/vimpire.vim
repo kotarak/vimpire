@@ -76,7 +76,7 @@ call vimpire#venom#Register(
             \   "vimpire",
             \   [s:Here . "/server/"],
             \   ["vimpire.util"],
-            \   ["vimpire.actions", "vimpire.backend", "vimpire.pprint"],
+            \   ["vimpire.actions", "vimpire.backend"],
             \   s:Here . "/actions.clj"))
 
 call vimpire#venom#Register(

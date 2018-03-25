@@ -214,36 +214,22 @@ function! vimpire#repl#HandleException(this, response)
     let stackTrace = []
     let incomplete = v:false
     for elem in ex[":trace"]
-        if vimpire#edn#IsTaggedLiteral(elem,
-                    \ vimpire#edn#Symbol("unrepl", "..."))
+        if vimpire#edn#IsTaggedLiteral(elem, s:ElisionSymbol)
             let incomplete = v:true
             break
         endif
 
         call add(stackTrace, vimpire#edn#Simplify(elem))
     endfor
+    let exToPrint = {"cause": ex[":cause"], "trace": stackTrace}
+    let toPrint   = vimpire#exc#PPrintException(exToPrint)
 
-    let exToPrint = vimpire#edn#Map([
-                \ [vimpire#edn#Keyword("cause"), ex[":cause"]],
-                \ [vimpire#edn#Keyword("trace"), stackTrace]
-                \ ])
-
-    call vimpire#connection#Action(a:this.conn.sibling,
-                \ ":vimpire/pprint-exception",
-                \ {":ex": exToPrint},
-                \ { "eval": { val ->
-                \   vimpire#repl#WithProtectedPrompt(
-                \     a:this,
-                \     function("vimpire#repl#ShowException",
-                \       [a:this, val, incomplete]))
-                \ }})
-endfunction
-
-function! vimpire#repl#ShowException(this, response, incomplete)
-    call vimpire#window#ShowText(a:this, a:response)
-    if a:incomplete
-        call vimpire#window#ShowText(a:this, "    ...")
+    if incomplete
+        let toPrint .= "\n    …"
     endif
+
+    call vimpire#repl#DeleteLastLineIfNecessary(a:this)
+    call vimpire#window#ShowText(a:this, toPrint)
 endfunction
 
 function! vimpire#repl#FindPrompt(this)

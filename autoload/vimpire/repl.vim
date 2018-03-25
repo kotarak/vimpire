@@ -426,15 +426,15 @@ let s:ElisionString = vimpire#edn#Symbol("unrepl", "string")
 let s:VimpireSplice = vimpire#edn#Symbol("unrepl", "splice")
 
 function! s:ExtractElisionsWorker(unit, elision)
-    if vimpire#edn#IsTaggedLiteral(a:elision, s:ElisionString)
+    if !vimpire#edn#IsTaggedLiteral(a:elision)
+        return a:elision
+    endif
+
+    if !vimpire#edn#IsTaggedLiteral(a:elision, s:ElisionSymbol)
         let el = copy(a:elision)
         let el["edn/value"] = vimpire#edn#Traverse(el["edn/value"],
                     \ function("s:ExtractElisionsWorker", [a:unit]))
         return el
-    endif
-
-    if !vimpire#edn#IsTaggedLiteral(a:elision, s:ElisionSymbol)
-        return a:elision
     endif
 
     " This is the elided map key.

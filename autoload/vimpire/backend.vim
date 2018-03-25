@@ -304,7 +304,7 @@ function! vimpire#backend#AsyncComplete(line, col, cont)
         return
     endif
 
-    let start  = a:col - strlen(prefix) + 1
+    let start  = a:col - strlen(prefix)
 
     let server = vimpire#connection#ForBuffer()
     call vimpire#connection#Action(

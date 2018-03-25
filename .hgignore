@@ -8,6 +8,9 @@ syntax: glob
 project.clj
 *_test.clj
 
+# Demos
+demos
+
 # Compliment
 venom/complete/.travis.yml
 venom/complete/doc

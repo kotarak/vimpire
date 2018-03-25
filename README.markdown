@@ -28,12 +28,13 @@ yourself comfortable with Clojure, the JVM and Vim.
 
 # Requirements
 
-The plugin is ready to be used as a package.
+The plugin is ready to be used as a package. Regarding package managers
+you'll have to figure things out yourself.
 
 It uses channels, so you'll need a Vim 8 or later.
 
 On the Clojure side, you have to provide a socket repl. That means
-either Clojure 1.8 or you'll have to backport the functionality, yourself.
+either Clojure 1.8 or you'll have to backport the functionality yourself.
 
 # Here be Dragons
 
@@ -48,18 +49,23 @@ Vimpire instances connecting to the same backend server. They share code
 in case of being of the same version. Otherwise they are completely
 separated.
 
+When you got fangs, the connection is ready. Be aware that the first
+connect is slow, because things have to be prepared like starting the
+side-loader and injecting the venom. Don't bother me with trivial
+nonsense like “start-up time.”
+
 # Demos
 
 I created a small set of short demos:
 
-* [Stalking the prey](https://kotka.de/vimpire/vimpire_connect.webm)
+* [Stalking the prey](https://kotka.de/vimpire/vimpire_bite.webm)
+* [Dynamic highlighting](https://kotka.de/vimpire/vimpire_dynamic_highlighting.webm)
 * [Documentation lookup](https://kotka.de/vimpire/vimpire_doclookup.webm)
-* [Goto source](https://kotka.de/vimpire/vimpire_goto_source.webm)
-* [Show source](https://kotka.de/vimpire/vimpire_show_source.webm)
-* [Eval and macro expand operators](https://kotka.de/vimpire/vimpire_operators.webm)
+* [Goto and show source](https://kotka.de/vimpire/vimpire_source_operators.webm)
+* [Eval operators](https://kotka.de/vimpire/vimpire_eval.webm)
+* [Macro expansion](https://kotka.de/vimpire/vimpire_macro_expansion.webm)
 * [Async completion](https://kotka.de/vimpire/vimpire_completion.webm)
 * [The repl](https://kotka.de/vimpire/vimpire_repl.webm)
-* [Elisions](https://kotka.de/vimpire/vimpire_elisions.webm)
 
 # FAQs
 
@@ -78,7 +84,7 @@ I created a small set of short demos:
 - **Hey, why is the namespace loaded when I open a file? I got toplevel commands!**<br>
   Don't have toplevel commands. Put them in a `(defn main …)` and use
   `clj -m` to run the script. Starting the rockets on the toplevel is bad
-  style.
+  style. There are exceptions. I don't optimise for exceptions.
 
 - **Hey, your plugin sucks because X!** <br>
   Then don't use it.

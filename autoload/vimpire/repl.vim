@@ -215,7 +215,7 @@ function! vimpire#repl#HandleException(this, response)
     let incomplete = v:false
     for elem in ex[":trace"]
         if vimpire#edn#IsTaggedLiteral(elem,
-                    \ vimpire#edn#Symbol("...", "unrepl"))
+                    \ vimpire#edn#Symbol("unrepl", "..."))
             let incomplete = v:true
             break
         endif
@@ -421,9 +421,9 @@ function! vimpire#repl#DeleteLast(this)
 endfunction
 
 " Elision Handling
-let s:ElisionSymbol = vimpire#edn#Symbol("...", "unrepl")
-let s:ElisionString = vimpire#edn#Symbol("string", "unrepl")
-let s:VimpireSplice = vimpire#edn#Symbol("splice", "vimpire")
+let s:ElisionSymbol = vimpire#edn#Symbol("unrepl", "...")
+let s:ElisionString = vimpire#edn#Symbol("unrepl", "string")
+let s:VimpireSplice = vimpire#edn#Symbol("unrepl", "splice")
 
 function! s:ExtractElisionsWorker(unit, elision)
     if vimpire#edn#IsTaggedLiteral(a:elision, s:ElisionString)

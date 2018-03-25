@@ -188,8 +188,7 @@ function! vimpire#sunscreen#ShadeActionsLeafs(namespaceShades,
             if a:form["edn/namespace"] =~ '^' . namespaces
                 let shadedNamespace = marker . "." . a:form["edn/namespace"]
                 call add(a:initNamespaces, shadedNamespace)
-                return vimpire#edn#Symbol(a:form["edn/symbol"],
-                            \ shadedNamespace)
+                return vimpire#edn#Symbol(shadedNamespace, a:form["edn/symbol"])
             endif
         endfor
 
@@ -201,8 +200,9 @@ function! vimpire#sunscreen#ShadeActionsLeafs(namespaceShades,
 
         for [marker, namespaces] in items(a:namespaceShades)
             if a:form["edn/namespace"] =~ '^' . namespaces
-                return vimpire#edn#Keyword(a:form["edn/keyword"],
-                            \ marker . "." . a:form["edn/namespace"])
+                return vimpire#edn#Keyword(
+                            \ marker . "." . a:form["edn/namespace"],
+                            \ a:form["edn/keyword"])
             endif
         endfor
 

@@ -104,7 +104,7 @@ function! vimpire#venom#Inject()
     let actions = vimpire#edn#Write(vimpire#edn#Map(actions))
     call map(uniq(sort(initNamespaces)), { idx_, nspace ->
                 \   vimpire#edn#List([
-                \     vimpire#edn#Symbol("symbol", "clojure.core"),
+                \     vimpire#edn#Symbol("clojure.core", "symbol"),
                 \     nspace
                 \   ])
                 \ })
@@ -113,7 +113,7 @@ function! vimpire#venom#Inject()
                 \ "actions":   actions,
                 \ "resources": resources,
                 \ "init":      vimpire#edn#Write(vimpire#edn#List([
-                \   vimpire#edn#Symbol("require", "clojure.core")
+                \   vimpire#edn#Symbol("clojure.core", "require")
                 \ ] + initNamespaces))}
 
     return g:vimpire#venom#Venom

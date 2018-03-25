@@ -162,11 +162,11 @@ endfunction
 function! vimpire#backend#RequireFile(all)
     let nspace = b:vimpire_namespace
     let cmd = vimpire#edn#List(
-                \ [vimpire#edn#Symbol("require"),
+                \ [vimpire#edn#Symbol("clojure.core", "require"),
                 \  vimpire#edn#Keyword(a:all ? "reload-all" : "reload"),
                 \  vimpire#edn#Keyword("verbose"),
                 \  vimpire#edn#List(
-                \   [vimpire#edn#Symbol("symbol"), nspace])])
+                \   [vimpire#edn#Symbol("clojure.core", "symbol"), nspace])])
 
     let server = vimpire#connection#ForBuffer()
 

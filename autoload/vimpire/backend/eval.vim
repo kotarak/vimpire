@@ -36,7 +36,7 @@ function! s:ShowClojureResultCallback(nspace, results)
         if unit.result[0] == "exception"
             let ex      = vimpire#exc#ReadResponse(unit.result[1])
             let toPrint = vimpire#exc#PPrintException(ex)
-            call extend(text, split(toPrint, '\t\?\n'))
+            call extend(text, split(toPrint, '\r\?\n'))
         else
             call extend(text, split(vimpire#edn#Write(unit.result[1]), '\r\?\n'))
         endif

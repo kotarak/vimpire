@@ -207,26 +207,8 @@ function! vimpire#repl#HandleEval(this, response)
 endfunction
 
 function! vimpire#repl#HandleException(this, response)
-    " Exceptions are tagged as #error.
-    let ex = vimpire#edn#SimplifyMap(a:response[1])[":ex"]["edn/value"]
-    let ex = vimpire#edn#SimplifyMap(ex)
-
-    let stackTrace = []
-    let incomplete = v:false
-    for elem in ex[":trace"]
-        if vimpire#edn#IsTaggedLiteral(elem, s:ElisionSymbol)
-            let incomplete = v:true
-            break
-        endif
-
-        call add(stackTrace, vimpire#edn#Simplify(elem))
-    endfor
-    let exToPrint = {"cause": ex[":cause"], "trace": stackTrace}
-    let toPrint   = vimpire#exc#PPrintException(exToPrint)
-
-    if incomplete
-        let toPrint .= "\n    …"
-    endif
+    let ex      = vimpire#exc#ReadResponse(a:response[1])
+    let toPrint = vimpire#exc#PPrintException(ex)
 
     call vimpire#repl#DeleteLastLineIfNecessary(a:this)
     call vimpire#window#ShowText(a:this, toPrint)

@@ -28,14 +28,18 @@ set cpo&vim
 function! s:ShowClojureResultCallback(nspace, results)
     let text = []
     for unit in a:results
-        echomsg string(unit)
         if len(unit.output) > 0
             for [event_, output] in unit.output
                 call extend(text, map(output, '"; " . v:val'))
             endfor
         endif
-        " FIXME: Handle exceptions
-        call extend(text, split(vimpire#edn#Write(unit.result[1]), '\r\?\n'))
+        if unit.result[0] == "exception"
+            let ex      = vimpire#exc#ReadResponse(unit.result[1])
+            let toPrint = vimpire#exc#PPrintException(ex)
+            call extend(text, split(toPrint, '\t\?\n'))
+        else
+            call extend(text, split(vimpire#edn#Write(unit.result[1]), '\r\?\n'))
+        endif
     endfor
 
     call vimpire#ui#ShowClojureResult(text, a:nspace)

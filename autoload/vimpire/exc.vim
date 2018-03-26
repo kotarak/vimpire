@@ -142,7 +142,32 @@ function! vimpire#exc#PPrintException(error)
         call extend(output, map(rest, '"    " . s:PrintTraceElement(v:val)'))
     endif
 
+    if a:error.incomplete
+        call add(output, "    …")
+    endif
+
     return join(output, "\n")
+endfunction
+
+let s:ElisionSymbol = vimpire#edn#Symbol("unrepl", "...")
+
+function! vimpire#exc#ReadResponse(response)
+    " Exceptions are tagged as #error.
+    let ex = vimpire#edn#SimplifyMap(a:response)[":ex"]["edn/value"]
+    let ex = vimpire#edn#SimplifyMap(ex)
+
+    let stackTrace = []
+    let incomplete = v:false
+    for elem in ex[":trace"]
+        if vimpire#edn#IsTaggedLiteral(elem, s:ElisionSymbol)
+            let incomplete = v:true
+            break
+        endif
+
+        call add(stackTrace, vimpire#edn#Simplify(elem))
+    endfor
+    return {"cause": ex[":cause"],
+                \ "trace": stackTrace, "incomplete": incomplete}
 endfunction
 
 " Epilog

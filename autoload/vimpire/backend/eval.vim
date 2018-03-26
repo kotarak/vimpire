@@ -65,7 +65,7 @@ function! vimpire#backend#eval#EvalWithPosition(server, fname, line, column,
     let nspace = a:server.namespace
 
     call vimpire#connection#Eval(a:server,
-                \ vimpire#ednWrite(vimpire#edn#List(
+                \ vimpire#edn#Write(vimpire#edn#List(
                 \   [vimpire#edn#Symbol("clojure.core", "in-ns"),
                 \    vimpire#edn#List(
                 \      [vimpire#edn#Symbol("clojure.core", "symbol"),
@@ -82,7 +82,7 @@ function! vimpire#backend#eval#EvalWithPosition(server, fname, line, column,
     call vimpire#connection#Eval(a:server, a:code, a:handlers)
 
     call vimpire#connection#Eval(a:server,
-                \ vimpire#ednWrite(vimpire#edn#List(
+                \ vimpire#edn#Write(vimpire#edn#List(
                 \   [vimpire#edn#Symbol("clojure.core", "in-ns"),
                 \    vimpire#edn#List(
                 \      [vimpire#edn#Symbol("clojure.core", "symbol"),

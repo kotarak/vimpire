@@ -55,8 +55,8 @@ call vimpire#ui#MakeCommandPlug("n", "run_tests", "vimpire#backend#test#RunTests
 
 " Operators
 nnoremap <Plug>(vimpire_eval) :set operatorfunc=vimpire#backend#eval#EvalOperator<CR>g@
-nnoremap <Plug>(vimpire_macro_expand) :set operatorfunc=vimpire#backend#eval#MacroExpand<CR>g@
-nnoremap <Plug>(vimpire_macro_expand1) :set operatorfunc=vimpire#backend#eval#MacroExpand1<CR>g@
+nnoremap <Plug>(vimpire_macro_expand) :set operatorfunc=vimpire#backend#macro#MacroExpand<CR>g@
+nnoremap <Plug>(vimpire_macro_expand1) :set operatorfunc=vimpire#backend#macro#MacroExpand1<CR>g@
 
 inoremap <Plug>(vimpire_repl_enter_hook) <Esc>:call vimpire#repl#EnterHook(b:vimpire_repl)<CR>
 inoremap <Plug>(vimpire_repl_evaluate) <Esc>G$:call vimpire#repl#EnterHook(b:vimpire_repl)<CR>

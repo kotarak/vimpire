@@ -190,11 +190,7 @@ function! vimpire#connection#UpgradeRepl(this, msg)
                         \  a:this.sibling.actions[":start-aux"],
                         \  {}))
         else
-            let starter = join(
-                        \   add(
-                        \     readfile(s:Location . "venom/unrepl/blob.clj"),
-                        \     a:this.venom.actions),
-                        \   "\n")
+            let starter = a:this.venom.blob . "\n" . a:this.venom.actions
         endif
 
         call vimpire#connection#Send(a:this.channel, starter)
@@ -278,12 +274,13 @@ function! vimpire#connection#HandleHello(this, response)
         let a:this.sideloader = vimpire#connection#NewSideloader(a:this)
 
         " Disable elisions for tooling repl.
+        let longMaxValue = vimpire#edn#Symbol("Long/MAX_VALUE")
         let action = vimpire#connection#Action(
                     \ a:this,
                     \ ":print-limits",
-                    \ {":unrepl.print/string-length": {"edn/symbol": "Long/MAX_VALUE"},
-                    \  ":unrepl.print/coll-length":   {"edn/symbol": "Long/MAX_VALUE"},
-                    \  ":unrepl.print/nesting-depth": {"edn/symbol": "Long/MAX_VALUE"}})
+                    \ {":unrepl/string-length": longMaxValue,
+                    \  ":unrepl/coll-length":   longMaxValue,
+                    \  ":unrepl/nesting-depth": longMaxValue})
 
         " Require the venom namespaces.
         call vimpire#connection#Eval(a:this, a:this.venom.init, {})

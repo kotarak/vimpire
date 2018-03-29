@@ -1,5 +1,5 @@
 (clojure.core/let [nop (clojure.core/constantly nil)
-e (clojure.core/atom (if (clojure.core/find-ns 'unrepl.repl$U$mkw7AvRGSTOOULgd9DtM5fINk) nop eval))]
+e (clojure.core/atom (if (clojure.core/find-ns 'unrepl.repl) nop eval))]
 (clojure.main/repl
 :read #(let [x (clojure.core/read)] (clojure.core/case x <<<FIN %2 x))
 :prompt nop
@@ -8,29 +8,33 @@ e (clojure.core/atom (if (clojure.core/find-ns 'unrepl.repl$U$mkw7AvRGSTOOULgd9D
 :caught #(do (set! *e %) (reset! e nop) (prn [:unrepl.upgrade/failed %]))))
 (ns unrepl.core
 (:refer-clojure :exclude [read eval print]))
-(def ^:once ^:private loaded-by "unrepl.repl$U$mkw7AvRGSTOOULgd9DtM5fINk")
+(def ^:once ^:private loaded-by "unrepl.repl")
 (def ^:once ^:dynamic *string-length* 80)
-(def ^:once ^:dynamic ^{:arglists '([x])} write "Atomically machine-prints its input to the output stream.")
+(def ^:once ^:dynamic ^{:arglists '([x]) :doc "Atomically machine-prints its input to the output stream."} write)
 (defn ^:once non-eliding-write "use with care" [x]
 (binding [*print-length* Long/MAX_VALUE
 *print-level* Long/MAX_VALUE
 *string-length* Long/MAX_VALUE]
 (write x)))
-(declare ^:once ^:dynamic read ^:once ^:dynamic print ^:once ^:dynamic eval)(ns unrepl.print$U$mkw7AvRGSTOOULgd9DtM5fINk
+(declare ^:once ^:dynamic read ^:once ^:dynamic print ^:once ^:dynamic eval)(ns unrepl.print
 (:require [clojure.string :as str]
 [clojure.edn :as edn]
 [clojure.main :as main]
 [unrepl.core :as unrepl]))
+(def ^:dynamic *print-budget*)
 (def defaults {#'*print-length* 10
 #'*print-level* 8
 #'unrepl/*string-length* 72})
 (defn ensure-defaults [bindings]
-(merge-with #(or %1 %2) bindings defaults))
+(let [bindings (merge-with #(or %1 %2) bindings defaults)]
+(assoc bindings #'*print-budget*
+(long (min (* 1N (bindings #'*print-level*) (bindings #'*print-length*)) Long/MAX_VALUE)))))
 (defprotocol MachinePrintable
 (-print-on [x write rem-depth]))
 (defn print-on [write x rem-depth]
-(let [rem-depth (dec rem-depth)]
-(if (and (neg? rem-depth) (or (nil? *print-length*) (pos? *print-length*)))
+(let [rem-depth (dec rem-depth)
+budget (set! *print-budget* (dec *print-budget*))]
+(if (and (or (neg? rem-depth) (neg? budget)) (pos? (or *print-length* 1)))
 (binding [*print-length* 0]
 (print-on write x 0))
 (do
@@ -89,7 +93,7 @@ true)
 (defmacro ^:private blame-seq [& body]
 `(try (seq ~@body)
 (catch Throwable t#
- (list (tagged-literal 'unrepl/lazy-error t#)))))
+(list (tagged-literal 'unrepl/lazy-error t#)))))
 (defn- may-print? [s]
 (or *realize-on-print* (not (instance? clojure.lang.IPending s)) (realized? s)))
 (declare ->ElidedKVs)
@@ -97,7 +101,7 @@ true)
 [write kvs rem-depth]
 (let [print-length *print-length*]
 (loop [kvs kvs i 0]
-(if (< i print-length)
+(if (and (< i print-length) (pos? *print-budget*))
 (when-some [[[k v] & kvs] (seq kvs)]
 (when (pos? i) (write ", "))
 (print-on write k rem-depth)
@@ -114,7 +118,7 @@ true)
 (loop [vs vs i 0]
 (when-some [[v :as vs] (blame-seq vs)]
 (when (pos? i) (write " "))
-(if (and (< i print-length) (may-print? vs))
+(if (and (< i print-length) (pos? *print-budget*) (may-print? vs))
 (if (and (tagged-literal? v) (= (:tag v) 'unrepl/lazy-error))
 (print-on write v rem-depth)
 (do
@@ -254,6 +258,7 @@ clojure.lang.TaggedLiteral
 unrepl/... (binding
 [*print-length* Long/MAX_VALUE
 *print-level* Long/MAX_VALUE
+*print-budget* Long/MAX_VALUE
 unrepl/*string-length* Long/MAX_VALUE]
 (write (str "#" (:tag x) " "))
 (print-on write (:form x) Long/MAX_VALUE))
@@ -328,22 +333,20 @@ Object
 (inc rem-depth)))))
 (defn edn-str [x]
 (let [out (java.io.StringWriter.)
-write (fn [^String s] (.write out s))]
-(print-on write
-(WithBindings.
-(into {#'*print-readably* true}
-(select-keys (get-thread-bindings) [#'*print-length* #'*print-level* #'unrepl/*string-length*]))
-x) 1)
+write (fn [^String s] (.write out s))
+bindings (select-keys (get-thread-bindings) [#'*print-length* #'*print-level* #'unrepl/*string-length*])]
+(with-bindings (into (ensure-defaults bindings) {#'*print-readably* true})
+(print-on write x *print-level*))
 (str out)))
 (defn full-edn-str [x]
 (binding [*print-length* Long/MAX_VALUE
 *print-level* Long/MAX_VALUE
 unrepl/*string-length* Integer/MAX_VALUE]
 (edn-str x)))
-(ns unrepl.repl$U$mkw7AvRGSTOOULgd9DtM5fINk
+(ns unrepl.repl
 (:require [clojure.main :as m]
 [unrepl.core :as unrepl]
-[unrepl.print$U$mkw7AvRGSTOOULgd9DtM5fINk :as p]
+[unrepl.print :as p]
 [clojure.edn :as edn]
 [clojure.java.io :as io]))
 (defn classloader
@@ -390,7 +393,7 @@ ex
 (defmacro blame [phase & body]
 `(try ~@body
 (catch Throwable t#
- (throw (blame-ex ~phase t#)))))
+(throw (blame-ex ~phase t#)))))
 (defn atomic-write [^java.io.Writer w]
 (fn [x]
 (let [s (blame :print (p/edn-str x))]
@@ -494,12 +497,12 @@ ref (java.lang.ref.SoftReference. x refq)]
 (defonce ^:private elision-store (soft-store #(list `fetch %)))
 (defn fetch [id]
 (if-some [[session-id x] ((:get elision-store) id)]
-(unrepl.print$U$mkw7AvRGSTOOULgd9DtM5fINk.WithBindings.
+(unrepl.print.WithBindings.
 (select-keys (some-> session-id session :bindings) [#'*print-length* #'*print-level* #'unrepl/*string-length* #'p/*elide*])
 (cond
-(instance? unrepl.print$U$mkw7AvRGSTOOULgd9DtM5fINk.ElidedKVs x) x
+(instance? unrepl.print.ElidedKVs x) x
 (string? x) x
-(instance? unrepl.print$U$mkw7AvRGSTOOULgd9DtM5fINk.MimeContent x) x
+(instance? unrepl.print.MimeContent x) x
 :else (seq x)))
 p/unreachable))
 (defn interrupt! [session-id eval]
@@ -599,7 +602,9 @@ request-prompt)))
 []
 (->> (edn/read {:default tagged-literal} *in*)
 (into {} (map (fn [[k v]]
-[k (if (and (seq? v) (symbol? (first v)) (namespace (first v)))
+[k (if (and (seq? v)
+(symbol? (first v))
+(namespace (first v)))
 `(do
 (require '~(symbol (namespace (first v))))
 ~v)
@@ -636,9 +641,9 @@ say-hello
 `(let [bak# {:unrepl.print/string-length unrepl/*string-length*
 :unrepl.print/coll-length *print-length*
 :unrepl.print/nesting-depth *print-level*}]
-(some->> ~(tagged-literal 'unrepl/param :unrepl.print/string-length) (set! unrepl/*string-length*))
-(some->> ~(tagged-literal 'unrepl/param :unrepl.print/coll-length) (set! *print-length*))
-(some->> ~(tagged-literal 'unrepl/param :unrepl.print/nesting-depth) (set! *print-level*))
+(some->> ~(tagged-literal 'unrepl/param :unrepl/string-length) (set! unrepl/*string-length*))
+(some->> ~(tagged-literal 'unrepl/param :unrepl/coll-length) (set! *print-length*))
+(some->> ~(tagged-literal 'unrepl/param :unrepl/nesting-depth) (set! *print-level*))
 bak#)
 :set-source
 `(set-file-line-col ~session-id
@@ -689,7 +694,6 @@ slcl (classloader cl
 (when-some [f (some-> session-state deref :side-loader deref)]
 (f k x))))]
 (swap! session-state assoc :class-loader slcl)
-(swap! session-state assoc :ext-session-actions ext-session-actions)
 (swap! sessions assoc session-id session-state)
 (binding [*out* (scheduled-writer :out unrepl/non-eliding-write)
 *err* (tagging-writer :err unrepl/non-eliding-write)
@@ -738,9 +742,9 @@ interrupted? #(.peek actions-queue)]
 (let [cl (.getContextClassLoader (Thread/currentThread))]
 (try
 (some->> session-id session :class-loader (.setContextClassLoader (Thread/currentThread)))
-(start (some->> session-id session :ext-session-actions))
+(start {})
 (finally
 (.setContextClassLoader (Thread/currentThread) cl)))))
 <<<FIN
 (clojure.core/ns user)
-(unrepl.repl$U$mkw7AvRGSTOOULgd9DtM5fINk/start (unrepl.repl$U$mkw7AvRGSTOOULgd9DtM5fINk/read-ext-session-actions))
+(unrepl.repl/start (unrepl.repl/read-ext-session-actions))

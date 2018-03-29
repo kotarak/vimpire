@@ -63,6 +63,7 @@ function! vimpire#venom#Inject()
     endfor
 
     " Step 3: Shade resources and actions.
+    let blob = g:vimpire#Nil
     let initNamespaces = []
     for vial in g:vimpire#venom#PoisonCabinet
         let localMarkers = copy(markers)
@@ -75,11 +76,31 @@ function! vimpire#venom#Inject()
                     \ vial.marker, vial.resources)
         let vial.resources = vimpire#sunscreen#ShadeResources(
                     \ localMarkers, vial.resources)
+
+        " Look out for the unrepl blob. It must not be base64 encoded.
+        for k in keys(vial.resources)
+            if k =~ 'unrepl/blob\.clj$'
+                if blob isnot g:vimpire#Nil
+                    throw "Vimpire: multiple unrepl blobs defined in resources!"
+                endif
+
+                let blob = vial.resources[k]
+                unlet vial.resources[k]
+
+                break
+            endif
+        endfor
+
         let vial.resources = vimpire#sunscreen#Base64EncodeResources(
                     \ vial.resources)
         let vial.actions = vimpire#sunscreen#ShadeActions(
                     \ localMarkers, initNamespaces, vial.actions)
     endfor
+
+    " Check that there is actually a blob.
+    if blob is g:vimpire#Nil
+        throw "Vimpire: no unrepl blob defined in venom!"
+    endif
 
     " Step 4: Distill the venom!
     let resources = {}
@@ -119,6 +140,7 @@ function! vimpire#venom#Inject()
     let g:vimpire#venom#Venom = {
                 \ "actions":   actions,
                 \ "resources": resources,
+                \ "blob":      blob,
                 \ "init":      vimpire#edn#Write(vimpire#edn#List([
                 \   vimpire#edn#Symbol("clojure.core", "require")
                 \ ] + initNamespaces))}

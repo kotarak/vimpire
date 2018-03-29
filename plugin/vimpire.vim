@@ -73,6 +73,14 @@ let s:Here = expand("<sfile>:p:h:h")
 
 call vimpire#venom#Register(
             \ vimpire#sunscreen#Apply(
+            \   "vimpire-unrepl",
+            \   [s:Here . "/venom/unrepl/src/"],
+            \   [],
+            \   ["unrepl.core", "unrepl.repl", "unrepl.print"],
+            \   g:vimpire#Nil))
+
+call vimpire#venom#Register(
+            \ vimpire#sunscreen#Apply(
             \   "vimpire-util",
             \   [s:Here . "/venom/util/src/"],
             \   ["vimpire.util"],

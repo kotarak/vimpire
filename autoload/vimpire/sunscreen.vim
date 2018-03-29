@@ -146,22 +146,44 @@ function! vimpire#sunscreen#ShadeResourceNames(marker, resources)
     return shadedResources
 endfunction
 
+function! vimpire#sunscreen#ShadeResourceWorker(shadedNamespaceRoots,
+            \ marker, content)
+    let markerDir = substitute(a:marker, '-', '_', 'g')
+    let classesToShade = substitute(a:shadedNamespaceRoots,
+                \ '-', '_', 'g')
+    let strsToShade = '"' . substitute(classesToShade, '\.', '/', 'g')
+
+    " Shade symbols.
+    let content = substitute(
+                \ a:content,
+                \ escape(a:shadedNamespaceRoots, '-.'),
+                \ a:marker . '.\1', 'g')
+
+    " Munge class names.
+    if classesToShade == a:shadedNamespaceRoots
+        let content = substitute(
+                    \ content,
+                    \ escape(a:marker, '-') . '\([a-z0-9._]\+\)\?\(\.[A-Z]\)',
+                    \ markerDir . '\1\2', 'g')
+    else
+        let content = substitute(content,
+                    \ escape(classesToShade, '.'),
+                    \ markerDir . '.\1', 'g')
+    endif
+
+    " Escape possible paths.
+    let content = substitute(content, strsToShade, '"' . markerDir . '/\1', 'g')
+
+    return content
+endfunction
+
 function! vimpire#sunscreen#ShadeResources(namespaceShades, resources)
     let shadedResources = copy(a:resources)
 
     for [ marker, shadedNamespaceRoots ] in items(a:namespaceShades)
-        let markerDir = substitute(marker, '-', '_', 'g')
-
-        let strsToShade = '"' . substitute(shadedNamespaceRoots,
-                    \ '\.', '/', 'g')
-
         call map(shadedResources, { resource_, content ->
-                    \   substitute(
-                    \     substitute(
-                    \       content,
-                    \       shadedNamespaceRoots,
-                    \       marker . '.\1', 'g'),
-                    \   strsToShade, '"' . markerDir . '/\1', 'g')
+                    \ vimpire#sunscreen#ShadeResourceWorker(
+                    \   shadedNamespaceRoots, marker, content)
                     \ })
     endfor
 

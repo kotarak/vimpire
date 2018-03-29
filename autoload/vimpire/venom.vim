@@ -32,7 +32,7 @@ function! vimpire#venom#Register(venom)
 endfunction
 
 function! vimpire#venom#NamespacesToRegex(namespaces)
-    return '\(' . escape(join(a:namespaces, '\|'), '.') . '\)'
+    return '\(' . join(a:namespaces, '\|') . '\)'
 endfunction
 
 function! vimpire#venom#Inject()

@@ -45,8 +45,15 @@ function! vimpire#venom#Inject()
     for vial in g:vimpire#venom#PoisonCabinet
         let vial.resources =
                     \ vimpire#sunscreen#GetResources(vial.roots)
-        let vial.actions =
-                    \ vimpire#edn#Read(join(readfile(vial.actions), "\n"))[0]
+
+        if vial.actions isnot g:vimpire#Nil
+            let vial.actions =
+                        \ vimpire#edn#Read(join(
+                        \   readfile(vial.actions), "\n"))[0]
+        else
+            let vial.actions = {}
+        endif
+
         let vial.marker =
                     \ vimpire#sunscreen#GenerateMarker(vial.resources)
         if len(vial.exposed) > 0

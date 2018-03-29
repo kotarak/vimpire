@@ -23,7 +23,12 @@
 (ns vimpire.util
   (:require
     [clojure.pprint :as pprint]
-    [clojure.stacktrace :as stacktrace]))
+    [clojure.stacktrace :as stacktrace])
+  (:import
+    clojure.lang.ISeq
+    clojure.lang.LineNumberingPushbackReader
+    clojure.lang.LispReader$ReaderException
+    java.io.StringReader))
 
 ; Common helpers
 (defn str-wrap
@@ -97,3 +102,39 @@
   defaults to simple printing."
   [e]
   (stacktrace/print-cause-trace e))
+
+(defn namespace-of-file
+  [content]
+  (let [of-interest '#{in-ns ns clojure.core/in-ns clojure.core/ns}
+        in-seq      (-> content
+                      StringReader.
+                      LineNumberingPushbackReader.
+                      stream->seq)
+        candidate   (first
+                      (drop-while #(or (not (instance? ISeq %))
+                                       (not (contains? of-interest (first %))))
+                                  in-seq))]
+    (cond
+      (not (instance? ISeq candidate))                 "user"
+      ('#{ns clojure.core/ns} (first candidate))       (name (second candidate))
+      ('#{in-ns clojure.core/in-ns} (first candidate)) (-> candidate
+                                                         second
+                                                         second
+                                                         name))))
+
+(defn check-syntax
+  [nspace content]
+  (let [nspace (resolve-and-load-namespace nspace)]
+    (binding [*ns* nspace]
+      (try
+        (let [eof (Object.)
+              rdr (LineNumberingPushbackReader. (StringReader. content))]
+          (loop [x nil]
+            (if (identical? x eof)
+              true
+              (recur (read rdr false eof)))))
+        (catch LispReader$ReaderException exc
+          (let [e (.getCause exc)]
+            (if (.startsWith (.getMessage e) "EOF while reading")
+              false
+              (throw exc))))))))

@@ -73,19 +73,59 @@ let s:Here = expand("<sfile>:p:h:h")
 
 call vimpire#venom#Register(
             \ vimpire#sunscreen#Apply(
-            \   "vimpire",
-            \   [s:Here . "/server/"],
+            \   "vimpire-util",
+            \   [s:Here . "/venom/util/src/"],
             \   ["vimpire.util"],
-            \   ["vimpire.actions", "vimpire.backend"],
-            \   s:Here . "/actions.clj"))
+            \   [],
+            \   s:Here . "/venom/util/actions.clj"))
 
 call vimpire#venom#Register(
             \ vimpire#sunscreen#Apply(
             \   "vimpire-complete",
             \   [s:Here . "/venom/complete/src/"],
-            \   ["vimpire.complete"],
-            \   ["compliment"],
+            \   [],
+            \   ["vimpire.complete", "compliment"],
             \   s:Here . "/venom/complete/actions.clj"))
+
+call vimpire#venom#Register(
+            \ vimpire#sunscreen#Apply(
+            \   "vimpire-doc",
+            \   [s:Here . "/venom/doc/src/"],
+            \   [],
+            \   ["vimpire.doc"],
+            \   s:Here . "/venom/doc/actions.clj"))
+
+call vimpire#venom#Register(
+            \ vimpire#sunscreen#Apply(
+            \   "vimpire-dynhighlight",
+            \   [s:Here . "/venom/dynhighlight/src/"],
+            \   [],
+            \   ["vimpire.dynhighlight"],
+            \   s:Here . "/venom/dynhighlight/actions.clj"))
+
+call vimpire#venom#Register(
+            \ vimpire#sunscreen#Apply(
+            \   "vimpire-macro",
+            \   [s:Here . "/venom/macro/src/"],
+            \   [],
+            \   ["vimpire.macro"],
+            \   s:Here . "/venom/macro/actions.clj"))
+
+call vimpire#venom#Register(
+            \ vimpire#sunscreen#Apply(
+            \   "vimpire-nav",
+            \   [s:Here . "/venom/nav/src/"],
+            \   [],
+            \   ["vimpire.nav"],
+            \   s:Here . "/venom/nav/actions.clj"))
+
+call vimpire#venom#Register(
+            \ vimpire#sunscreen#Apply(
+            \   "vimpire-test",
+            \   [s:Here . "/venom/test/src/"],
+            \   [],
+            \   ["vimpire.test"],
+            \   s:Here . "/venom/test/actions.clj"))
 
 " Epilog
 let &cpo = s:cpo_save

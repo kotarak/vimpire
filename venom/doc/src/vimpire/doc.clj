@@ -20,20 +20,18 @@
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 ; THE SOFTWARE.
 
-(ns vimpire.backend
+(ns vimpire.doc
   (:require
-    [vimpire.util :as util])
+    [vimpire.util :as util]
+    [clojure.java.io :as io])
   (:import
     clojure.lang.RT
-    java.io.File
-    java.io.FileInputStream
-    java.io.InputStreamReader
     java.io.LineNumberReader
     java.io.PushbackReader))
 
 ; Documentation:
 ; Mirror this from clojure 1.3 to allow backwards compatibility.
-(def ^{:private true} special-doc-map
+(def ^:private special-doc-map
   '{. {:url "java_interop#dot"
        :forms [(.instanceMember instance args*)
                (.instanceMember Classname args*)
@@ -89,18 +87,18 @@ fields, and Java class static fields."}
          :doc "The symbol must resolve to a var, and the Var object
 itself (not its value) is returned. The reader macro #'x expands to (var x)."}})
 
-(defn- special-doc
-  [namespace name-symbol]
+(defn ^:private special-doc
+  [nspace name-symbol]
   (assoc (or (special-doc-map name-symbol)
-             (meta (ns-resolve namespace name-symbol)))
+             (meta (ns-resolve nspace name-symbol)))
          :name name-symbol
          :special-form true))
 
-(defn- namespace-doc
+(defn ^:private namespace-doc
   [nspace]
   (assoc (meta nspace) :name (ns-name nspace)))
 
-(defn- print-documentation
+(defn ^:private print-documentation
   [m]
   (->> ["-------------------------"
         (str (when-let [ns (:ns m)] (str (ns-name ns) "/")) (:name m))
@@ -121,22 +119,20 @@ itself (not its value) is returned. The reader macro #'x expands to (var x)."}})
     (apply str)))
 
 (defn doc-lookup
-  "Lookup up the documentation for the given symbols in the given namespace.
-  The documentation is returned as a string."
-  [namespace symbol]
-  (if-let [special-name ('{& fn catch try finally try} symbol)]
-    (print-documentation (special-doc namespace special-name))
-    (condp #(%1 %2) symbol
-      special-doc-map           :>> (fn [_]
-                                      (print-documentation
-                                        (special-doc namespace symbol)))
-      find-ns                   :>> #(print-documentation (namespace-doc %))
-      #(ns-resolve namespace %) :>> #(print-documentation (meta %))
-      (str "'" symbol "' could not be found. Please check the spelling."))))
+  [nspace sym]
+  (let [nspace (util/resolve-and-load-namespace nspace)
+        sym    (symbol sym)]
+    (if-let [special-name ('{& fn catch try finally try} sym)]
+      (print-documentation (special-doc nspace special-name))
+      (condp #(%1 %2) sym
+        special-doc-map        :>> (fn [_]
+                                     (print-documentation
+                                       (special-doc nspace sym)))
+        find-ns                :>> #(print-documentation (namespace-doc %))
+        #(ns-resolve nspace %) :>> #(print-documentation (meta %))
+        (str "'" sym "' could not be found. Please check the spelling.")))))
 
-(defn find-documentation
-  "Prints documentation for any var whose documentation or name
-  contains a match for re-string-or-pattern"
+(defn find-doc
   [re-string-or-pattern]
   (let [re (re-pattern re-string-or-pattern)
         ms (concat (mapcat #(sort-by :name (map meta (vals (ns-interns %))))
@@ -151,51 +147,29 @@ itself (not its value) is returned. The reader macro #'x expands to (var x)."}})
       (.append sb (print-documentation m)))
     (str sb)))
 
-(defn javadoc-path-for-class
-  "Translate the name of a Class to the path of its javadoc file."
-  [x]
-  (-> x .getName (.replace \. \/) (.replace \$ \.) (str ".html")))
+(defn javadoc-path
+  [nspace sym]
+  (let [nspace (util/resolve-and-load-namespace nspace)]
+    )
+  (-> sym
+    symbol
+    (->> (ns-resolve nspace))
+    .getName
+    (.replace \. \/)
+    (.replace \$ \.)
+    (str ".html")))
 
-; Namespace Information:
-(defn meta-info
-  "Convert the meta data of the given Var into a map with the
-  values converted to strings."
-  [the-var]
-  (reduce #(assoc %1 (first %2) (str (second %2))) {} (meta the-var)))
-
-(defn symbol-info
-  "Creates a tree node containing the meta information of the Var named
-  by the fully qualified symbol."
-  [the-symbol]
-  (merge {:type "symbol" :name (name the-symbol)}
-         (meta-info (find-var the-symbol))))
-
-(defn var-info
-  "Creates a tree node containing the meta information of the given Var."
-  [the-var]
-  (merge {:type "var" :name (str the-var)} (meta-info the-var)))
-
-(defn ns-info
-  "Creates a tree node containing the information about the given namespace."
-  [the-namespace]
-  {:name (-> the-namespace ns-name name) :type "namespace"
-   :children (map #(-> % second var-info) (ns-interns the-namespace))})
-
-; Source lookup. Taken from clojure.contrib.repl-utils and modified to
-; take a Var instead of a symbol.
-(defn get-source
-  "Returns a string of the source code for the given Var, if it can
-  find it. This requires that the Var is defined in a namespace for
-  which the .clj is in the classpath. Returns nil if it can't find
-  the source."
-  [the-var]
-  (let [fname (:file (meta the-var))
-        file  (File. fname)
-        strm  (if (.isAbsolute file)
-                (FileInputStream. file)
-                (.getResourceAsStream (RT/baseLoader) fname))]
+(defn source-lookup
+  [nspace sym]
+  (let [nspace  (util/resolve-and-load-namespace nspace)
+        the-var (ns-resolve nspace (symbol sym))
+        fname   (:file (meta the-var))
+        file    (io/file fname)
+        strm    (if (.isAbsolute file)
+                  (io/input-stream file)
+                  (.getResourceAsStream (RT/baseLoader) fname))]
     (when strm
-      (with-open [rdr (LineNumberReader. (InputStreamReader. strm))]
+      (with-open [rdr (LineNumberReader. (io/reader strm))]
         (dotimes [_ (dec (:line (meta the-var)))] (.readLine rdr))
         (let [text (StringBuilder.)
               pbr (proxy [PushbackReader] [rdr]
@@ -204,12 +178,3 @@ itself (not its value) is returned. The reader macro #'x expands to (var x)."}})
                                i)))]
           (read (PushbackReader. pbr))
           (str text))))))
-
-; Source position
-(defn source-position
-  "Extract the position of the Var's source from its metadata."
-  [the-var]
-  (let [meta-info (meta the-var)
-        file      (:file meta-info)
-        line      (:line meta-info)]
-    {:file file :line line}))
